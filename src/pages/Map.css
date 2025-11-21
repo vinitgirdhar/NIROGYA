@@ -52,13 +52,13 @@
   color: #fff;
 }
 
-/* Google Maps Container */
-.map-container > div:last-child {
+/* Google Maps Container - Removed to prevent conflict with 3D Map UI */
+/* .map-container > div:last-child {
   width: 100% !important;
   height: 100% !important;
   margin-top: 80px;
   border-radius: 0;
-}
+} */
 
 /* Custom Google Maps Controls */
 .gm-style-iw {
