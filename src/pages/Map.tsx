@@ -327,7 +327,10 @@ export interface MapLocation {
       0.1,
       1000
     );
-    camera.position.set(0, 0, 3.5);
+    // Set initial position to India (default home)
+    const initialPos = latLonTo3D(20.5937, 78.9629, 3.5);
+    camera.position.copy(initialPos);
+    camera.lookAt(0, 0, 0);
     cameraRef.current = camera;
 
     // Renderer
@@ -451,7 +454,7 @@ export interface MapLocation {
       starGeometry.dispose();
       starMaterial.dispose();
     };
-  }, []);
+  }, [latLonTo3D]);
 
     // Add 3D markers for locations
   const addLocationMarkers3D = useCallback(() => {
@@ -554,10 +557,14 @@ export interface MapLocation {
   const resetToOrbitView = useCallback(() => {
     if (!cameraRef.current || !controlsRef.current) return;
     
-    // Resume auto-rotation
-    controlsRef.current.autoRotate = true;
+    // Reset controls target to center
+    controlsRef.current.target.set(0, 0, 0);
+    // Disable autoRotate during animation to prevent fighting
+    controlsRef.current.autoRotate = false;
+    controlsRef.current.update();
 
-    const targetPos = new THREE.Vector3(3.5, 1.5, 3.5);
+    // Reset camera to view India (approx lat: 20.5937, lon: 78.9629)
+    const targetPos = latLonTo3D(20.5937, 78.9629, 3.5);
     const startPos = cameraRef.current.position.clone();
     const duration = 1000;
     const startTime = Date.now();
@@ -570,9 +577,16 @@ export interface MapLocation {
         : 1 - Math.pow(-2 * progress + 2, 2) / 2;
 
       cameraRef.current!.position.lerpVectors(startPos, targetPos, eased);
+      cameraRef.current!.lookAt(0, 0, 0);
 
       if (progress < 1) {
         requestAnimationFrame(animateCamera);
+      } else {
+        // Re-enable auto-rotate after animation
+        if (controlsRef.current) {
+          controlsRef.current.autoRotate = true;
+          controlsRef.current.update();
+        }
       }
     };
 
@@ -582,7 +596,17 @@ export interface MapLocation {
       selectedMarkerRef.current.scale.setScalar(1);
       selectedMarkerRef.current = null;
     }
-  }, []);  // Play audio guide
+    setViewMode('3d');
+  }, [latLonTo3D]);
+
+  // Handle audio toggle
+  useEffect(() => {
+    if (!audioEnabled) {
+      speechSynthesis.cancel();
+    }
+  }, [audioEnabled]);
+
+  // Play audio guide
   const playAudioGuide = useCallback((location: MapLocation) => {
     if (!audioEnabled) return;
     
@@ -733,7 +757,7 @@ export interface MapLocation {
           left: 0,
           right: 0,
           zIndex: 1000,
-          background: isDark ? 'rgba(0, 21, 41, 0.9)' : 'rgba(0, 0, 0, 0.7)',
+          background: 'rgba(0, 0, 0, 0.7)',
           backdropFilter: 'blur(10px)',
           padding: '15px 20px',
           borderBottom: `1px solid rgba(255, 255, 255, 0.2)`
@@ -744,9 +768,12 @@ export interface MapLocation {
                 margin: 0, 
                 color: '#fff',
                 fontSize: '16px',
-                whiteSpace: 'nowrap'
+                whiteSpace: 'nowrap',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
               }}>
-                🌍 Global Health
+                <GlobalOutlined style={{ color: '#1890ff' }} /> Global Health
               </h2>
             </Col>
             
@@ -754,12 +781,13 @@ export interface MapLocation {
               <Button 
                 icon={<CompassOutlined />}
                 onClick={resetToOrbitView}
-                size="small"
+                size="middle"
                 style={{
                   background: 'rgba(255, 255, 255, 0.1)',
-                  borderColor: 'rgba(255, 255, 255, 0.3)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
                   color: '#fff',
-                  width: '100%'
+                  width: '100%',
+                  borderRadius: '6px'
                 }}
               >
                 Reset
@@ -772,7 +800,8 @@ export interface MapLocation {
                 onChange={setFilterType}
                 style={{ width: '100%' }}
                 placeholder="Type"
-                size="small"
+                size="middle"
+                dropdownStyle={{ background: 'rgba(0, 0, 0, 0.9)', border: '1px solid rgba(255, 255, 255, 0.2)' }}
               >
                 <Option value="all">All Types</Option>
                 <Option value="water_source">Water Source</Option>
@@ -790,7 +819,8 @@ export interface MapLocation {
                 onChange={setFilterStatus}
                 style={{ width: '100%' }}
                 placeholder="Status"
-                size="small"
+                size="middle"
+                dropdownStyle={{ background: 'rgba(0, 0, 0, 0.9)', border: '1px solid rgba(255, 255, 255, 0.2)' }}
               >
                 <Option value="all">All Statuses</Option>
                 <Option value="safe">Safe</Option>
@@ -801,14 +831,19 @@ export interface MapLocation {
             </Col>
             
             <Col xs={12} sm={4} md={3}>
-              <Switch
-                checked={audioEnabled}
-                onChange={setAudioEnabled}
-                checkedChildren="Audio"
-                unCheckedChildren="Mute"
-                size="small"
-                style={{ width: '100%' }}
-              />
+              <Button
+                onClick={() => setAudioEnabled(!audioEnabled)}
+                icon={audioEnabled ? <PlayCircleOutlined /> : <PauseOutlined rotate={90} />}
+                style={{
+                  background: audioEnabled ? 'rgba(24, 144, 255, 0.3)' : 'rgba(255, 255, 255, 0.1)',
+                  border: `1px solid ${audioEnabled ? '#1890ff' : 'rgba(255, 255, 255, 0.2)'}`,
+                  color: audioEnabled ? '#40a9ff' : '#fff',
+                  width: '100%',
+                  borderRadius: '6px'
+                }}
+              >
+                {audioEnabled ? 'Audio ON' : 'Audio OFF'}
+              </Button>
             </Col>
             
             <Col xs={24} sm={24} md={8}>
@@ -817,8 +852,12 @@ export interface MapLocation {
                   icon={<CompassOutlined />} 
                   onClick={() => selectedLocation && openDirections(selectedLocation)}
                   disabled={!selectedLocation}
-                  type="primary"
-                  ghost
+                  style={{
+                    background: selectedLocation ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.05)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    color: selectedLocation ? '#fff' : 'rgba(255, 255, 255, 0.3)',
+                    borderRadius: '6px'
+                  }}
                 >
                   Directions
                 </Button>
@@ -826,9 +865,14 @@ export interface MapLocation {
                   icon={<PlayCircleOutlined />} 
                   onClick={() => selectedLocation && playAudioGuide(selectedLocation)}
                   disabled={!selectedLocation || !audioEnabled}
-                  type="primary"
+                  style={{
+                    background: (selectedLocation && audioEnabled) ? 'rgba(24, 144, 255, 0.3)' : 'rgba(255, 255, 255, 0.05)',
+                    border: `1px solid ${(selectedLocation && audioEnabled) ? '#1890ff' : 'rgba(255, 255, 255, 0.2)'}`,
+                    color: (selectedLocation && audioEnabled) ? '#fff' : 'rgba(255, 255, 255, 0.3)',
+                    borderRadius: '6px'
+                  }}
                 >
-                  Play Audio Guide
+                  Play Guide
                 </Button>
               </Space>
             </Col>
