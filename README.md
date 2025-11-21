@@ -1,23 +1,11 @@
 # Nirogya - Smart Health Surveillance and Early Warning System# Getting Started with Create React App
-
-
-
 A comprehensive React-based web application for monitoring water-borne diseases in vulnerable communities, particularly designed for the Northeastern Region (NER) of India.This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 
-
 ## 🎯 Project Overview## Available Scripts
-
-
-
 Nirogya is a digital health platform that addresses the critical need for early detection and prevention of water-borne diseases such as diarrhea, cholera, typhoid, and hepatitis A in rural and tribal communities. The system provides real-time health surveillance, water quality monitoring, and community reporting capabilities.In the project directory, you can run:
 
-
-
 ## ✨ Key Features### `npm start`
-
-
-
 ### 1. **Health Surveillance Dashboard**Runs the app in the development mode.\
 
 - Real-time disease tracking and monitoringOpen [http://localhost:3000](http://localhost:3000) to view it in the browser.
@@ -57,8 +45,6 @@ Builds the app for production to the `build` folder.\
 - Contamination alerts and warnings
 
 - Parameter monitoring (pH, turbidity, bacterial count, chlorine levels)See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-
 
 ### 4. **Community Reporting Interface**### `npm run eject`
 
@@ -277,5 +263,295 @@ The application can be deployed to:
 
 **Nirogya** - *Safeguarding Community Health Through Technology*
 
-*Built with ❤️ for the Northeastern Region communities*#   n i r  
+*Built with ❤️ for the Northeastern Region communities*#   n i r 
  
+ 
+
+
+# Nirogya Project Setup Guide
+
+## Prerequisites
+
+Before starting, ensure you have the following installed on your system:
+
+1. **Python 3.11** (NOT 3.13 or any other version)
+2. **Node.js** (version 16 or higher)
+3. **npm** (comes with Node.js)
+4. **Git** (for version control)
+
+## Verifying Python Version
+
+First, check if you have Python 3.11 available:
+
+```powershell
+py -0
+```
+
+You should see Python 3.11 in the list. If not, download and install Python 3.11 from [python.org](https://www.python.org/downloads/).
+
+## Project Structure
+
+```
+Nirogya/
+├── backend/           # FastAPI backend
+├── src/              # React frontend source
+├── public/           # React public files
+├── package.json      # Frontend dependencies
+└── README.md         # This file
+```
+
+## Step-by-Step Setup Instructions
+
+### Step 1: Clone and Navigate to Project
+
+```powershell
+cd "C:\Users\hp\OneDrive\Desktop\Nirogya-a\Nirogya-initial\Nirogya"
+```
+
+### Step 2: Frontend Setup
+
+1. **Install Node.js dependencies:**
+   ```powershell
+   npm install
+   ```
+
+2. **Verify installation:**
+   ```powershell
+   npm list --depth=0
+   ```
+
+### Step 3: Backend Setup
+
+1. **Navigate to backend directory:**
+   ```powershell
+   cd backend
+   ```
+
+2. **Remove any existing virtual environment:**
+   ```powershell
+   Remove-Item -Recurse -Force venv -ErrorAction SilentlyContinue
+   ```
+
+3. **Create virtual environment with Python 3.11:**
+   ```powershell
+   py -3.11 -m venv venv
+   ```
+
+4. **Activate the virtual environment:**
+   ```powershell
+   .\venv\Scripts\activate
+   ```
+
+5. **Verify Python version (should show 3.11.x):**
+   ```powershell
+   python --version
+   ```
+
+6. **Install backend dependencies:**
+   ```powershell
+   python -m pip install -r requirements.txt
+   ```
+
+7. **Install additional required packages:**
+   ```powershell
+   pip install email-validator
+   pip install "pydantic[email]"
+   pip install "PyJWT[crypto]"
+   pip install passlib[bcrypt]
+   pip install bcrypt==4.0.1
+   ```
+
+8. **Navigate back to project root:**
+   ```powershell
+   cd ..
+   ```
+
+### Step 4: Environment Configuration
+
+1. **Check if .env file exists in backend directory:**
+   ```powershell
+   ls backend/.env
+   ```
+
+2. **If .env doesn't exist, create it:**
+   ```powershell
+   New-Item -Path "backend/.env" -ItemType File -Force
+   ```
+
+3. **Add basic environment variables to .env:**
+   ```
+   MONGODB_URI=mongodb://localhost:27017/nirogya
+   JWT_SECRET_KEY=your-secret-key-here
+   POLL_INTERVAL_SECONDS=5
+   ```
+
+### Step 5: Start the Application
+
+#### Terminal 1 - Backend Server
+
+1. **Open PowerShell and navigate to project root:**
+   ```powershell
+   cd "C:\Users\hp\OneDrive\Desktop\Nirogya-a\Nirogya-initial\Nirogya"
+   ```
+
+2. **Activate virtual environment:**
+   ```powershell
+   .\backend\venv\Scripts\activate
+   ```
+
+3. **Start backend server:**
+   ```powershell
+   uvicorn backend.app:app --reload --port 8000
+   ```
+
+   **Expected Output:**
+   ```
+   INFO: Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+   INFO: Started reloader process using WatchFiles
+   Predictor: model loaded from backend/models/disease_prediction_model.joblib
+   INFO: Started server process
+   INFO: Waiting for application startup.
+   Background poller started.
+   ML_READY = True
+   INFO: Application startup complete.
+   ```
+
+#### Terminal 2 - Frontend Server
+
+1. **Open a new PowerShell window and navigate to project root:**
+   ```powershell
+   cd "C:\Users\hp\OneDrive\Desktop\Nirogya-a\Nirogya-initial\Nirogya"
+   ```
+
+2. **Start frontend development server:**
+   ```powershell
+   npm start
+   ```
+
+   **Expected Output:**
+   ```
+   Compiled successfully!
+   You can now view nirogya in the browser.
+   Local:            http://localhost:3000
+   ```
+
+### Step 6: Verify Application is Running
+
+1. **Backend API:** Open http://localhost:8000/docs in your browser to see the FastAPI documentation
+2. **Frontend:** Open http://localhost:3000 in your browser to see the React application
+
+## Troubleshooting
+
+### Issue 1: "ModuleNotFoundError: No module named 'backend'"
+**Solution:** Make sure you're running uvicorn from the project root directory, not from inside the backend directory.
+
+### Issue 2: "ModuleNotFoundError: No module named 'jwt'"
+**Solution:** Install PyJWT with crypto support:
+```powershell
+pip install "PyJWT[crypto]"
+```
+
+### Issue 3: "email-validator is not installed"
+**Solution:** Install email validator:
+```powershell
+pip install email-validator
+pip install "pydantic[email]"
+```
+
+### Issue 4: Python version issues
+**Solution:** Ensure you're using Python 3.11:
+```powershell
+# Delete and recreate venv with correct Python version
+Remove-Item -Recurse -Force backend\venv
+cd backend
+py -3.11 -m venv venv
+.\venv\Scripts\activate
+python --version  # Should show 3.11.x
+```
+
+### Issue 5: Port already in use
+**Solution:** Kill existing processes:
+```powershell
+# Kill Node.js processes
+taskkill /F /IM node.exe /T
+
+# Kill Python processes
+taskkill /F /IM python.exe /T
+```
+
+## Development Workflow
+
+### Starting Development Session
+
+1. **Terminal 1 (Backend):**
+   ```powershell
+   cd "C:\Users\hp\OneDrive\Desktop\Nirogya-a\Nirogya-initial\Nirogya"
+   .\backend\venv\Scripts\activate
+   uvicorn backend.app:app --reload --port 8000
+   ```
+
+2. **Terminal 2 (Frontend):**
+   ```powershell
+   cd "C:\Users\hp\OneDrive\Desktop\Nirogya-a\Nirogya-initial\Nirogya"
+   npm start
+   ```
+
+### Stopping the Application
+
+- **Backend:** Press `Ctrl+C` in the backend terminal
+- **Frontend:** Press `Ctrl+C` in the frontend terminal
+
+## Project URLs
+
+- **Frontend Application:** http://localhost:3000
+- **Backend API Documentation:** http://localhost:8000/docs
+- **Backend API:** http://localhost:8000
+
+## Common Commands
+
+### Update Dependencies
+
+**Frontend:**
+```powershell
+npm update
+```
+
+**Backend:**
+```powershell
+.\backend\venv\Scripts\activate
+pip install --upgrade -r backend/requirements.txt
+```
+
+### Add New Dependencies
+
+**Frontend:**
+```powershell
+npm install package-name
+```
+
+**Backend:**
+```powershell
+.\backend\venv\Scripts\activate
+pip install package-name
+# Add to requirements.txt manually
+```
+
+## Notes
+
+- Always use Python 3.11 for the backend
+- Keep both servers running during development
+- The backend serves API endpoints while frontend serves the web interface
+- Hot reload is enabled for both frontend and backend development
+
+## Support
+
+If you encounter any issues not covered in this guide:
+
+1. Check that all prerequisites are installed correctly
+2. Verify Python version is 3.11
+3. Ensure all dependencies are installed
+4. Check that ports 3000 and 8000 are not being used by other applications
+
+---
+
+**Happy Coding! 🚀**

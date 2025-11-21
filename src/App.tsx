@@ -15,7 +15,9 @@ import Contact from './pages/Contact';
 import Dashboard from './pages/Dashboard';
 import HealthData from './pages/HealthData';
 import WaterQuality from './pages/WaterQuality';
+import Education from './pages/Education';
 //import Community from './pages/Community';
+import Alerts from './pages/Alerts';
 import CommunityChat from './pages/CommunityChat';
 import Map from './pages/Map';
 import Gallery from './pages/Gallery';
@@ -29,7 +31,6 @@ import SymptomReporting from './pages/SymptomReporting';
 
 import './App.css';
 import './locales';
-
 function App() {
   return (
     <AuthProvider>
@@ -147,17 +148,18 @@ function App() {
 
               {/* Alerts */}
               <Route path="/alerts" element={
-                <ProtectedRoute>
-                  <Layout type="dashboard">
-                    <div>Alerts Page (Coming Soon)</div>
-                  </Layout>
-                </ProtectedRoute>
-              } />
+              <ProtectedRoute>
+                <Layout type="dashboard">
+                  <Alerts />
+                </Layout>
+              </ProtectedRoute>
+            } />
+
 
               {/* Education */}
               <Route path="/education" element={
                 <PublicLayout>
-                  <div>Education Page (Coming Soon)</div>
+                    <Education />
                 </PublicLayout>
               } />
 
