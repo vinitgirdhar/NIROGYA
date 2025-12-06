@@ -1,689 +1,539 @@
-// WaterQuality.tsx
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+// src/pages/ReportWaterQuality.tsx
+import React, { useState, useEffect } from "react";
 import {
   Card,
-  Table,
-  Tag,
-  Button,
-  Space,
-  Modal,
-  Form,
-  Input,
-  InputNumber,
-  Select,
   Row,
   Col,
+  Button,
+  Form,
+  Input,
+  Select,
+  Slider,
   Statistic,
-  Progress,
-  message,
-  Switch
-} from 'antd';
-import {
-  PlusOutlined,
-  SyncOutlined,
-  ExperimentOutlined,
-  AlertOutlined,
-  CheckCircleOutlined,
-  ExclamationCircleOutlined
-} from '@ant-design/icons';
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
+  Tag,
+  Timeline,
   Tooltip,
-  Legend,
-  ResponsiveContainer
-} from 'recharts';
-import { useTranslation } from 'react-i18next';
-import { useTheme } from '../components/ThemeProvider';
-import type { ColumnsType } from 'antd/es/table';
-import './WaterQuality.css';
+  message,
+} from "antd";
+
+import {
+  RobotOutlined,
+  ExperimentOutlined,
+  WarningOutlined,
+  SyncOutlined,
+  CopyOutlined,
+} from "@ant-design/icons";
+
+import "./ReportWaterQuality.css";
 
 const { Option } = Select;
-const { TextArea } = Input;
 
-type WaterQualityData = {
-  id: string;
-  sourceId: string;
-  sourceName: string;
-  location: { lat: number; lng: number; address: string };
-  parameters: {
-    turbidity: number;
-    pH: number;
-    bacterialCount: number;
-    chlorine: number;
-    temperature: number;
-    tds?: number;
-    fluoride?: number;
-    nitrate?: number;
-    coliform?: number;
-  };
-  status: 'safe' | 'warning' | 'contaminated';
-  timestamp: Date | string;
-  testedBy: string;
+// ---------------------------------------------------
+// DISTRICT → LOCATION MAPPING
+// ---------------------------------------------------
+const districtLocations: Record<string, string[]> = {
+  "Kamrup Metro": ["Guwahati City", "Beltola", "Khanapara"],
+  Dibrugarh: ["Dibrugarh Town", "Chabua", "Moran"],
+  Cachar: ["Silchar", "Udharbond", "Srikona"],
+  Jorhat: ["Jorhat Town", "Teok", "Titabar"],
+  Sonitpur: ["Tezpur", "Dhekiajuli", "Balipara"],
 };
 
-const BACKEND_BASE = process.env.REACT_APP_API_URL || 'http://127.0.0.1:8000';
+// ---------------------------------------------------
+// DATA TYPE
+// ---------------------------------------------------
+interface WaterQualityData {
+  id?: string;
+  _id?: string;
+  report_id?: string;
 
-/**
- * Rule-based water quality status
- */
-const computeStatus = (vals: { pH: number; turbidity: number; bacterialCount: number; chlorine?: number }) => {
-  const { pH, turbidity, bacterialCount, chlorine } = vals;
+  location: string;
+  district: string;
+  timestamp: string;
 
-  const phVal = typeof pH === 'number' ? pH : NaN;
-  const turbVal = typeof turbidity === 'number' ? turbidity : NaN;
-  const bacVal = typeof bacterialCount === 'number' ? bacterialCount : NaN;
+  ph: number;
+  turbidity: number;
+  tds: number;
+  chlorine: number;
+  fluoride: number;
+  nitrate: number;
+  coliform: number;
+  temperature: number;
 
-  // Critical contaminated rules
-  if (!Number.isNaN(bacVal) && bacVal > 100) return 'contaminated';
-  if (!Number.isNaN(turbVal) && turbVal > 5) return 'contaminated';
-  if (!Number.isNaN(phVal) && (phVal < 6.0 || phVal > 9.0)) return 'contaminated';
+  primaryWaterSource?: string;
+  waterTreatment?: string[];
 
-  // Warning rules
-  if (!Number.isNaN(bacVal) && bacVal > 50) return 'warning';
-  if (!Number.isNaN(turbVal) && turbVal > 3) return 'warning';
-  if (!Number.isNaN(phVal) && (phVal < 6.5 || phVal > 8.5)) return 'warning';
-  if (typeof chlorine === 'number' && chlorine < 0.1) return 'warning';
-
-  return 'safe';
-};
-
-/**
- * buildTrendFromReports: convert backend water_reports to hourly averaged trend
- */
-function buildTrendFromReports(reports: any[]) {
-  const rows = (reports || []).map((r: any) => {
-    const tsRaw = r.meta?.received_at ?? r.created_at ?? r.timestamp ?? r.meta?.submitted_at;
-    const ts = tsRaw ? new Date(tsRaw) : new Date();
-    const pH = Number(r.pH ?? r.ph ?? r.parameters?.pH ?? 0);
-    const turbidity = Number(r.turbidity ?? r.parameters?.turbidity ?? 0);
-    const bacterial = Number(r.coliform ?? r.parameters?.bacterialCount ?? r.bacterialCount ?? 0);
-    return { ts, pH: isFinite(pH) ? pH : 0, turbidity: isFinite(turbidity) ? turbidity : 0, bacterial: isFinite(bacterial) ? bacterial : 0 };
-  });
-
-  const now = new Date();
-  const since = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-  const recent = rows.filter(r => r.ts >= since && r.ts <= now);
-
-  if (recent.length === 0) return [];
-
-  const buckets: Record<string, { pHSum: number; turbSum: number; bacSum: number; count: number; hourDate: Date }> = {};
-
-  recent.forEach(r => {
-    const d = r.ts;
-    const hourDate = new Date(d.getFullYear(), d.getMonth(), d.getDate(), d.getHours(), 0, 0);
-    const hourKey = hourDate.toISOString();
-    if (!buckets[hourKey]) buckets[hourKey] = { pHSum: 0, turbSum: 0, bacSum: 0, count: 0, hourDate: new Date(hourDate) };
-    buckets[hourKey].pHSum += r.pH;
-    buckets[hourKey].turbSum += r.turbidity;
-    buckets[hourKey].bacSum += r.bacterial;
-    buckets[hourKey].count += 1;
-  });
-
-  const sorted = Object.values(buckets).sort((a, b) => a.hourDate.getTime() - b.hourDate.getTime());
-
-  const trend = sorted.map(b => ({
-    time: b.hourDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    pH: +(b.pHSum / b.count).toFixed(2),
-    turbidity: +(b.turbSum / b.count).toFixed(2),
-    bacterial: Math.round(b.bacSum / b.count)
-  }));
-
-  return trend;
+  riskLevel?: "low" | "medium" | "high" | "critical";
 }
 
-const WaterQuality: React.FC = () => {
-  const { t } = useTranslation();
-  const { isDark } = useTheme();
+// ---------------------------------------------------
+// RISK LEVEL LOGIC
+// ---------------------------------------------------
+function deriveRiskLevel(d: Partial<WaterQualityData>): WaterQualityData["riskLevel"] {
+  const c = d.coliform ?? 0;
+  const t = d.turbidity ?? 0;
+
+  if (c > 100 || t > 80) return "critical";
+  if (c > 50 || t > 40) return "high";
+  if (c > 20 || t > 20) return "medium";
+  return "low";
+}
+
+function getRiskColor(risk?: string) {
+  switch (risk) {
+    case "critical":
+      return "#ff4d4f";
+    case "high":
+      return "#ff7a45";
+    case "medium":
+      return "#faad14";
+    case "low":
+      return "#52c41a";
+    default:
+      return "#999";
+  }
+}
+
+// ---------------------------------------------------
+// SHORTEN ID FOR UI
+// ---------------------------------------------------
+function shortReportId(id?: string) {
+  if (!id) return "-";
+  if (id.length <= 18) return id;
+  return `${id.slice(0, 10)}...${id.slice(-6)}`;
+}
+
+// ---------------------------------------------------
+// API CALL
+// ---------------------------------------------------
+async function postReport(payload: any) {
+  const res = await fetch("http://localhost:8000/report", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    throw new Error(await res.text());
+  }
+  return res.json();
+}
+
+// ---------------------------------------------------
+// COMPONENT
+// ---------------------------------------------------
+const ReportWaterQuality: React.FC = () => {
+  const [waterData, setWaterData] = useState<WaterQualityData[]>([]);
+  const [selectedDistrict, setSelectedDistrict] = useState<string>();
+  const [isSaving, setIsSaving] = useState(false);
   const [form] = Form.useForm();
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [sources, setSources] = useState<WaterQualityData[]>([]);
-  const [autoRefresh, setAutoRefresh] = useState(true);
-  const [chartTrend, setChartTrend] = useState<Array<{ time: string; pH: number; turbidity: number; bacterial: number }>>([]);
-  const autoRefreshRef = useRef<number | null>(null);
 
-  const fetchWaterReports = useCallback(async () => {
-    try {
-      const res = await fetch(`${BACKEND_BASE}/water_reports`);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
+  // ---------------------------------------------------
+  // FETCH EXISTING REPORTS
+  // ---------------------------------------------------
+  useEffect(() => {
+    async function load() {
+      try {
+        const res = await fetch("http://localhost:8000/water_reports?limit=200");
+        const docs = await res.json();
 
-      const mapped: WaterQualityData[] = (data || []).map((w: any, idx: number) => {
-        const pH = Number(w.pH ?? w.ph ?? 0);
-        const turbidity = Number(w.turbidity ?? 0);
-        const bacterialCount = Number(w.coliform ?? w.bacterialCount ?? 0);
-        const status = computeStatus({ pH, turbidity, bacterialCount, chlorine: Number(w.chlorine ?? 0) });
+        const mapped: WaterQualityData[] = docs.map((d: any) => ({
+          id: d._id || d.report_id,
+          _id: d._id,
+          report_id: d.report_id,
+          location: d.location,
+          district: d.district,
+          timestamp: d.created_at || new Date().toISOString(),
+          ph: Number(d.ph),
+          turbidity: Number(d.turbidity),
+          tds: Number(d.tds),
+          chlorine: Number(d.chlorine),
+          fluoride: Number(d.fluoride),
+          nitrate: Number(d.nitrate),
+          coliform: Number(d.coliform),
+          temperature: Number(d.temperature),
+          riskLevel: deriveRiskLevel(d),
+        }));
 
-        return {
-          id: String(w._id ?? idx),
-          sourceId: w.report_id ?? String(w._id ?? `WS${idx}`),
-          sourceName: String(w.primary_water_source ?? `Source ${idx + 1}`),
-          location: { lat: 0, lng: 0, address: String(w.location ?? w.village ?? 'Unknown') },
-          parameters: {
-            turbidity,
-            pH,
-            bacterialCount,
-            chlorine: Number(w.chlorine ?? 0),
-            temperature: Number(w.temperature ?? 0),
-            tds: Number(w.tds ?? 0),
-            fluoride: Number(w.fluoride ?? 0),
-            nitrate: Number(w.nitrate ?? 0),
-            coliform: Number(w.coliform ?? 0)
-          },
-          status,
-          timestamp: w.meta?.received_at ?? w.created_at ?? new Date().toISOString(),
-          testedBy: w.testedBy ?? 'Unknown'
-        };
-      });
-
-      setSources(mapped);
-
-      // build chart trend from raw backend docs
-      const trend = buildTrendFromReports(data || []);
-      setChartTrend(trend);
-    } catch (err) {
-      console.error('fetchWaterReports error', err);
-      message.error('Failed to fetch water reports from backend');
+        setWaterData(
+          mapped.sort(
+            (a, b) =>
+              new Date(b.timestamp).getTime() -
+              new Date(a.timestamp).getTime()
+          )
+        );
+      } catch (err) {
+        console.warn("Failed loading DB water reports", err);
+      }
     }
+
+    load();
   }, []);
 
-  useEffect(() => {
-    fetchWaterReports();
-
-    if (autoRefresh) {
-      autoRefreshRef.current = window.setInterval(() => {
-        fetchWaterReports();
-      }, 6000);
-    } else if (autoRefreshRef.current) {
-      window.clearInterval(autoRefreshRef.current);
-      autoRefreshRef.current = null;
-    }
-
-    return () => {
-      if (autoRefreshRef.current) {
-        window.clearInterval(autoRefreshRef.current);
-        autoRefreshRef.current = null;
-      }
-    };
-  }, [autoRefresh, fetchWaterReports]);
-
-  // hoisted function declaration so columns can use it safely anywhere
-  function viewDetails(source: WaterQualityData) {
-    Modal.info({
-      title: `Water Quality Details - ${source.sourceName}`,
-      content: (
-        <div className="water-details">
-          <Row gutter={[16, 16]}>
-            <Col span={12}>
-              <Statistic title="pH Level" value={source.parameters.pH} precision={1} />
-            </Col>
-            <Col span={12}>
-              <Statistic title="Turbidity" value={source.parameters.turbidity} suffix="NTU" precision={1} />
-            </Col>
-            <Col span={12}>
-              <Statistic title="Bacterial Count" value={source.parameters.bacterialCount} suffix="CFU/ml" />
-            </Col>
-            <Col span={12}>
-              <Statistic title="Chlorine" value={source.parameters.chlorine} suffix="mg/L" precision={1} />
-            </Col>
-          </Row>
-          <div style={{ marginTop: 16 }}>
-            <p><strong>Location:</strong> {source.location.address}</p>
-            <p><strong>Tested By:</strong> {source.testedBy}</p>
-            <p><strong>Test Date:</strong> {new Date(source.timestamp).toLocaleString()}</p>
-            <p><strong>Status:</strong> <Tag color={source.status === 'safe' ? 'green' : source.status === 'warning' ? 'orange' : 'red'}>{source.status.toUpperCase()}</Tag></p>
-          </div>
-        </div>
-      ),
-      width: 600,
-    });
-  }
-
-  const columns: ColumnsType<WaterQualityData> = [
-    {
-      title: 'Source Name',
-      dataIndex: 'sourceName',
-      key: 'sourceName',
-      render: (name: string, record: WaterQualityData) => (
-        <div>
-          <div className="source-name">{name}</div>
-          <div className="source-id">ID: {record.sourceId}</div>
-        </div>
-      ),
-    },
-    {
-      title: 'Location',
-      dataIndex: 'location',
-      key: 'location',
-      render: (location: any) => location.address,
-    },
-    {
-      title: 'pH Level',
-      dataIndex: 'parameters',
-      key: 'pH',
-      render: (params: any) => (
-        <span className={params.pH >= 6.5 && params.pH <= 8.5 ? 'param-safe' : 'param-danger'}>
-          {params.pH}
-        </span>
-      ),
-    },
-    {
-      title: 'Turbidity (NTU)',
-      dataIndex: 'parameters',
-      key: 'turbidity',
-      render: (params: any) => (
-        <span className={params.turbidity <= 3 ? 'param-safe' : params.turbidity <= 5 ? 'param-warning' : 'param-danger'}>
-          {params.turbidity}
-        </span>
-      ),
-    },
-    {
-      title: 'Bacterial Count',
-      dataIndex: 'parameters',
-      key: 'bacterialCount',
-      render: (params: any) => (
-        <span className={params.bacterialCount <= 50 ? 'param-safe' : params.bacterialCount <= 100 ? 'param-warning' : 'param-danger'}>
-          {params.bacterialCount} CFU/ml
-        </span>
-      ),
-    },
-    {
-      title: 'Status',
-      dataIndex: 'status',
-      key: 'status',
-      render: (status: string) => (
-        <Tag
-          color={status === 'safe' ? 'green' : status === 'warning' ? 'orange' : 'red'}
-          icon={
-            status === 'safe' ? <CheckCircleOutlined /> :
-            status === 'warning' ? <ExclamationCircleOutlined /> : <AlertOutlined />
-          }
-        >
-          {status.toUpperCase()}
-        </Tag>
-      ),
-    },
-    {
-      title: 'Last Tested',
-      dataIndex: 'timestamp',
-      key: 'timestamp',
-      render: (date: any) => {
-        const d = new Date(date);
-        return (
-          <div>
-            <div>{d.toLocaleDateString()}</div>
-            <div className="test-time">{d.toLocaleTimeString()}</div>
-          </div>
-        );
-      }
-    },
-    {
-      title: 'Actions',
-      key: 'actions',
-      render: (_, record) => (
-        <Space size="middle">
-          <Button
-            type="text"
-            icon={<ExperimentOutlined />}
-            onClick={() => viewDetails(record)}
-          >
-            Details
-          </Button>
-        </Space>
-      ),
-    },
-  ];
-
-  const showModal = () => {
-    form.resetFields();
-    setIsModalVisible(true);
-  };
-
+  // ---------------------------------------------------
+  // SAVE NEW REPORT
+  // ---------------------------------------------------
   const handleSubmit = async (values: any) => {
-    const payload = {
-      location: values.location,
-      pH: values.pH,
-      turbidity: values.turbidity,
-      tds: values.tds ?? 0,
-      chlorine: values.chlorine,
-      fluoride: values.fluoride ?? 0,
-      nitrate: values.nitrate ?? 0,
-      coliform: values.bacterialCount,
-      temperature: values.temperature,
-      primary_water_source: values.sourceType || 'Manual Test',
-      district: values.district || ''
-    };
+    setIsSaving(true);
+
     try {
-      const res = await fetch(`${BACKEND_BASE}/report`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      message.success('Water test result added and sent to backend');
-      setIsModalVisible(false);
+      const reportId = crypto.randomUUID();
+
+      const payload = {
+        water: {
+          ...values,
+          report_id: reportId,
+          primary_water_source: values.primaryWaterSource,
+          water_treatment: values.waterTreatment ?? [],
+        },
+        meta: {
+          submitted_at: new Date().toISOString(),
+          report_id: reportId,
+        },
+      };
+
+      await postReport(payload);
+
+      const newRecord: WaterQualityData = {
+        id: reportId,
+        report_id: reportId,
+        location: values.location,
+        district: values.district,
+        timestamp: new Date().toISOString(),
+        ph: Number(values.ph),
+        turbidity: Number(values.turbidity),
+        tds: Number(values.tds),
+        chlorine: Number(values.chlorine),
+        fluoride: Number(values.fluoride),
+        nitrate: Number(values.nitrate),
+        coliform: Number(values.coliform),
+        temperature: Number(values.temperature),
+        riskLevel: deriveRiskLevel(values),
+      };
+
+      setWaterData((prev) => [newRecord, ...prev]);
+
+      message.success("Report saved successfully");
       form.resetFields();
-      fetchWaterReports();
-    } catch (err) {
-      console.error(err);
-      message.error('Failed to send test result to backend');
+    } catch {
+      message.error("Failed to save report");
     }
+
+    setIsSaving(false);
   };
 
-  const refreshData = async () => {
-    message.loading('Refreshing water quality data...', 1);
-    await fetchWaterReports();
-    message.success('Data refreshed successfully');
+  // ---------------------------------------------------
+  // COPY REPORT ID
+  // ---------------------------------------------------
+  const copyID = (id?: string) => {
+    if (!id) return;
+    navigator.clipboard.writeText(id);
+    message.success("Copied!");
   };
 
-  const safeCount = sources.filter(s => s.status === 'safe').length;
-  const warningCount = sources.filter(s => s.status === 'warning').length;
-  const contaminatedCount = sources.filter(s => s.status === 'contaminated').length;
-
+  // ---------------------------------------------------
+  // VIEW
+  // ---------------------------------------------------
   return (
-    <div className="water-quality">
-      <div className="page-header">
-        <div>
-          <h1>{t('water.testResults')}</h1>
-          <p>Monitor water quality across all sources in real-time</p>
-        </div>
-        <Space>
-          <div className="auto-refresh">
-            <span>Auto Refresh:</span>
-            <Switch
-              checked={autoRefresh}
-              onChange={setAutoRefresh}
-              size="small"
-            />
-          </div>
-          <Button
-            icon={<SyncOutlined />}
-            onClick={refreshData}
-          >
-            Refresh
-          </Button>
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={showModal}
-            size="large"
-          >
-            {t('water.addTest')}
-          </Button>
-        </Space>
-      </div>
+    <div className="water-quality-wrapper">
+      <h2 className="page-title">
+        <RobotOutlined /> Water Quality Reporting
+      </h2>
 
-      {/* Statistics Cards */}
-      <Row gutter={[16, 16]} className="stats-row">
-        <Col xs={24} sm={8}>
-          <Card>
-            <Statistic
-              title="Safe Sources"
-              value={safeCount}
-              prefix={<CheckCircleOutlined />}
-              valueStyle={{ color: '#52c41a' }}
-            />
-            <Progress
-              percent={sources.length ? Math.round((safeCount / sources.length) * 100) : 0}
-              strokeColor="#52c41a"
-              showInfo={false}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={8}>
-          <Card>
-            <Statistic
-              title="Warning Sources"
-              value={warningCount}
-              prefix={<ExclamationCircleOutlined />}
-              valueStyle={{ color: '#faad14' }}
-            />
-            <Progress
-              percent={sources.length ? Math.round((warningCount / sources.length) * 100) : 0}
-              strokeColor="#faad14"
-              showInfo={false}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={8}>
-          <Card>
-            <Statistic
-              title="Contaminated Sources"
-              value={contaminatedCount}
-              prefix={<AlertOutlined />}
-              valueStyle={{ color: '#f5222d' }}
-            />
-            <Progress
-              percent={sources.length ? Math.round((contaminatedCount / sources.length) * 100) : 0}
-              strokeColor="#f5222d"
-              showInfo={false}
-            />
-          </Card>
-        </Col>
-      </Row>
-
-      {/* Water Quality Trends Chart */}
       <Row gutter={[16, 16]}>
+        {/* STATS SECTION */}
         <Col span={24}>
-          <Card title="Water Quality Trends (24 Hours)" className="chart-card">
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={chartTrend.length ? chartTrend : [
-                { time: '00:00', pH: 7.2, turbidity: 2.1, bacterial: 20 },
-                { time: '04:00', pH: 7.1, turbidity: 2.5, bacterial: 25 },
-                { time: '08:00', pH: 6.9, turbidity: 3.2, bacterial: 35 },
-                { time: '12:00', pH: 6.8, turbidity: 4.1, bacterial: 45 },
-                { time: '16:00', pH: 6.5, turbidity: 5.8, bacterial: 65 },
-                { time: '20:00', pH: 6.2, turbidity: 7.2, bacterial: 85 },
-              ]}>
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  stroke={isDark ? '#434343' : '#f0f0f0'}
+          <Row gutter={16}>
+            {/* Locations */}
+            <Col xs={24} sm={6}>
+              <Card className="stat-card">
+                <Statistic
+                  title="Locations Monitored"
+                  prefix={<ExperimentOutlined />}
+                  value={waterData.length}
                 />
-                <XAxis
-                  dataKey="time"
-                  tick={{ fill: isDark ? '#f0f0f0' : '#666' }}
-                  axisLine={{ stroke: isDark ? '#434343' : '#d9d9d9' }}
+              </Card>
+            </Col>
+
+            {/* High risk */}
+            <Col xs={24} sm={6}>
+              <Card className="stat-card">
+                <Statistic
+                  title="High Risk Areas"
+                  prefix={<WarningOutlined />}
+                  value={
+                    waterData.filter(
+                      (r) =>
+                        r.riskLevel === "critical" ||
+                        r.riskLevel === "high"
+                    ).length
+                  }
+                  valueStyle={{ color: "#ff4d4f" }}
                 />
-                <YAxis
-                  tick={{ fill: isDark ? '#f0f0f0' : '#666' }}
-                  axisLine={{ stroke: isDark ? '#434343' : '#d9d9d9' }}
+              </Card>
+            </Col>
+
+            {/* Last Report ID */}
+            <Col xs={24} sm={6}>
+              <Card className="stat-card">
+                <Statistic
+                  title="Last Report ID"
+                  prefix={<CopyOutlined />}
+                  value={shortReportId(waterData[0]?.report_id)}
                 />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: isDark ? '#1f1f1f' : '#fff',
-                    border: `1px solid ${isDark ? '#434343' : '#d9d9d9'}`,
-                    borderRadius: '6px',
-                    color: isDark ? '#f0f0f0' : '#000'
-                  }}
+              </Card>
+            </Col>
+
+            {/* Total Reports */}
+            <Col xs={24} sm={6}>
+              <Card className="stat-card">
+                <Statistic
+                  title="Total Reports"
+                  prefix={<SyncOutlined />}
+                  value={waterData.length}
                 />
-                <Legend />
-                <Line type="monotone" dataKey="pH" stroke="#8884d8" strokeWidth={2} />
-                <Line type="monotone" dataKey="turbidity" stroke="#82ca9d" strokeWidth={2} />
-                <Line type="monotone" dataKey="bacterial" stroke="#ffc658" strokeWidth={2} />
-              </LineChart>
-            </ResponsiveContainer>
+              </Card>
+            </Col>
+          </Row>
+        </Col>
+
+        {/* FORM SECTION */}
+        <Col xs={24} lg={12}>
+          <Card title="Submit Water Quality Report">
+            <Form layout="vertical" form={form} onFinish={handleSubmit}>
+              <Row gutter={16}>
+                {/* DISTRICT */}
+                <Col span={12}>
+                  <Form.Item
+                    name="district"
+                    label="District"
+                    rules={[{ required: true }]}
+                  >
+                    <Select
+                      placeholder="Select District"
+                      onChange={(value) => {
+                        setSelectedDistrict(value);
+                        form.setFieldsValue({ location: undefined });
+                      }}
+                    >
+                      {Object.keys(districtLocations).map((d) => (
+                        <Option key={d} value={d}>
+                          {d}
+                        </Option>
+                      ))}
+                    </Select>
+                  </Form.Item>
+                </Col>
+
+                {/* LOCATION */}
+                <Col span={12}>
+                  <Form.Item
+                    name="location"
+                    label="Location"
+                    rules={[{ required: true }]}
+                  >
+                    <Select placeholder="Select Location">
+                      {(districtLocations[selectedDistrict ?? ""] ?? []).map(
+                        (loc) => (
+                          <Option key={loc} value={loc}>
+                            {loc}
+                          </Option>
+                        )
+                      )}
+                    </Select>
+                  </Form.Item>
+                </Col>
+              </Row>
+
+              {/* INPUT ROWS */}
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item name="ph" label="pH" rules={[{ required: true }]}>
+                    <Slider min={0} max={14} step={0.1} />
+                  </Form.Item>
+                </Col>
+
+                <Col span={12}>
+                  <Form.Item
+                    name="turbidity"
+                    label="Turbidity"
+                    rules={[{ required: true }]}
+                  >
+                    <Input type="number" />
+                  </Form.Item>
+                </Col>
+              </Row>
+
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item name="tds" label="TDS" rules={[{ required: true }]}>
+                    <Input type="number" />
+                  </Form.Item>
+                </Col>
+
+                <Col span={12}>
+                  <Form.Item
+                    name="chlorine"
+                    label="Chlorine"
+                    rules={[{ required: true }]}
+                  >
+                    <Input type="number" />
+                  </Form.Item>
+                </Col>
+              </Row>
+
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item
+                    name="fluoride"
+                    label="Fluoride"
+                    rules={[{ required: true }]}
+                  >
+                    <Input type="number" />
+                  </Form.Item>
+                </Col>
+
+                <Col span={12}>
+                  <Form.Item
+                    name="nitrate"
+                    label="Nitrate"
+                    rules={[{ required: true }]}
+                  >
+                    <Input type="number" />
+                  </Form.Item>
+                </Col>
+              </Row>
+
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item
+                    name="coliform"
+                    label="Coliform"
+                    rules={[{ required: true }]}
+                  >
+                    <Input type="number" />
+                  </Form.Item>
+                </Col>
+
+                <Col span={12}>
+                  <Form.Item
+                    name="temperature"
+                    label="Temperature"
+                    rules={[{ required: true }]}
+                  >
+                    <Input type="number" />
+                  </Form.Item>
+                </Col>
+              </Row>
+
+              {/* Primary Water Source + Water Treatment */}
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item
+                    name="primaryWaterSource"
+                    label="Primary Water Source"
+                    rules={[{ required: true }]}
+                  >
+                    <Select placeholder="Select Source">
+                      <Option value="Municipal tap water">Municipal tap water</Option>
+                      <Option value="Well water">Well water</Option>
+                      <Option value="River water">River water</Option>
+                    </Select>
+                  </Form.Item>
+                </Col>
+
+                <Col span={12}>
+                  <Form.Item
+                    name="waterTreatment"
+                    label="Water Treatment"
+                    rules={[{ required: false }]}
+                  >
+                    <Select mode="multiple" placeholder="Select Treatment Methods">
+                      <Option value="Filtration">Filtration</Option>
+                      <Option value="Chlorination">Chlorination</Option>
+                      <Option value="UV Purification">UV Purification</Option>
+                    </Select>
+                  </Form.Item>
+                </Col>
+              </Row>
+
+              <Form.Item>
+                <Button
+                  type="primary"
+                  htmlType="submit"
+                  loading={isSaving}
+                  icon={<RobotOutlined />}
+                  block
+                >
+                  Save Report
+                </Button>
+              </Form.Item>
+            </Form>
+          </Card>
+        </Col>
+
+        {/* HISTORY SECTION */}
+        <Col xs={24} lg={12}>
+          <Card
+            title="Recent Reports (Latest 5)"
+            extra={<span style={{ color: "#888" }}>Scroll for more</span>}
+          >
+            <div style={{ maxHeight: 420, overflowY: "auto", paddingRight: 8 }}>
+              <Timeline>
+                {waterData.slice(0, 5).map((r) => (
+                  <Timeline.Item
+                    color={getRiskColor(r.riskLevel)}
+                    key={r.id}
+                  >
+                    <div className="report-entry">
+                      <div className="report-header">
+                        <strong>{r.location}</strong> — {r.district}
+
+                        {/* BEAUTIFUL PILL TAG */}
+                        <Tag
+                          style={{
+                            borderRadius: "12px",
+                            padding: "2px 10px",
+                            fontWeight: 600,
+                            fontSize: "12px",
+                            border: "none",
+                            color: "#fff",
+                            background: getRiskColor(r.riskLevel),
+                          }}
+                        >
+                          {r.riskLevel?.toUpperCase()}
+                        </Tag>
+                      </div>
+
+                      <div className="report-info">
+                        pH {r.ph}, Turbidity {r.turbidity}, Coliform{" "}
+                        {r.coliform}
+                      </div>
+
+                      <div className="report-time">
+                        {new Date(r.timestamp).toLocaleString()}
+                      </div>
+
+                      {r.report_id && (
+                        <Tooltip title="Copy Report ID">
+                          <div
+                            className="report-id"
+                            onClick={() => copyID(r.report_id)}
+                          >
+                            Report ID: <code>{shortReportId(r.report_id)}</code>
+                          </div>
+                        </Tooltip>
+                      )}
+                    </div>
+                  </Timeline.Item>
+                ))}
+              </Timeline>
+            </div>
           </Card>
         </Col>
       </Row>
-
-      {/* Water Sources Table */}
-      <Card title="Water Sources">
-        <Table
-          columns={columns}
-          dataSource={sources}
-          rowKey="id"
-          pagination={{
-            total: sources.length,
-            pageSize: 10,
-            showSizeChanger: true,
-          }}
-          scroll={{ x: 1000 }}
-        />
-      </Card>
-
-      {/* Add Test Result Modal */}
-      <Modal
-        title={t('water.addTest')}
-        open={isModalVisible}
-        onCancel={() => { setIsModalVisible(false); form.resetFields(); }}
-        footer={null}
-        width={800}
-      >
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleSubmit}
-        >
-          <Row gutter={[16, 16]}>
-            <Col xs={24} sm={12}>
-              <Form.Item
-                label={t('water.sourceName')}
-                name="sourceName"
-                rules={[{ required: true, message: 'Please enter source name' }]}
-              >
-                <Input placeholder="e.g., Main Well - Village A" />
-              </Form.Item>
-            </Col>
-            <Col xs={24} sm={12}>
-              <Form.Item
-                label="Location"
-                name="location"
-                rules={[{ required: true, message: 'Please enter location' }]}
-              >
-                <Input placeholder="Village/Area address" />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Row gutter={[16, 16]}>
-            <Col xs={24} sm={8}>
-              <Form.Item
-                label={t('water.pH')}
-                name="pH"
-                rules={[{ required: true, message: 'Please enter pH level' }]}
-              >
-                <InputNumber
-                  placeholder="6.5 - 8.5"
-                  style={{ width: '100%' }}
-                  min={0}
-                  max={14}
-                  step={0.1}
-                />
-              </Form.Item>
-            </Col>
-            <Col xs={24} sm={8}>
-              <Form.Item
-                label={t('water.turbidity')}
-                name="turbidity"
-                rules={[{ required: true, message: 'Please enter turbidity' }]}
-              >
-                <InputNumber
-                  placeholder="NTU"
-                  style={{ width: '100%' }}
-                  min={0}
-                  step={0.1}
-                />
-              </Form.Item>
-            </Col>
-            <Col xs={24} sm={8}>
-              <Form.Item
-                label={t('water.bacterial')}
-                name="bacterialCount"
-                rules={[{ required: true, message: 'Please enter bacterial count' }]}
-              >
-                <InputNumber
-                  placeholder="CFU/ml"
-                  style={{ width: '100%' }}
-                  min={0}
-                />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Row gutter={[16, 16]}>
-            <Col xs={24} sm={8}>
-              <Form.Item
-                label={t('water.chlorine')}
-                name="chlorine"
-                rules={[{ required: true, message: 'Please enter chlorine level' }]}
-              >
-                <InputNumber
-                  placeholder="mg/L"
-                  style={{ width: '100%' }}
-                  min={0}
-                  step={0.1}
-                />
-              </Form.Item>
-            </Col>
-            <Col xs={24} sm={8}>
-              <Form.Item
-                label={t('water.temperature')}
-                name="temperature"
-                rules={[{ required: true, message: 'Please enter temperature' }]}
-              >
-                <InputNumber
-                  placeholder="°C"
-                  style={{ width: '100%' }}
-                  min={0}
-                  max={50}
-                />
-              </Form.Item>
-            </Col>
-            <Col xs={24} sm={8}>
-              <Form.Item
-                label="Test Method"
-                name="sourceType"
-              >
-                <Select placeholder="Select test method">
-                  <Option value="Manual Test">Manual Test Kit</Option>
-                  <Option value="IoT Sensor">IoT Sensor</Option>
-                  <Option value="Laboratory">Laboratory Analysis</Option>
-                </Select>
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Form.Item
-            label="Tested By"
-            name="testedBy"
-          >
-            <Input placeholder="Name of person/device conducting test" />
-          </Form.Item>
-
-          <Form.Item
-            label="District"
-            name="district"
-          >
-            <Input placeholder="District name (used for model matching)" />
-          </Form.Item>
-
-          <Form.Item
-            label="Additional Notes"
-            name="notes"
-          >
-            <TextArea
-              rows={3}
-              placeholder="Any additional observations or notes"
-            />
-          </Form.Item>
-
-          <Form.Item>
-            <Space>
-              <Button type="primary" htmlType="submit">
-                Add Test Result
-              </Button>
-              <Button onClick={() => { setIsModalVisible(false); form.resetFields(); }}>
-                {t('common.cancel')}
-              </Button>
-            </Space>
-          </Form.Item>
-        </Form>
-      </Modal>
     </div>
   );
 };
 
-export default WaterQuality;
+export default ReportWaterQuality;

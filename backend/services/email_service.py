@@ -58,7 +58,7 @@ def send_otp_email(to_email: str, otp: str) -> bool:
         return True
     
     try:
-        params = {
+        params: resend.Emails.SendParams = {
             "from": "Nirogya <onboarding@resend.dev>",
             "to": [to_email],
             "subject": subject,
@@ -140,7 +140,7 @@ def send_water_alert_email(to_email: str, alert_data: dict) -> bool:
         return True
     
     try:
-        params = {
+        params: resend.Emails.SendParams = {
             "from": "Nirogya Alerts <onboarding@resend.dev>",
             "to": [to_email],
             "subject": subject,
@@ -173,7 +173,7 @@ def send_test_email(to_email: str) -> bool:
         return True
     
     try:
-        params = {
+        params: resend.Emails.SendParams = {
             "from": "Nirogya <onboarding@resend.dev>",
             "to": [to_email],
             "subject": subject,

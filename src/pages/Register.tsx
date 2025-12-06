@@ -1,19 +1,35 @@
+// src/pages/Register.tsx
 import React, { useState } from 'react';
-import { Form, Input, Button, Card, Typography, Select, Space, message, Divider } from 'antd';
-import { UserOutlined, LockOutlined, MailOutlined, PhoneOutlined, HomeOutlined, TeamOutlined, ArrowLeftOutlined } from '@ant-design/icons';
+import {
+  Form,
+  Input,
+  Button,
+  Card,
+  Typography,
+  Space,
+  message,
+  Divider,
+} from 'antd';
+import {
+  UserOutlined,
+  LockOutlined,
+  MailOutlined,
+  PhoneOutlined,
+  HomeOutlined,
+  TeamOutlined,
+  ArrowLeftOutlined,
+} from '@ant-design/icons';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import './Register.css';
 
 const { Title, Text } = Typography;
-const { Option } = Select;
 
 interface RegisterFormData {
   name: string;
   email: string;
   password: string;
   confirmPassword: string;
-  role: 'admin' | 'asha_worker' | 'volunteer' | 'healthcare_worker' | 'district_health_official' | 'government_body' | 'community_user';
   organization?: string;
   location?: string;
   phone?: string;
@@ -37,12 +53,13 @@ const Register: React.FC = () => {
         name: values.name,
         email: values.email,
         password: values.password,
-        role: values.role,
+        // 🔐 ROLE IS FIXED HERE – user cannot pick it
+        role: 'community_user',
         organization: values.organization,
         location: values.location,
-        phone: values.phone
+        phone: values.phone,
       });
-      
+
       if (success) {
         navigate('/dashboard');
       }
@@ -58,17 +75,17 @@ const Register: React.FC = () => {
       {/* Animated Background */}
       <div className="register-background" />
       <div className="register-background-overlay" />
-      
+
       {/* Floating Elements */}
       <div className="floating-elements">
         <div className="floating-element element-1">👤</div>
         <div className="floating-element element-2">🏥</div>
         <div className="floating-element element-3">🌐</div>
         <div className="floating-element element-4">💧</div>
-        <div className="floating-element element-5">🏘️</div>
+        <div className="floating-element element-5">🏘</div>
         <div className="floating-element element-6">🔐</div>
       </div>
-      
+
       <div className="register-container">
         <Card className="register-card" bordered={false}>
           {/* Back Button */}
@@ -79,9 +96,7 @@ const Register: React.FC = () => {
           <div className="register-header">
             {/* Logo with Animation */}
             <div className="logo-container">
-              <div className="logo-icon">
-                🌊
-              </div>
+              <div className="logo-icon">🌊</div>
               <div className="logo-waves">
                 <div className="wave wave-1"></div>
                 <div className="wave wave-2"></div>
@@ -89,7 +104,9 @@ const Register: React.FC = () => {
               </div>
             </div>
 
-            <Title level={2} className="register-title">Join Paani Care</Title>
+            <Title level={2} className="register-title">
+              Join Paani Care
+            </Title>
             <Text className="register-subtitle">
               Create your account to start protecting communities
             </Text>
@@ -110,11 +127,11 @@ const Register: React.FC = () => {
               name="name"
               rules={[
                 { required: true, message: 'Please input your full name!' },
-                { min: 2, message: 'Name must be at least 2 characters!' }
+                { min: 2, message: 'Name must be at least 2 characters!' },
               ]}
             >
-              <Input 
-                prefix={<UserOutlined className="input-icon" />} 
+              <Input
+                prefix={<UserOutlined className="input-icon" />}
                 placeholder="Enter your full name"
                 className="register-input"
               />
@@ -125,32 +142,17 @@ const Register: React.FC = () => {
               name="email"
               rules={[
                 { required: true, message: 'Please input your email!' },
-                { type: 'email', message: 'Please enter a valid email!' }
+                { type: 'email', message: 'Please enter a valid email!' },
               ]}
             >
-              <Input 
-                prefix={<MailOutlined className="input-icon" />} 
+              <Input
+                prefix={<MailOutlined className="input-icon" />}
                 placeholder="Enter your email"
                 className="register-input"
               />
             </Form.Item>
 
-            <Form.Item
-              label="Role"
-              name="role"
-              rules={[{ required: true, message: 'Please select your role!' }]}
-            >
-              <Select 
-                placeholder="Select your role"
-                className="register-select"
-              >
-                <Option value="community_user">🏘️ Community User</Option>
-                <Option value="asha_worker">👩‍⚕️ ASHA Worker</Option>
-                <Option value="district_health_official">🏛️ District Health Official</Option>
-                <Option value="government_body">🏢 Government Body</Option>
-                <Option value="admin">⚙️ Administrator</Option>
-              </Select>
-            </Form.Item>
+            {/* No Role Field here – backend forces community_user */}
 
             <div className="password-row">
               <Form.Item
@@ -159,8 +161,15 @@ const Register: React.FC = () => {
                 className="password-item"
                 rules={[
                   { required: true, message: 'Please input your password!' },
-                  { min: 6, message: 'Password must be at least 6 characters!' },
-                  { pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, message: 'Password must contain uppercase, lowercase and number!' }
+                  {
+                    min: 6,
+                    message: 'Password must be at least 6 characters!',
+                  },
+                  {
+                    pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
+                    message:
+                      'Password must contain uppercase, lowercase and number!',
+                  },
                 ]}
               >
                 <Input.Password
@@ -182,7 +191,9 @@ const Register: React.FC = () => {
                       if (!value || getFieldValue('password') === value) {
                         return Promise.resolve();
                       }
-                      return Promise.reject(new Error('Passwords do not match!'));
+                      return Promise.reject(
+                        new Error('Passwords do not match!'),
+                      );
                     },
                   }),
                 ]}
@@ -195,12 +206,9 @@ const Register: React.FC = () => {
               </Form.Item>
             </div>
 
-            <Form.Item
-              label="Organization (Optional)"
-              name="organization"
-            >
-              <Input 
-                prefix={<TeamOutlined className="input-icon" />} 
+            <Form.Item label="Organization (Optional)" name="organization">
+              <Input
+                prefix={<TeamOutlined className="input-icon" />}
                 placeholder="Enter your organization"
                 className="register-input"
               />
@@ -212,8 +220,8 @@ const Register: React.FC = () => {
                 name="location"
                 className="details-item"
               >
-                <Input 
-                  prefix={<HomeOutlined className="input-icon" />} 
+                <Input
+                  prefix={<HomeOutlined className="input-icon" />}
                   placeholder="City, State"
                   className="register-input"
                 />
@@ -224,8 +232,8 @@ const Register: React.FC = () => {
                 name="phone"
                 className="details-item"
               >
-                <Input 
-                  prefix={<PhoneOutlined className="input-icon" />} 
+                <Input
+                  prefix={<PhoneOutlined className="input-icon" />}
                   placeholder="+91-XXXXXXXXXX"
                   className="register-input"
                 />
@@ -233,9 +241,9 @@ const Register: React.FC = () => {
             </div>
 
             <Form.Item>
-              <Button 
-                type="primary" 
-                htmlType="submit" 
+              <Button
+                type="primary"
+                htmlType="submit"
                 loading={loading}
                 className="register-button"
                 block
@@ -248,10 +256,14 @@ const Register: React.FC = () => {
 
           <Divider />
 
-          {/* Social Registration */}
+          {/* Social Registration (can later be disabled or hooked to OAuth) */}
           <div className="social-section">
             <Text className="social-text">Or register with</Text>
-            <Space direction="horizontal" size="middle" style={{ width: '100%', justifyContent: 'center' }}>
+            <Space
+              direction="horizontal"
+              size="middle"
+              style={{ width: '100%', justifyContent: 'center' }}
+            >
               <Button className="social-button google" icon="G">
                 Google
               </Button>
@@ -266,16 +278,24 @@ const Register: React.FC = () => {
 
           <div className="register-footer">
             <Text className="login-text">
-              Already have an account? 
-              <Link to="/login" className="login-link">Sign in here</Link>
+              Already have an account?
+              <Link to="/login" className="login-link">
+                Sign in here
+              </Link>
             </Text>
-            
+
             <div className="footer-links">
-              <Link to="/privacy" className="footer-link">Privacy Policy</Link>
+              <Link to="/privacy" className="footer-link">
+                Privacy Policy
+              </Link>
               <span className="separator">•</span>
-              <Link to="/terms" className="footer-link">Terms of Service</Link>
+              <Link to="/terms" className="footer-link">
+                Terms of Service
+              </Link>
               <span className="separator">•</span>
-              <Link to="/help" className="footer-link">Help Center</Link>
+              <Link to="/help" className="footer-link">
+                Help Center
+              </Link>
             </div>
           </div>
         </Card>

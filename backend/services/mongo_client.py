@@ -13,7 +13,7 @@ _client = motor.motor_asyncio.AsyncIOMotorClient(MONGO_URI)
 db = _client[DB_NAME]
 
 # existing collections
-symptom_col = db["symptom_reports"]
+symptom_col = db["symptoms_reports"]  # Updated to match database collection name
 water_col = db["water_reports"]
 prediction_col = db["prediction_reports"]
 raw_col = db["raw_reports"]

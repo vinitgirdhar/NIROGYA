@@ -30,11 +30,11 @@ def serialize_bson(obj):
         except Exception:
             return str(obj)
 
-    if isinstance(obj, (np.integer, np.int64, np.int32)):
+    if hasattr(np, 'integer') and isinstance(obj, np.integer):  # type: ignore
         return int(obj)
-    if isinstance(obj, (np.floating, np.float64, np.float32)):
+    if hasattr(np, 'floating') and isinstance(obj, np.floating):  # type: ignore
         return float(obj)
-    if isinstance(obj, np.bool_):
+    if hasattr(np, 'bool_') and isinstance(obj, np.bool_):
         return bool(obj)
 
     if isinstance(obj, (str, bool, type(None), numbers.Number)):
@@ -58,13 +58,16 @@ from fastapi import FastAPI, Body, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-# Use absolute imports (backend package) so uvicorn backend.app:app works reliably
+# Correct imports (no backend.)
 from backend.services.mongo_client import symptom_col, water_col, prediction_col, raw_col
-from backend.services.predictor import predict_disease, _model as LOADED_MODEL
+from backend.services.predictor import predict_disease, _model as _ml_model
 from backend.services.merger import merge_and_predict_and_store
+
 from backend.auth.routes import router as auth_router
 from backend.auth.otp_routes import router as otp_router
 from backend.auth.alert_routes import router as alert_router
+from backend.routes.hotspots import router as hotspots_router
+from backend.routes.district_stats import router as district_router
 
 # CONFIG
 POLL_INTERVAL_SECONDS = int(os.getenv("POLL_INTERVAL_SECONDS", "5"))
@@ -88,12 +91,14 @@ app.add_middleware(
 )
 
 # mount auth routes
-app.include_router(auth_router)
+app.include_router(auth_router)       # <--- FIXED (login/register working now)
 app.include_router(otp_router)
 app.include_router(alert_router)
+app.include_router(hotspots_router)
+app.include_router(district_router)
 
 # ML availability flag
-ML_READY = True if LOADED_MODEL is not None else False
+ML_READY = _ml_model is not None
 
 # --------------------------
 # Pydantic model for /predict
