@@ -11,11 +11,11 @@ interface FeatureItemProps {
 
 const FeatureItem: React.FC<FeatureItemProps> = ({ text }) => {
   return (
-    <div className="flex items-start gap-3">
-      <div className="mt-1 flex-shrink-0 w-5 h-5 rounded-full bg-blue-500/30 flex items-center justify-center">
-        <CheckCircle2 className="w-3.5 h-3.5 text-blue-200" />
+    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.6rem' }}>
+      <div style={{ marginTop: '0.15rem', flexShrink: 0, width: '1.1rem', height: '1.1rem', borderRadius: '50%', backgroundColor: 'rgba(59, 130, 246, 0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <CheckCircle2 style={{ width: '0.75rem', height: '0.75rem', color: '#bfdbfe' }} />
       </div>
-      <span className="text-blue-50 font-medium">{text}</span>
+      <span style={{ color: '#eff6ff', fontWeight: 500, fontSize: '0.925rem' }}>{text}</span>
     </div>
   );
 };
@@ -128,34 +128,49 @@ const Login: React.FC = () => {
   ];
 
   return (
-    <div className="login-page-new min-h-screen w-full flex flex-col md:flex-row bg-white font-sans text-slate-800">
+    <div className="login-page-new" style={{ minHeight: '100vh', width: '100%', display: 'flex', flexDirection: 'row', backgroundColor: 'white' }}>
       
       {/* LEFT PANEL - BRANDING & INFO */}
-      <div className="login-left-panel w-full md:w-1/2 lg:w-5/12 bg-gradient-to-br from-blue-600 to-indigo-800 text-white p-8 md:p-12 flex flex-col justify-between relative overflow-hidden">
+      <div 
+        className="login-left-panel" 
+        style={{ 
+          width: '42%', 
+          background: 'linear-gradient(to bottom right, #2563eb, #4338ca)', 
+          color: 'white', 
+          padding: '2rem 2.5rem', 
+          display: 'flex', 
+          flexDirection: 'column', 
+          position: 'relative', 
+          overflow: 'hidden',
+          minHeight: '100vh'
+        }}
+      >
         {/* Abstract Background Shapes */}
-        <div className="absolute top-0 left-0 w-full h-full overflow-hidden opacity-10 pointer-events-none">
-          <div className="absolute -top-24 -left-24 w-96 h-96 rounded-full bg-white mix-blend-overlay blur-3xl"></div>
-          <div className="absolute bottom-0 right-0 w-80 h-80 rounded-full bg-blue-400 mix-blend-overlay blur-3xl"></div>
+        <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', overflow: 'hidden', opacity: 0.1, pointerEvents: 'none' }}>
+          <div style={{ position: 'absolute', top: '-6rem', left: '-6rem', width: '24rem', height: '24rem', borderRadius: '50%', backgroundColor: 'white', filter: 'blur(64px)' }}></div>
+          <div style={{ position: 'absolute', bottom: 0, right: 0, width: '20rem', height: '20rem', borderRadius: '50%', backgroundColor: '#60a5fa', filter: 'blur(64px)' }}></div>
         </div>
 
-        <div className="relative z-10">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 bg-white/20 backdrop-blur-sm rounded-lg">
-              <Droplets className="w-8 h-8 text-white" />
+        {/* Logo */}
+        <div style={{ position: 'relative', zIndex: 10, flexShrink: 0, marginBottom: '2rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <div style={{ padding: '0.5rem', backgroundColor: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(4px)', borderRadius: '0.5rem' }}>
+              <Droplets style={{ width: '1.75rem', height: '1.75rem', color: 'white' }} />
             </div>
-            <h1 className="text-2xl font-bold tracking-tight">Nirogya</h1>
+            <h1 style={{ fontSize: '1.35rem', fontWeight: 700, letterSpacing: '-0.025em', margin: 0 }}>Nirogya</h1>
           </div>
         </div>
 
-        <div className="relative z-10 flex flex-col justify-center flex-grow py-12">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4 leading-tight">
+        {/* Main Content */}
+        <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', justifyContent: 'center', flexGrow: 1 }}>
+          <h2 style={{ fontSize: '1.875rem', fontWeight: 700, lineHeight: 1.3, margin: '0 0 0.75rem 0' }}>
             Community Health <br /> & Wellness Platform
           </h2>
-          <p className="text-blue-100 mb-8 text-lg max-w-md">
+          <p style={{ color: '#bfdbfe', marginBottom: '1.5rem', fontSize: '1rem', maxWidth: '24rem', margin: '0 0 1.5rem 0' }}>
             Join thousands of users monitoring their health and environment in real-time.
           </p>
 
-          <div className="space-y-4">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             <FeatureItem text="Real-time health data monitoring" />
             <FeatureItem text="Community-driven communication" />
             <FeatureItem text="Water quality analysis & tracking" />
@@ -163,18 +178,31 @@ const Login: React.FC = () => {
           </div>
         </div>
 
-        <div className="relative z-10 text-sm text-blue-200">
+        {/* Copyright - Fixed at bottom */}
+        <div style={{ position: 'relative', zIndex: 10, fontSize: '0.8rem', color: '#93c5fd', flexShrink: 0, marginTop: 'auto', paddingTop: '1rem' }}>
           © 2025 Nirogya Platform. All rights reserved.
         </div>
       </div>
 
       {/* RIGHT PANEL - LOGIN FORM */}
-      <div className="login-right-panel w-full md:w-1/2 lg:w-7/12 bg-white p-6 md:p-12 lg:p-20 flex flex-col justify-center overflow-y-auto">
-        <div className="max-w-md w-full mx-auto">
+      <div 
+        className="login-right-panel" 
+        style={{ 
+          width: '58%', 
+          backgroundColor: 'white', 
+          padding: '2.5rem 4rem', 
+          display: 'flex', 
+          flexDirection: 'column', 
+          justifyContent: 'center', 
+          overflowY: 'auto' 
+        }}
+      >
+        <div style={{ maxWidth: '24rem', width: '100%', margin: '0 auto' }}>
           
           <button 
             onClick={() => navigate('/')}
-            className="login-back-btn flex items-center text-slate-500 hover:text-blue-600 transition-colors mb-8 text-sm font-medium bg-transparent border-none cursor-pointer"
+            className="login-back-btn"
+            style={{ display: 'flex', alignItems: 'center', color: '#64748b', marginBottom: '2rem', fontSize: '0.875rem', fontWeight: 500, background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Home
