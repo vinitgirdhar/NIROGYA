@@ -25,5 +25,41 @@ users_col = db["users"]
 otp_col = db["email_otps"]
 alerts_col = db["water_alerts"]
 
+# ASHA workers collection
+asha_workers_col = db["asha_workers"]
+
+
 def get_db():
     return db
+
+
+async def create_or_update_asha_on_register(user_doc: dict):
+    """
+    Create or update an ASHA worker profile document when a user with role=asha_worker is created.
+    """
+    from datetime import datetime
+    
+    user_id = str(user_doc.get("_id"))
+    email = user_doc.get("email")
+    
+    existing = await asha_workers_col.find_one({"user_id": user_id})
+    
+    asha_doc = {
+        "user_id": user_id,
+        "name": user_doc.get("full_name"),
+        "email": email,
+        "phone": user_doc.get("phone"),
+        "location": user_doc.get("location"),
+        "organization": user_doc.get("organization"),
+        "status": "active",
+        "updated_at": datetime.utcnow(),
+    }
+    
+    if existing:
+        await asha_workers_col.update_one(
+            {"user_id": user_id},
+            {"$set": asha_doc}
+        )
+    else:
+        asha_doc["created_at"] = datetime.utcnow()
+        await asha_workers_col.insert_one(asha_doc)
