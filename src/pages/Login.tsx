@@ -81,9 +81,6 @@ const Login: React.FC = () => {
       const demoCredentials: Record<string, { email: string; password: string }> = {
         admin: { email: 'admin@paanicare.com', password: 'admin123' },
         asha_worker: { email: 'asha@paanicare.com', password: 'asha123' },
-        volunteer: { email: 'volunteer@paanicare.com', password: 'volunteer123' },
-        healthcare_worker: { email: 'healthcare@paanicare.com', password: 'healthcare123' },
-        district_health_official: { email: 'district@paanicare.com', password: 'district123' },
         government_body: { email: 'government@paanicare.com', password: 'government123' },
         community_user: { email: 'user@paanicare.com', password: 'user123' }
       };
@@ -121,9 +118,6 @@ const Login: React.FC = () => {
   const demoAccounts = [
     { role: 'admin', title: 'System Administrator', description: 'Full system access and management', color: '#ef4444' },
     { role: 'asha_worker', title: 'ASHA Worker', description: 'Community health worker access', color: '#22c55e' },
-    { role: 'volunteer', title: 'Community Volunteer', description: 'Volunteer coordination and support', color: '#3b82f6' },
-    { role: 'healthcare_worker', title: 'Healthcare Professional', description: 'Medical staff access and tools', color: '#a855f7' },
-    { role: 'district_health_official', title: 'District Health Official', description: 'Regional health oversight', color: '#f97316' },
     { role: 'government_body', title: 'Government Official', description: 'Policy and administrative access', color: '#ec4899' },
     { role: 'community_user', title: 'Community User', description: 'Report symptoms and view alerts', color: '#06b6d4' }
   ];

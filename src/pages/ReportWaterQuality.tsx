@@ -289,7 +289,7 @@ const WaterQualityPrediction: React.FC = () => {
     }
   };
 
-  // small chart data using riskLevel if available
+  // small chart data using riskLevel if avai le
   const chartData = {
     labels: waterData.slice(0, 10).reverse().map(d => new Date(d.timestamp).toLocaleDateString()),
     datasets: [

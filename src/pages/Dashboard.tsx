@@ -596,8 +596,6 @@ const Dashboard: React.FC = () => {
     case 'community_user':
       return <CommunityView />;
     case 'admin':
-    case 'healthcare_worker':
-    case 'district_health_official':
     case 'government_body':
     default:
       return <FullDashboard />;

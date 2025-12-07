@@ -19,9 +19,6 @@ interface User {
   role:
     | "admin"
     | "asha_worker"
-    | "volunteer"
-    | "healthcare_worker"
-    | "district_health_official"
     | "government_body"
     | "community_user";
   avatar?: string;
@@ -47,12 +44,17 @@ interface RegisterData {
   confirmPassword?: string;
 }
 
+interface RegisterResult {
+  success: boolean;
+  error?: string;
+}
+
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<boolean>;
-  register: (data: RegisterData) => Promise<boolean>;
+  register: (data: RegisterData) => Promise<boolean | RegisterResult>;
   logout: () => void;
   updateProfile: (data: Partial<User>) => Promise<boolean>;
   authHeaders: () => Record<string, string>;
@@ -214,13 +216,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   /* ---------------------------------------------------------
      REGISTER
   --------------------------------------------------------- */
-  const register = async (data: RegisterData): Promise<boolean> => {
+  const register = async (data: RegisterData): Promise<boolean | { success: boolean; error: string }> => {
     setLoading(true);
     try {
       // Ensure all required fields are present and clean
       if (!data.name || !data.email || !data.password) {
         message.error("Please fill in all required fields");
-        return false;
+        return { success: false, error: "Please fill in all required fields" };
       }
 
       const body = {
@@ -248,16 +250,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const e = await res.json().catch(() => ({}));
         console.error("Register error response:", e);
         
+        // Extract error message
+        let errorMessage = "Registration failed. Please try again.";
+        
         // Handle validation errors
         if (e.detail && Array.isArray(e.detail)) {
-          const errors = e.detail.map((err: any) => 
+          errorMessage = e.detail.map((err: any) => 
             `${err.loc?.join('.') || 'field'}: ${err.msg}`
           ).join(', ');
-          message.error(`Validation error: ${errors}`);
-        } else {
-          message.error(e.detail || "Registration failed. Please try again.");
+        } else if (e.detail) {
+          errorMessage = e.detail;
         }
-        return false;
+        
+        // Return error object for field-level display
+        return { success: false, error: errorMessage };
       }
 
       // Registration successful - parse response
@@ -276,8 +282,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return true;
     } catch (err) {
       console.error("Registration error:", err);
-      message.error("Registration failed. Please check your connection and try again.");
-      return false;
+      return { success: false, error: "Registration failed. Please check your connection and try again." };
     } finally {
       setLoading(false);
     }

@@ -1,17 +1,20 @@
 // src/pages/SymptomReporting.tsx
-import React, { useState } from 'react';
-import { Card, Form, Select, Input, Button, Row, Col, Typography, Space, message, Modal } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { Card, Form, Select, Input, Button, Row, Col, Typography, Space, message, Modal, Alert } from 'antd';
 import { 
   MedicineBoxOutlined, 
   UserOutlined,
   EnvironmentOutlined,
   AlertOutlined,
   PhoneOutlined,
-  CheckCircleOutlined
+  CheckCircleOutlined,
+  CloudOutlined,
+  WifiOutlined
 } from '@ant-design/icons';
 import { useAuth } from '../contexts/AuthContext';
 import './SymptomReporting.css';
-import { postReport } from '../api/report';
+import { useOfflineSync } from '../hooks/useOfflineSync';
+import OfflineIndicator from '../components/OfflineIndicator';
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -65,6 +68,10 @@ const SymptomReporting: React.FC = () => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [syncMessage, setSyncMessage] = useState<{ type: 'success' | 'info' | 'warning'; text: string } | null>(null);
+  
+  // Offline sync hook
+  const { isOnline, pendingCount, saveAndSync } = useOfflineSync();
 
   // build the nested payload expected by the backend
   const buildPatientPayload = (values: any) => {
@@ -92,26 +99,44 @@ const SymptomReporting: React.FC = () => {
 
   const handleSubmit = async (values: any) => {
     setLoading(true);
+    setSyncMessage(null);
 
     try {
-      // create structured payload and send to backend
+      // Create structured payload
       const { patient, meta } = buildPatientPayload(values);
       const payload = { patient, meta };
 
       console.debug("Submitting symptom payload:", payload);
 
-      const res = await postReport(payload); // postReport posts to http://localhost:8000/report
+      // Use offline-first approach: save locally and attempt sync
+      const result = await saveAndSync(payload);
 
-      console.debug("Backend response:", res);
+      if (!result.savedLocally) {
+        // This should rarely happen - IndexedDB issue
+        message.error('Failed to save report. Please try again.');
+        return;
+      }
 
-      // show success and possible emergency modal
-      const reportData: SymptomReport = {
+      // Determine success message based on sync status
+      if (result.synced) {
+        message.success('Symptom report submitted and synced successfully!');
+        setSyncMessage({ type: 'success', text: 'Report synced to server.' });
+      } else if (isOnline) {
+        // Online but sync failed - will retry
+        message.warning('Report saved! Sync failed but will retry automatically.');
+        setSyncMessage({ type: 'warning', text: 'Report saved offline. Will auto-sync shortly.' });
+      } else {
+        // Offline - saved locally
+        message.info('Report saved offline! It will auto-sync when internet is back.');
+        setSyncMessage({ type: 'info', text: 'You are offline. Report saved locally and will sync automatically.' });
+      }
+
+      // Handle urgent help modal
+      const reportData = {
         ...values,
         reportedBy: patient.reportedBy,
         urgentHelp: values.severity === 'critical' || values.severity === 'severe'
       };
-
-      message.success('Symptom report submitted successfully!');
 
       if (reportData.urgentHelp) {
         showEmergencyModal();
@@ -163,7 +188,25 @@ const SymptomReporting: React.FC = () => {
           <div className="success-content">
             <CheckCircleOutlined className="success-icon" />
             <Title level={3}>Report Submitted Successfully!</Title>
+            {syncMessage && (
+              <Alert
+                type={syncMessage.type}
+                message={syncMessage.text}
+                showIcon
+                style={{ marginBottom: 16 }}
+                icon={syncMessage.type === 'success' ? <CloudOutlined /> : <WifiOutlined />}
+              />
+            )}
             <Text>Your symptom report has been submitted and relevant authorities have been notified.</Text>
+            {pendingCount > 0 && (
+              <Alert
+                type="info"
+                message={`${pendingCount} report(s) pending sync`}
+                description="These will automatically sync when you're back online."
+                showIcon
+                style={{ marginTop: 16, marginBottom: 16 }}
+              />
+            )}
             <div className="next-steps">
               <Title level={4}>Next Steps:</Title>
               <ul>
@@ -190,6 +233,9 @@ const SymptomReporting: React.FC = () => {
         </Title>
         <Text>Report waterborne disease symptoms for immediate medical attention</Text>
       </div>
+
+      {/* Offline Status Indicator */}
+      <OfflineIndicator showSyncButton={true} />
 
       <Row gutter={[24, 24]}>
         <Col xs={24} lg={16}>
@@ -344,13 +390,20 @@ const SymptomReporting: React.FC = () => {
               </Form.Item>
 
               <Form.Item>
-                <Space>
-                  <Button type="primary" htmlType="submit" loading={loading} size="large">
-                    <AlertOutlined /> Submit Report
-                  </Button>
-                  <Button onClick={() => form.resetFields()}>
-                    Reset Form
-                  </Button>
+                <Space direction="vertical" style={{ width: '100%' }}>
+                  <Space>
+                    <Button type="primary" htmlType="submit" loading={loading} size="large">
+                      <AlertOutlined /> {isOnline ? 'Submit Report' : 'Save Offline'}
+                    </Button>
+                    <Button onClick={() => form.resetFields()}>
+                      Reset Form
+                    </Button>
+                  </Space>
+                  {!isOnline && (
+                    <Text type="warning" style={{ fontSize: 12 }}>
+                      <WifiOutlined /> You're offline. Report will be saved locally and synced automatically when online.
+                    </Text>
+                  )}
                 </Space>
               </Form.Item>
             </Form>

@@ -130,7 +130,7 @@ const baseMenuItems = [
   { key: '/reports', icon: <FileTextOutlined />, label: t('nav.reports'), badge: 0 },
   { key: '/government/manage-users', icon: <TeamOutlined />, label: 'Manage Users', badge: 0 },
   { key: '/government/manage-accounts', icon: <SettingOutlined />, label: 'Account Control', badge: 0 },
-
+  { key: '/asha-worker', icon: <UserOutlined />, label: 'Apply for ASHA Worker', badge: 0 },
 ];
 
 
@@ -148,19 +148,12 @@ const baseMenuItems = [
         // ASHA: dashboard, asha communication, report water, report symptoms, alerts, education, community
         return ['/', '/asha-communication', '/ai-prediction', '/report-symptoms', '/alerts', '/education', '/community'];
       case 'community_user':
-        return ['/community', '/alerts', '/education'];
-      case 'healthcare_worker':
-        return ['/', '/health', '/disease-mapping', '/alerts'];
-      case 'district_health_official':
-        return ['/', '/disease-mapping', '/health', '/alerts', '/reports'];
+        return ['/community', '/alerts', '/education', '/asha-worker'];
       case 'government_body':
       return [
           ...all.filter(k => !['/asha-communication', '/ai-prediction', '/report-symptoms'].includes(k)),
           '/government/manage-users'
       ];
-        return all.filter(k => !['/asha-communication', '/ai-prediction', '/report-symptoms'].includes(k));
-      case 'volunteer':
-        return ['/', '/community', '/report-symptoms', '/alerts', '/education'];
       default:
         return ['/'];
     }

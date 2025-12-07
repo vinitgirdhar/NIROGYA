@@ -46,6 +46,13 @@ interface RegisterFormData {
   phone?: string;
 }
 
+interface FieldErrors {
+  email?: string;
+  password?: string;
+  confirmPassword?: string;
+  name?: string;
+}
+
 const Register: React.FC = () => {
   const [formData, setFormData] = useState<RegisterFormData>({
     name: '',
@@ -59,50 +66,60 @@ const Register: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const { register } = useAuth();
   const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    // Clear field error when user starts typing
+    if (fieldErrors[name as keyof FieldErrors]) {
+      setFieldErrors(prev => ({ ...prev, [name]: undefined }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate required fields
-    if (!formData.name || !formData.name.trim()) {
-      message.error('Please enter your name');
-      return;
-    }
+    // Clear previous field errors
+    setFieldErrors({});
     
-    if (formData.name.trim().length < 2) {
-      message.error('Name must be at least 2 characters');
-      return;
+    // Validate required fields with inline errors
+    let hasErrors = false;
+    const errors: FieldErrors = {};
+    
+    if (!formData.name || !formData.name.trim()) {
+      errors.name = 'Please enter your name';
+      hasErrors = true;
+    } else if (formData.name.trim().length < 2) {
+      errors.name = 'Name must be at least 2 characters';
+      hasErrors = true;
     }
     
     if (!formData.email || !formData.email.trim()) {
-      message.error('Please enter your email');
-      return;
+      errors.email = 'Please enter your email';
+      hasErrors = true;
     }
     
     if (!formData.password) {
-      message.error('Please enter a password');
-      return;
-    }
-    
-    if (formData.password.length < 6) {
-      message.error('Password must be at least 6 characters');
-      return;
+      errors.password = 'Please enter a password';
+      hasErrors = true;
+    } else if (formData.password.length < 6) {
+      errors.password = 'Password must be at least 6 characters';
+      hasErrors = true;
     }
     
     if (!formData.confirmPassword) {
-      message.error('Please confirm your password');
-      return;
+      errors.confirmPassword = 'Please confirm your password';
+      hasErrors = true;
+    } else if (formData.password !== formData.confirmPassword) {
+      errors.confirmPassword = 'Passwords do not match!';
+      hasErrors = true;
     }
     
-    if (formData.password !== formData.confirmPassword) {
-      message.error('Passwords do not match!');
+    if (hasErrors) {
+      setFieldErrors(errors);
       return;
     }
 
@@ -119,7 +136,7 @@ const Register: React.FC = () => {
         phone: formData.phone?.trim() || '',
       });
       
-      const success = await register({
+      const result = await register({
         name: formData.name.trim(),
         email: formData.email.trim(),
         password: formData.password,
@@ -130,11 +147,20 @@ const Register: React.FC = () => {
         phone: formData.phone?.trim() || undefined,
       });
 
-      if (success) {
+      if (result === true) {
         // Small delay to ensure auth state is updated
         setTimeout(() => {
           navigate('/dashboard', { replace: true });
         }, 500);
+      } else if (typeof result === 'object' && result.error) {
+        // Handle specific field errors from backend
+        if (result.error.toLowerCase().includes('email already')) {
+          setFieldErrors({ email: 'This email is already registered' });
+        } else if (result.error.toLowerCase().includes('password')) {
+          setFieldErrors({ password: result.error });
+        } else {
+          message.error(result.error);
+        }
       } else {
         message.error('Registration failed. Please check the form and try again.');
       }
@@ -254,7 +280,7 @@ const Register: React.FC = () => {
                 Full Name *
               </label>
               <div style={{ position: 'relative' }}>
-                <div style={{ position: 'absolute', left: 0, top: 0, height: '100%', width: '2.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', pointerEvents: 'none' }}>
+                <div style={{ position: 'absolute', left: 0, top: 0, height: '100%', width: '2.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', color: fieldErrors.name ? '#dc2626' : '#94a3b8', pointerEvents: 'none' }}>
                   <User style={{ width: '1.25rem', height: '1.25rem' }} />
                 </div>
                 <input
@@ -264,9 +290,12 @@ const Register: React.FC = () => {
                   value={formData.name}
                   onChange={handleChange}
                   required
-                  style={{ width: '100%', paddingLeft: '2.5rem', paddingRight: '1rem', paddingTop: '0.875rem', paddingBottom: '0.875rem', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '0.5rem', fontSize: '1rem', color: '#1e293b', outline: 'none', boxSizing: 'border-box' }}
+                  style={{ width: '100%', paddingLeft: '2.5rem', paddingRight: '1rem', paddingTop: '0.875rem', paddingBottom: '0.875rem', backgroundColor: '#f8fafc', border: `1px solid ${fieldErrors.name ? '#dc2626' : '#e2e8f0'}`, borderRadius: '0.5rem', fontSize: '1rem', color: '#1e293b', outline: 'none', boxSizing: 'border-box' }}
                 />
               </div>
+              {fieldErrors.name && (
+                <p style={{ color: '#dc2626', fontSize: '0.75rem', marginTop: '0.25rem', margin: '0.25rem 0 0 0' }}>{fieldErrors.name}</p>
+              )}
             </div>
 
             {/* Email */}
@@ -275,7 +304,7 @@ const Register: React.FC = () => {
                 Email Address *
               </label>
               <div style={{ position: 'relative' }}>
-                <div style={{ position: 'absolute', left: 0, top: 0, height: '100%', width: '2.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', pointerEvents: 'none' }}>
+                <div style={{ position: 'absolute', left: 0, top: 0, height: '100%', width: '2.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', color: fieldErrors.email ? '#dc2626' : '#94a3b8', pointerEvents: 'none' }}>
                   <Mail style={{ width: '1.25rem', height: '1.25rem' }} />
                 </div>
                 <input
@@ -285,9 +314,12 @@ const Register: React.FC = () => {
                   value={formData.email}
                   onChange={handleChange}
                   required
-                  style={{ width: '100%', paddingLeft: '2.5rem', paddingRight: '1rem', paddingTop: '0.875rem', paddingBottom: '0.875rem', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '0.5rem', fontSize: '1rem', color: '#1e293b', outline: 'none', boxSizing: 'border-box' }}
+                  style={{ width: '100%', paddingLeft: '2.5rem', paddingRight: '1rem', paddingTop: '0.875rem', paddingBottom: '0.875rem', backgroundColor: '#f8fafc', border: `1px solid ${fieldErrors.email ? '#dc2626' : '#e2e8f0'}`, borderRadius: '0.5rem', fontSize: '1rem', color: '#1e293b', outline: 'none', boxSizing: 'border-box' }}
                 />
               </div>
+              {fieldErrors.email && (
+                <p style={{ color: '#dc2626', fontSize: '0.75rem', marginTop: '0.25rem', margin: '0.25rem 0 0 0' }}>{fieldErrors.email}</p>
+              )}
             </div>
 
             {/* Password Row */}
@@ -298,7 +330,7 @@ const Register: React.FC = () => {
                   Password *
                 </label>
                 <div style={{ position: 'relative' }}>
-                  <div style={{ position: 'absolute', left: 0, top: 0, height: '100%', width: '2.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', pointerEvents: 'none' }}>
+                  <div style={{ position: 'absolute', left: 0, top: 0, height: '100%', width: '2.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', color: fieldErrors.password ? '#dc2626' : '#94a3b8', pointerEvents: 'none' }}>
                     <Lock style={{ width: '1.25rem', height: '1.25rem' }} />
                   </div>
                   <input
@@ -308,7 +340,7 @@ const Register: React.FC = () => {
                     value={formData.password}
                     onChange={handleChange}
                     required
-                    style={{ width: '100%', paddingLeft: '2.5rem', paddingRight: '3rem', paddingTop: '0.875rem', paddingBottom: '0.875rem', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '0.5rem', fontSize: '1rem', color: '#1e293b', outline: 'none', boxSizing: 'border-box' }}
+                    style={{ width: '100%', paddingLeft: '2.5rem', paddingRight: '3rem', paddingTop: '0.875rem', paddingBottom: '0.875rem', backgroundColor: '#f8fafc', border: `1px solid ${fieldErrors.password ? '#dc2626' : '#e2e8f0'}`, borderRadius: '0.5rem', fontSize: '1rem', color: '#1e293b', outline: 'none', boxSizing: 'border-box' }}
                   />
                   <button
                     type="button"
@@ -318,6 +350,9 @@ const Register: React.FC = () => {
                     {showPassword ? <EyeOff style={{ width: '1.25rem', height: '1.25rem' }} /> : <Eye style={{ width: '1.25rem', height: '1.25rem' }} />}
                   </button>
                 </div>
+                {fieldErrors.password && (
+                  <p style={{ color: '#dc2626', fontSize: '0.75rem', marginTop: '0.25rem', margin: '0.25rem 0 0 0' }}>{fieldErrors.password}</p>
+                )}
               </div>
 
               {/* Confirm Password */}
@@ -326,7 +361,7 @@ const Register: React.FC = () => {
                   Confirm Password *
                 </label>
                 <div style={{ position: 'relative' }}>
-                  <div style={{ position: 'absolute', left: 0, top: 0, height: '100%', width: '2.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', pointerEvents: 'none' }}>
+                  <div style={{ position: 'absolute', left: 0, top: 0, height: '100%', width: '2.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', color: fieldErrors.confirmPassword ? '#dc2626' : '#94a3b8', pointerEvents: 'none' }}>
                     <Lock style={{ width: '1.25rem', height: '1.25rem' }} />
                   </div>
                   <input
@@ -336,7 +371,7 @@ const Register: React.FC = () => {
                     value={formData.confirmPassword}
                     onChange={handleChange}
                     required
-                    style={{ width: '100%', paddingLeft: '2.5rem', paddingRight: '3rem', paddingTop: '0.875rem', paddingBottom: '0.875rem', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '0.5rem', fontSize: '1rem', color: '#1e293b', outline: 'none', boxSizing: 'border-box' }}
+                    style={{ width: '100%', paddingLeft: '2.5rem', paddingRight: '3rem', paddingTop: '0.875rem', paddingBottom: '0.875rem', backgroundColor: '#f8fafc', border: `1px solid ${fieldErrors.confirmPassword ? '#dc2626' : '#e2e8f0'}`, borderRadius: '0.5rem', fontSize: '1rem', color: '#1e293b', outline: 'none', boxSizing: 'border-box' }}
                   />
                   <button
                     type="button"
@@ -346,6 +381,9 @@ const Register: React.FC = () => {
                     {showConfirmPassword ? <EyeOff style={{ width: '1.25rem', height: '1.25rem' }} /> : <Eye style={{ width: '1.25rem', height: '1.25rem' }} />}
                   </button>
                 </div>
+                {fieldErrors.confirmPassword && (
+                  <p style={{ color: '#dc2626', fontSize: '0.75rem', marginTop: '0.25rem', margin: '0.25rem 0 0 0' }}>{fieldErrors.confirmPassword}</p>
+                )}
               </div>
             </div>
 

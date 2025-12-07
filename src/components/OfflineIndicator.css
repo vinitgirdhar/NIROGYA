@@ -1,0 +1,114 @@
+/* src/components/OfflineIndicator.css */
+
+.offline-indicator {
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: #f5f5f5;
+  margin-bottom: 16px;
+}
+
+.offline-indicator.online {
+  background: linear-gradient(135deg, #f0fff4 0%, #e6fffb 100%);
+  border: 1px solid #b7eb8f;
+}
+
+.offline-indicator.offline {
+  background: linear-gradient(135deg, #fffbe6 0%, #fff7e6 100%);
+  border: 1px solid #ffd591;
+}
+
+.offline-indicator.compact {
+  display: inline-flex;
+  gap: 8px;
+  padding: 4px 8px;
+  background: transparent;
+  margin-bottom: 0;
+}
+
+.connection-status {
+  display: flex;
+  align-items: center;
+}
+
+.sync-status {
+  display: flex;
+  align-items: center;
+}
+
+.last-sync-time {
+  font-size: 12px;
+  color: #8c8c8c;
+}
+
+.offline-message {
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: #fff7e6;
+  border-radius: 4px;
+  color: #fa8c16;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Animation for syncing indicator */
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.sync-status .ant-tag {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.offline-indicator.offline .connection-status .ant-tag {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+/* Toast notification styles for sync events */
+.sync-toast {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  padding: 12px 20px;
+  border-radius: 8px;
+  background: #1890ff;
+  color: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  animation: slideIn 0.3s ease-out;
+}
+
+.sync-toast.success {
+  background: #52c41a;
+}
+
+.sync-toast.warning {
+  background: #faad14;
+}
+
+.sync-toast.error {
+  background: #ff4d4f;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}

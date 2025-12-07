@@ -58,7 +58,7 @@ export interface Alert {
 export interface User {
   id: string;
   name: string;
-  role: 'admin' | 'asha_worker' | 'volunteer' | 'healthcare_worker' | 'district_health_official' | 'government_body' | 'community_user';
+  role: 'admin' | 'asha_worker' | 'government_body' | 'community_user';
   contact: string;
   location: string;
   permissions: string[];

@@ -28,33 +28,6 @@ DEMO_USERS = [
         "phone": "+91-9999999998"
     },
     {
-        "full_name": "Community Volunteer",
-        "email": "volunteer@paanicare.com",
-        "password": "volunteer123",
-        "role": "volunteer",
-        "organization": "Community Service",
-        "location": "District Center",
-        "phone": "+91-9999999997"
-    },
-    {
-        "full_name": "Healthcare Professional",
-        "email": "healthcare@paanicare.com",
-        "password": "healthcare123",
-        "role": "healthcare_worker",
-        "organization": "District Hospital",
-        "location": "Medical Center",
-        "phone": "+91-9999999996"
-    },
-    {
-        "full_name": "District Health Official",
-        "email": "district@paanicare.com",
-        "password": "district123",
-        "role": "district_health_official",
-        "organization": "District Health Department",
-        "location": "District HQ",
-        "phone": "+91-9999999995"
-    },
-    {
         "full_name": "Government Official",
         "email": "government@paanicare.com",
         "password": "government123",
