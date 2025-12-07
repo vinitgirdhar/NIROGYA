@@ -139,9 +139,12 @@ const HomeNavbar: React.FC = () => {
       <div className="navbar-container">
         {/* Logo */}
         <div className="navbar-brand" onClick={() => navigate('/')}>
-          <div className="brand-icon">
-            <div className="water-drop"></div>
-          </div>
+          <img 
+            src="/images/nirogya_logo.png" 
+            alt="Nirogya Logo" 
+            className="brand-logo-img"
+            style={{ height: '50px', width: 'auto', objectFit: 'contain' }}
+          />
           <div className="brand-text">
             <span className="brand-name">Nirogya</span>
             <span className="brand-tagline">Health Surveillance</span>

@@ -309,7 +309,7 @@ const WaterQualityPrediction: React.FC = () => {
 
       {/* Quick Stats */}
       <Row gutter={[16, 16]} className="stats-row">
-        <Col xs={24} sm={6}>
+        <Col xs={24} sm={12} md={12} lg={6} xl={6}>
           <Card className="stat-card">
             <Statistic
               title="Locations Monitored"
@@ -319,7 +319,7 @@ const WaterQualityPrediction: React.FC = () => {
           </Card>
         </Col>
 
-        <Col xs={24} sm={6}>
+        <Col xs={24} sm={12} md={12} lg={6} xl={6}>
           <Card className="stat-card">
             <Statistic
               title="High Risk Areas (demo)"
@@ -330,7 +330,7 @@ const WaterQualityPrediction: React.FC = () => {
           </Card>
         </Col>
 
-        <Col xs={24} sm={6}>
+        <Col xs={24} sm={12} md={12} lg={6} xl={6}>
           <Card className="stat-card" style={{ textAlign: 'center' }}>
             <div style={{ fontSize: 12, color: '#888', marginBottom: 6 }}>Last Report ID</div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
@@ -351,7 +351,7 @@ const WaterQualityPrediction: React.FC = () => {
           </Card>
         </Col>
 
-        <Col xs={24} sm={6}>
+        <Col xs={24} sm={12} md={12} lg={6} xl={6}>
           <Card className="stat-card">
             <Statistic
               title="Reports Stored"

@@ -12,7 +12,6 @@ import {
   ArrowLeft, 
   Eye, 
   EyeOff, 
-  Droplets,
   Shield,
   Users,
   Heart,
@@ -174,9 +173,11 @@ const Register: React.FC = () => {
         {/* Logo */}
         <div style={{ position: 'relative', zIndex: 10, flexShrink: 0, marginBottom: '2rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <div style={{ padding: '0.5rem', backgroundColor: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(4px)', borderRadius: '0.5rem' }}>
-              <Droplets style={{ width: '1.75rem', height: '1.75rem', color: 'white' }} />
-            </div>
+            <img 
+              src="/images/nirogya_logo.png" 
+              alt="Nirogya Logo" 
+              style={{ height: '48px', width: 'auto', objectFit: 'contain' }}
+            />
             <h1 style={{ fontSize: '1.35rem', fontWeight: 700, letterSpacing: '-0.025em', margin: 0 }}>Nirogya</h1>
           </div>
         </div>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { message } from 'antd';
-import { Mail, Lock, CheckCircle2, ArrowLeft, Eye, EyeOff, Droplets, ChevronUp, ChevronDown, Users } from 'lucide-react';
+import { Mail, Lock, CheckCircle2, ArrowLeft, Eye, EyeOff, ChevronUp, ChevronDown, Users } from 'lucide-react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import './Login.css';
@@ -156,9 +156,11 @@ const Login: React.FC = () => {
         {/* Logo */}
         <div style={{ position: 'relative', zIndex: 10, flexShrink: 0, marginBottom: '2rem', paddingLeft: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <div style={{ padding: '0.5rem', backgroundColor: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(4px)', borderRadius: '0.5rem' }}>
-              <Droplets style={{ width: '1.75rem', height: '1.75rem', color: 'white' }} />
-            </div>
+            <img 
+              src="/images/nirogya_logo.png" 
+              alt="Nirogya Logo" 
+              style={{ height: '48px', width: 'auto', objectFit: 'contain' }}
+            />
             <h1 style={{ fontSize: '1.35rem', fontWeight: 700, letterSpacing: '-0.025em', margin: 0 }}>Nirogya</h1>
           </div>
         </div>

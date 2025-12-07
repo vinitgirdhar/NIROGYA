@@ -45,6 +45,19 @@
   transform: scale(1.02);
 }
 
+/* Brand Logo Image */
+.brand-logo-img {
+  height: 50px;
+  width: auto;
+  object-fit: contain;
+  transition: transform 0.3s ease;
+}
+
+.navbar-brand:hover .brand-logo-img {
+  transform: scale(1.05);
+}
+
+/* Legacy water-drop styles - kept for backwards compatibility */
 .brand-icon {
   position: relative;
   width: 50px;
@@ -435,6 +448,10 @@
     font-size: 20px !important;
   }
   
+  .brand-logo-img {
+    height: 40px !important;
+  }
+  
   .brand-icon {
     width: 40px !important;
     height: 40px !important;
@@ -454,6 +471,10 @@
   
   .brand-text {
     display: none;
+  }
+  
+  .brand-logo-img {
+    height: 36px !important;
   }
   
   .brand-icon {

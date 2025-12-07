@@ -11,9 +11,11 @@ const Footer: React.FC = () => {
           {/* Brand */}
           <div className="footer-brand">
             <div className="brand-logo">
-              <div className="logo-circle">
-                <i className="fa-solid fa-droplet" style={{ color: 'white', fontSize: '16px' }}></i>
-              </div>
+              <img 
+                src="/images/nirogya_logo.png" 
+                alt="Nirogya Logo" 
+                style={{ height: '40px', width: 'auto', objectFit: 'contain' }}
+              />
               <h2 className="brand-name">Nirogya</h2>
             </div>
             <p className="brand-tagline">

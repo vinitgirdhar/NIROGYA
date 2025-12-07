@@ -19,10 +19,8 @@ import {
   PushpinOutlined,
   ThunderboltOutlined,
   BookOutlined,
-  CloudOutlined,
   FileTextOutlined,
-  MedicineBoxOutlined,
-  UserAddOutlined
+  MedicineBoxOutlined
 } from '@ant-design/icons';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
@@ -118,22 +116,23 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onCollapse }) => {
   // ---------------------------
   // Base menu items (modify labels or badges as needed)
   // ---------------------------
-  const baseMenuItems = [
-    { key: '/', icon: <DashboardOutlined />, label: t('nav.dashboard'), badge: 3 },
-    { key: '/health', icon: <HeartOutlined />, label: t('nav.healthData'), badge: 0 },
-    { key: '/water-quality', icon: <ExperimentOutlined />, label: t('nav.waterQuality'), badge: 2 },
-    { key: '/disease-mapping', icon: <EnvironmentOutlined />, label: 'Disease Mapping', badge: 1 },
-    { key: '/asha-communication', icon: <MessageOutlined />, label: 'ASHA Communication', badge: 5 },
-    { key: '/ai-prediction', icon: <RobotOutlined />, label: 'Report Water Quality', badge: 0 },
-    { key: '/alerts', icon: <AlertOutlined />, label: t('nav.alerts'), badge: 8 },
-    { key: '/rainfall-alert', icon: <CloudOutlined />, label: 'Rainfall Alert', badge: 0 },
-    { key: '/report-symptoms', icon: <MedicineBoxOutlined />, label: 'Report Symptoms', badge: 0 },
-    { key: '/community', icon: <TeamOutlined />, label: t('nav.community'), badge: 0 },
-    { key: '/education', icon: <BookOutlined />, label: t('nav.education'), badge: 0 },
-    { key: '/reports', icon: <FileTextOutlined />, label: t('nav.reports'), badge: 0 },
-    { key: '/goverment-reports', icon: <FileTextOutlined />, label: 'Goverment Reports', badge: 0 },
-    { key: '/asha-worker', icon: <UserAddOutlined />, label: 'Apply for ASHA Worker', badge: 0 },
-  ];
+const baseMenuItems = [
+  { key: '/', icon: <DashboardOutlined />, label: t('nav.dashboard'), badge: 0 },
+  { key: '/health', icon: <HeartOutlined />, label: t('nav.healthData'), badge: 0 },
+  { key: '/water-quality', icon: <ExperimentOutlined />, label: t('nav.waterQuality'), badge: 0 },
+  { key: '/disease-mapping', icon: <EnvironmentOutlined />, label: 'Disease Mapping', badge: 0 },
+  { key: '/asha-communication', icon: <MessageOutlined />, label: 'ASHA Communication', badge: 0 },
+  { key: '/ai-prediction', icon: <RobotOutlined />, label: 'Report Water Quality', badge: 0 },
+  { key: '/alerts', icon: <AlertOutlined />, label: t('nav.alerts'), badge: 0 },
+  { key: '/report-symptoms', icon: <MedicineBoxOutlined />, label: 'Report Symptoms', badge: 0 },
+  { key: '/community', icon: <TeamOutlined />, label: t('nav.community'), badge: 0 },
+  { key: '/education', icon: <BookOutlined />, label: t('nav.education'), badge: 0 },
+  { key: '/reports', icon: <FileTextOutlined />, label: t('nav.reports'), badge: 0 },
+  { key: '/government/manage-users', icon: <TeamOutlined />, label: 'Manage Users', badge: 0 },
+  { key: '/government/manage-accounts', icon: <SettingOutlined />, label: 'Account Control', badge: 0 },
+
+];
+
 
   // ---------------------------
   // Role-based allowed keys
@@ -146,21 +145,23 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onCollapse }) => {
       case 'admin':
         return all;
       case 'asha_worker':
-        // ASHA: dashboard, asha communication, report water, report symptoms, alerts, rainfall alert, education, community
-        return ['/', '/asha-communication', '/ai-prediction', '/report-symptoms', '/alerts', '/rainfall-alert', '/education', '/community'];
+        // ASHA: dashboard, asha communication, report water, report symptoms, alerts, education, community
+        return ['/', '/asha-communication', '/ai-prediction', '/report-symptoms', '/alerts', '/education', '/community'];
       case 'community_user':
-        return ['/community', '/alerts', '/rainfall-alert', '/education', '/goverment-reports', '/asha-worker'];
+        return ['/community', '/alerts', '/education'];
       case 'healthcare_worker':
-        return ['/', '/health', '/disease-mapping', '/alerts', '/rainfall-alert'];
+        return ['/', '/health', '/disease-mapping', '/alerts'];
       case 'district_health_official':
-        return ['/', '/disease-mapping', '/health', '/alerts', '/rainfall-alert', '/reports'];
+        return ['/', '/disease-mapping', '/health', '/alerts', '/reports'];
       case 'government_body':
-        // everything except ASHA-specific items
+      return [
+          ...all.filter(k => !['/asha-communication', '/ai-prediction', '/report-symptoms'].includes(k)),
+          '/government/manage-users'
+      ];
         return all.filter(k => !['/asha-communication', '/ai-prediction', '/report-symptoms'].includes(k));
       case 'volunteer':
-        return ['/', '/community', '/report-symptoms', '/alerts', '/rainfall-alert', '/education', '/goverment-reports', '/asha-worker'];
+        return ['/', '/community', '/report-symptoms', '/alerts', '/education'];
       default:
-        
         return ['/'];
     }
   };
@@ -245,12 +246,12 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onCollapse }) => {
         <div className="sidebar-header">
           <div className="logo" style={{ width: '100%', justifyContent: collapsed ? 'center' : 'flex-start', display: 'flex', alignItems: 'center', minHeight: 48 }}>
             {!collapsed ? (
-              <div className="logo-text" style={{ display: 'flex', alignItems: 'center', gap: '0.05px', letterSpacing: '0.1em', fontWeight: 700, fontSize: 22 }}>
-                <span className="logo-icon" style={{ marginRight: 2 }}>💧</span>
+              <div className="logo-text" style={{ display: 'flex', alignItems: 'center', gap: '10px', letterSpacing: '0.1em', fontWeight: 700, fontSize: 22 }}>
+                <img src="/images/nirogya_logo.png" alt="Nirogya Logo" style={{ height: '40px', width: 'auto', objectFit: 'contain' }} />
                 <span style={{ paddingLeft: 0.1, paddingRight: 0.1, letterSpacing: '0.01em', fontFamily: 'inherit', fontWeight: 700 }}>Nirogya</span>
               </div>
             ) : (
-              <span className="logo-icon-collapsed">💧</span>
+              <img src="/images/nirogya_logo.png" alt="Nirogya Logo" style={{ height: '40px', width: 'auto', objectFit: 'contain' }} />
             )}
           </div>
           {!collapsed && (
@@ -278,14 +279,13 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onCollapse }) => {
         {/* User Profile */}
         {!collapsed && user && (
           <div className="user-profile">
-            <Avatar size="large" icon={<UserOutlined />} src={user.avatar} className="user-avatar" />
-            <div className="user-info">
-              <Text strong className="user-name">{user.name}</Text>
-              <Text type="secondary" className="user-role">{user.role}</Text>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%' }}>
+              <Avatar size="large" icon={<UserOutlined />} src={user.avatar} className="user-avatar" />
+              <div className="user-info" style={{ textAlign: 'center', width: '100%' }}>
+                <Text strong className="user-name">{user.name}</Text>
+                <Text type="secondary" className="user-role">{user.role}</Text>
+              </div>
             </div>
-            <Tooltip title="Logout">
-              <Button type="text" icon={<LogoutOutlined />} onClick={logout} className="logout-btn" />
-            </Tooltip>
           </div>
         )}
 

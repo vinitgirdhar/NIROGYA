@@ -240,7 +240,7 @@ const AshaWorker = () => {
                 ))}
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
+              <div className="criteria-footer">
                 <p className="criteria-counter">
                   {Object.values(criteriaChecked).filter(v => v).length} of {criteria.length} criteria confirmed
                 </p>
@@ -258,14 +258,14 @@ const AshaWorker = () => {
       ) : (
         <div className="form-section">
           <div className="container">
-          <div className="form-header">
-              <h2 style={{ fontSize: '1.75rem', fontWeight: 'bold', color: '#2c3e50', margin: 0 }}>Application Form</h2>
+            <div className="form-header">
               <button
                 onClick={() => setShowForm(false)}
                 className="back-button"
               >
                 ← Back to Criteria
               </button>
+              <h2 style={{ fontSize: '1.75rem', fontWeight: 'bold', color: '#2c3e50', margin: 0 }}>Application Form</h2>
             </div>
 
             <div className="form-grid">
