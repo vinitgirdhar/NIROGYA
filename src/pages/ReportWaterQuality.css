@@ -594,3 +594,226 @@
     transform: translateY(0);
   }
 }
+
+/* ========================================= */
+/* IoT Data Entry Feature Styles            */
+/* ========================================= */
+
+.data-entry-mode-selector {
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin-bottom: 16px;
+}
+
+.data-entry-mode-selector .mode-header h4 {
+  color: var(--text-color);
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.mode-radio-group.ant-radio-group {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.mode-radio-group .ant-radio-button-wrapper {
+  flex: 1;
+  min-width: 200px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 16px !important;
+  font-weight: 500;
+  font-size: 13px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  color: var(--text-color) !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  padding: 12px 20px;
+  text-align: center;
+  line-height: 1.4;
+}
+
+.mode-radio-group .ant-radio-button-wrapper > span {
+  color: inherit !important;
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  white-space: nowrap;
+  text-align: center;
+  width: 100%;
+  padding: 0 8px;
+}
+
+.mode-radio-group .ant-radio-button-wrapper:hover {
+  border-color: rgba(24, 144, 255, 0.4) !important;
+  background: rgba(24, 144, 255, 0.1) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(24, 144, 255, 0.15);
+}
+
+.mode-radio-group .ant-radio-button-wrapper:hover > span {
+  color: var(--primary-color) !important;
+}
+
+.mode-radio-group .ant-radio-button-wrapper-checked {
+  background: linear-gradient(135deg, rgba(24, 144, 255, 0.9) 0%, rgba(64, 169, 255, 0.9) 100%) !important;
+  border-color: rgba(24, 144, 255, 0.5) !important;
+  color: white !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  box-shadow: 0 8px 32px rgba(24, 144, 255, 0.4), 
+              inset 0 1px 1px rgba(255, 255, 255, 0.25);
+  transform: scale(1.02);
+}
+
+.mode-radio-group .ant-radio-button-wrapper-checked > span {
+  color: white !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.mode-radio-group .ant-radio-button-wrapper-checked::before {
+  display: none !important;
+}
+
+.mode-radio-group .ant-radio-button-wrapper .anticon {
+  font-size: 18px;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+}
+
+/* IoT Device Panel */
+.iot-device-panel {
+  animation: fadeInUp 0.3s ease-out;
+}
+
+.iot-device-panel .ant-alert {
+  border-radius: 8px;
+}
+
+.iot-device-panel .ant-select-selector {
+  min-height: 64px;
+  padding: 8px 12px;
+}
+
+.iot-device-panel .ant-select-selection-item {
+  line-height: 24px !important;
+  padding-top: 8px;
+}
+
+.fetch-iot-btn {
+  height: 64px !important;
+  border-radius: 8px !important;
+  font-weight: 600;
+  font-size: 14px;
+  background: linear-gradient(135deg, #52c41a 0%, #73d13d 100%);
+  border: none;
+  box-shadow: 0 4px 12px rgba(82, 196, 26, 0.35);
+  transition: all 0.3s ease;
+}
+
+.fetch-iot-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #73d13d 0%, #95de64 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(82, 196, 26, 0.45);
+}
+
+.fetch-iot-btn:disabled {
+  background: var(--border-color);
+  box-shadow: none;
+}
+
+/* IoT Device Dropdown Options */
+.ant-select-dropdown .ant-select-item {
+  padding: 10px 12px;
+}
+
+.ant-select-dropdown .ant-select-item-option-disabled {
+  opacity: 0.6;
+}
+
+/* IoT Status Tags in dropdown */
+.iot-device-panel .ant-tag {
+  margin: 0;
+  font-size: 11px;
+  padding: 2px 8px;
+}
+
+/* Dark Mode Adjustments for IoT Panel */
+.dark-mode .mode-radio-group .ant-radio-button-wrapper {
+  background: rgba(22, 33, 62, 0.4) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: #e0e0e0 !important;
+}
+
+.dark-mode .mode-radio-group .ant-radio-button-wrapper:hover {
+  border-color: rgba(64, 169, 255, 0.5) !important;
+  background: rgba(24, 144, 255, 0.15) !important;
+  color: #40a9ff !important;
+}
+
+.dark-mode .mode-radio-group .ant-radio-button-wrapper-checked {
+  background: linear-gradient(135deg, rgba(24, 144, 255, 0.85) 0%, rgba(64, 169, 255, 0.85) 100%) !important;
+  border-color: rgba(64, 169, 255, 0.6) !important;
+}
+
+.dark-mode .iot-device-panel .ant-alert-info {
+  background: rgba(24, 144, 255, 0.1);
+  border-color: rgba(24, 144, 255, 0.3);
+}
+
+.dark-mode .iot-device-panel .ant-alert-success {
+  background: rgba(82, 196, 26, 0.1);
+  border-color: rgba(82, 196, 26, 0.3);
+}
+
+/* Responsive adjustments for IoT panel */
+@media (max-width: 768px) {
+  .mode-radio-group.ant-radio-group {
+    flex-direction: column;
+  }
+
+  .mode-radio-group .ant-radio-button-wrapper {
+    min-width: 100%;
+    width: 100%;
+    height: auto;
+    min-height: 56px;
+    padding: 14px 16px;
+  }
+
+  .iot-device-panel .ant-row {
+    flex-direction: column;
+  }
+
+  .fetch-iot-btn {
+    height: 48px !important;
+    margin-top: 12px;
+  }
+
+  .iot-device-panel .ant-select-selector {
+    min-height: 56px;
+  }
+}
+
+@media (max-width: 480px) {
+  .data-entry-mode-selector {
+    padding: 12px;
+  }
+
+  .mode-radio-group .ant-radio-button-wrapper {
+    height: 44px;
+    font-size: 12px;
+  }
+}

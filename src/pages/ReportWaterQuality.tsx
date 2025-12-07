@@ -1,7 +1,7 @@
 // src/pages/WaterQualityPrediction.tsx
 import React, { useState, useEffect } from 'react';
-import { Card, Row, Col, Button, Form, Input, Select, Slider, Statistic, Timeline, Tag, message, Tooltip } from 'antd';
-import { ExperimentOutlined, RobotOutlined, WarningOutlined, CheckCircleOutlined, SyncOutlined, CopyOutlined } from '@ant-design/icons';
+import { Card, Row, Col, Button, Form, Input, Select, Slider, Statistic, Timeline, Tag, message, Tooltip, Radio, Divider, Alert } from 'antd';
+import { ExperimentOutlined, RobotOutlined, WarningOutlined, CheckCircleOutlined, SyncOutlined, CopyOutlined, WifiOutlined, ApiOutlined, FormOutlined, CloudDownloadOutlined } from '@ant-design/icons';
 import { Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -77,10 +77,34 @@ interface WaterQualityData {
 
 const { Option } = Select;
 
+// Mock IoT Devices for demonstration
+interface IoTDevice {
+  deviceId: string;
+  name: string;
+  location: string;
+  district: string;
+  status: 'online' | 'offline' | 'simulated';
+  lastSync: string;
+}
+
+const mockIoTDevices: IoTDevice[] = [
+  { deviceId: 'IOT-WQ-001', name: 'Brahmaputra River Sensor', location: 'Brahmaputra River - Guwahati', district: 'Kamrup Metro', status: 'online', lastSync: '2 mins ago' },
+  { deviceId: 'IOT-WQ-002', name: 'Dibrugarh Treatment Plant', location: 'Dibrugarh Water Treatment Plant', district: 'Dibrugarh', status: 'online', lastSync: '5 mins ago' },
+  { deviceId: 'IOT-WQ-003', name: 'Silchar Municipal Sensor', location: 'Silchar Municipal Supply', district: 'Cachar', status: 'offline', lastSync: '2 hours ago' },
+  { deviceId: 'IOT-WQ-004', name: 'Jorhat Tube Well Monitor', location: 'Jorhat Community Tube Well', district: 'Jorhat', status: 'simulated', lastSync: 'Demo mode' },
+  { deviceId: 'IOT-WQ-005', name: 'Tezpur Water Station', location: 'Tezpur Municipal Water Station', district: 'Sonitpur', status: 'online', lastSync: '1 min ago' },
+];
+
 const WaterQualityPrediction: React.FC = () => {
   const [waterData, setWaterData] = useState<WaterQualityData[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [form] = Form.useForm();
+  
+  // IoT Feature State
+  const [dataEntryMode, setDataEntryMode] = useState<'iot' | 'manual'>('manual');
+  const [selectedDevice, setSelectedDevice] = useState<string | undefined>(undefined);
+  const [isFetchingIoT, setIsFetchingIoT] = useState(false);
+  const [iotDataFetched, setIotDataFetched] = useState(false);
 
   // Helpers: truncate id for UI and copy to clipboard
   const truncateId = (id?: string) => {
@@ -106,6 +130,60 @@ const WaterQualityPrediction: React.FC = () => {
       document.execCommand('copy');
       document.body.removeChild(input);
       message.success('Report ID copied (fallback)');
+    }
+  };
+
+  // IoT Device Data Fetching - Simulates pulling real-time sensor data
+  const handleFetchIoTData = async () => {
+    if (!selectedDevice) {
+      message.warning('Please select an IoT device first');
+      return;
+    }
+
+    const device = mockIoTDevices.find(d => d.deviceId === selectedDevice);
+    if (!device) {
+      message.error('Device not found');
+      return;
+    }
+
+    if (device.status === 'offline') {
+      message.error(`Device "${device.name}" is offline. Try another device or enter data manually.`);
+      return;
+    }
+
+    setIsFetchingIoT(true);
+    
+    // Simulate API call to IoT device / gateway
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
+    // Generate realistic sensor readings (simulated)
+    const sensorData = {
+      location: device.location,
+      district: device.district,
+      ph: parseFloat((6.5 + Math.random() * 1.5).toFixed(1)), // 6.5 - 8.0
+      turbidity: parseFloat((1 + Math.random() * 20).toFixed(1)), // 1 - 21 NTU
+      tds: Math.floor(100 + Math.random() * 200), // 100 - 300 mg/L
+      chlorine: parseFloat((0.1 + Math.random() * 0.6).toFixed(2)), // 0.1 - 0.7 mg/L
+      fluoride: parseFloat((0.3 + Math.random() * 1.0).toFixed(2)), // 0.3 - 1.3 mg/L
+      nitrate: parseFloat((5 + Math.random() * 20).toFixed(1)), // 5 - 25 mg/L
+      coliform: Math.floor(Math.random() * 100), // 0 - 100 CFU
+      temperature: parseFloat((22 + Math.random() * 6).toFixed(1)), // 22 - 28°C
+      primaryWaterSource: device.location.includes('River') ? 'River water' : 
+                          device.location.includes('Tube') ? 'Tube well' : 'Municipal tap water'
+    };
+
+    form.setFieldsValue(sensorData);
+    setIotDataFetched(true);
+    setIsFetchingIoT(false);
+    message.success(`✅ Sensor data fetched from "${device.name}" (${device.status === 'simulated' ? 'Demo Mode' : 'Live'})`);
+  };
+
+  // Get device status color and text
+  const getDeviceStatusTag = (status: IoTDevice['status']) => {
+    switch (status) {
+      case 'online': return <Tag color="green"><WifiOutlined /> Online</Tag>;
+      case 'offline': return <Tag color="red"><WifiOutlined /> Offline</Tag>;
+      case 'simulated': return <Tag color="blue"><ApiOutlined /> Simulated</Tag>;
     }
   };
 
@@ -366,6 +444,110 @@ const WaterQualityPrediction: React.FC = () => {
         {/* Input Form */}
         <Col xs={24} lg={12}>
           <Card title="Report Water Quality" className="analysis-card">
+            {/* Data Entry Mode Selector */}
+            <div className="data-entry-mode-selector">
+              <div className="mode-header">
+                <h4 style={{ margin: 0, marginBottom: 8 }}>How would you like to enter data?</h4>
+              </div>
+              <Radio.Group 
+                value={dataEntryMode} 
+                onChange={(e) => {
+                  setDataEntryMode(e.target.value);
+                  setIotDataFetched(false);
+                  form.resetFields();
+                }}
+                buttonStyle="solid"
+                className="mode-radio-group"
+              >
+                <Radio.Button value="iot" className="mode-button">
+                  <WifiOutlined /> Add via IoT Device (Auto)
+                </Radio.Button>
+                <Radio.Button value="manual" className="mode-button">
+                  <FormOutlined /> Add Manually (Field Test)
+                </Radio.Button>
+              </Radio.Group>
+            </div>
+
+            <Divider style={{ margin: '16px 0' }} />
+
+            {/* IoT Device Selection Panel - Only visible in IoT mode */}
+            {dataEntryMode === 'iot' && (
+              <div className="iot-device-panel">
+                <Alert
+                  message="IoT Sensor Integration"
+                  description="Select a deployed water quality sensor to automatically fetch the latest readings. Data will be pre-filled in the form below."
+                  type="info"
+                  showIcon
+                  icon={<ApiOutlined />}
+                  style={{ marginBottom: 16 }}
+                />
+                
+                <Row gutter={[16, 16]} align="middle">
+                  <Col xs={24} sm={16}>
+                    <Form.Item label="Select IoT Device" style={{ marginBottom: 0 }}>
+                      <Select
+                        placeholder="Choose a water quality sensor..."
+                        value={selectedDevice}
+                        onChange={(value) => {
+                          setSelectedDevice(value);
+                          setIotDataFetched(false);
+                        }}
+                        style={{ width: '100%' }}
+                        optionLabelProp="label"
+                      >
+                        {mockIoTDevices.map(device => (
+                          <Option 
+                            key={device.deviceId} 
+                            value={device.deviceId}
+                            label={`${device.deviceId} - ${device.name}`}
+                            disabled={device.status === 'offline'}
+                          >
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <div>
+                                <strong>{device.deviceId}</strong> — {device.name}
+                                <div style={{ fontSize: 12, color: '#888' }}>
+                                  {device.location} • Last sync: {device.lastSync}
+                                </div>
+                              </div>
+                              {getDeviceStatusTag(device.status)}
+                            </div>
+                          </Option>
+                        ))}
+                      </Select>
+                    </Form.Item>
+                  </Col>
+                  <Col xs={24} sm={8}>
+                    <Button
+                      type="primary"
+                      icon={<CloudDownloadOutlined />}
+                      onClick={handleFetchIoTData}
+                      loading={isFetchingIoT}
+                      disabled={!selectedDevice}
+                      block
+                      size="large"
+                      className="fetch-iot-btn"
+                    >
+                      {isFetchingIoT ? 'Fetching...' : 'Fetch Latest'}
+                    </Button>
+                  </Col>
+                </Row>
+
+                {iotDataFetched && (
+                  <Alert
+                    message="Sensor data loaded!"
+                    description="Review the pre-filled values below and click 'Save Water Data' to submit."
+                    type="success"
+                    showIcon
+                    style={{ marginTop: 16 }}
+                  />
+                )}
+
+                <Divider style={{ margin: '16px 0' }} />
+              </div>
+            )}
+
+            {/* Only show form when manual mode is selected OR when IoT data has been fetched */}
+            {(dataEntryMode === 'manual' || iotDataFetched) && (
             <Form
               form={form}
               layout="vertical"
@@ -521,6 +703,7 @@ const WaterQualityPrediction: React.FC = () => {
                 </Button>
               </Form.Item>
             </Form>
+            )}
           </Card>
         </Col>
 
