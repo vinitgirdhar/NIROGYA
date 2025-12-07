@@ -1,0 +1,312 @@
+/* src/pages/ManageUsers.css */
+
+.manage-users-container {
+  padding: 24px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  min-height: calc(100vh - 64px);
+}
+
+.manage-users-header {
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  background: white;
+}
+
+.manage-users-header h1 {
+  margin: 0;
+  color: #1890ff;
+  font-size: 28px;
+  font-weight: 600;
+}
+
+.manage-users-header .ant-statistic {
+  text-align: center;
+  padding: 16px;
+}
+
+.manage-users-filters {
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  background: white;
+}
+
+.manage-users-filters .ant-col {
+  display: flex;
+}
+
+.manage-users-filters .ant-input,
+.manage-users-filters .ant-select {
+  border-radius: 4px;
+}
+
+.manage-users-table {
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  background: white;
+  overflow-x: auto;
+}
+
+.manage-users-table .users-table {
+  font-size: 14px;
+}
+
+.manage-users-table .ant-table-thead > tr > th {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-weight: 600;
+}
+
+.manage-users-table .ant-table-row:hover {
+  background-color: #f0f5ff;
+}
+
+/* Tag styling */
+.ant-tag {
+  padding: 4px 12px;
+  font-size: 12px;
+  border-radius: 4px;
+}
+
+/* Status indicators */
+.ant-tag-green {
+  background-color: #f6ffed;
+  border-color: #b7eb8f;
+  color: #52c41a;
+}
+
+.ant-tag-red {
+  background-color: #fff1f0;
+  border-color: #ffccc7;
+  color: #f5222d;
+}
+
+.ant-tag-blue {
+  background-color: #e6f7ff;
+  border-color: #91d5ff;
+  color: #1890ff;
+}
+
+.ant-tag-purple {
+  background-color: #f9f0ff;
+  border-color: #d3adf7;
+  color: #722ed1;
+}
+
+/* Drawer styling */
+.ant-drawer-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 16px 24px;
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
+}
+
+.ant-drawer-header .ant-drawer-title {
+  color: white;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.ant-drawer-header .ant-drawer-close {
+  color: white;
+}
+
+/* Form styling in drawer */
+.ant-form-item {
+  margin-bottom: 16px;
+}
+
+.user-id-field input,
+.role-field input {
+  background-color: #f5f5f5;
+  cursor: not-allowed;
+}
+
+/* Activity logs */
+.activity-logs {
+  padding: 8px;
+}
+
+.activity-log-item {
+  border-left: 4px solid #1890ff;
+  transition: all 0.3s ease;
+}
+
+.activity-log-item:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.activity-log-item strong {
+  display: inline-block;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 8px;
+}
+
+/* Modal styling */
+.ant-modal-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-bottom: none;
+}
+
+.ant-modal-header .ant-modal-title {
+  color: white;
+  font-weight: 600;
+}
+
+.ant-modal-header .ant-modal-close-x {
+  color: white;
+}
+
+.ant-modal-footer {
+  border-top: 1px solid #f0f0f0;
+}
+
+/* Pagination */
+.ant-pagination {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+.ant-pagination-item {
+  min-width: 36px;
+  height: 36px;
+  line-height: 36px;
+  border-radius: 4px;
+}
+
+.ant-pagination-item-active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-color: #667eea;
+}
+
+.ant-pagination-item-active a {
+  color: white;
+}
+
+/* Button styling */
+.ant-btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+}
+
+.ant-btn-primary:hover,
+.ant-btn-primary:focus {
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+}
+
+.ant-btn-primary-ghost {
+  color: #1890ff;
+  border-color: #1890ff;
+}
+
+.ant-btn-primary-ghost:hover {
+  color: #40a9ff;
+  border-color: #40a9ff;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .manage-users-container {
+    padding: 12px;
+  }
+
+  .manage-users-header h1 {
+    font-size: 20px;
+  }
+
+  .manage-users-header .ant-statistic {
+    padding: 8px;
+  }
+
+  .manage-users-table .ant-table {
+    font-size: 12px;
+  }
+
+  .ant-drawer {
+    width: 100% !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .manage-users-header {
+    margin-bottom: 12px;
+  }
+
+  .manage-users-filters {
+    margin-bottom: 12px;
+  }
+
+  .manage-users-table {
+    margin-bottom: 12px;
+  }
+
+  .ant-space-item {
+    width: 100%;
+  }
+
+  .manage-users-table .users-table .ant-table-cell {
+    padding: 8px 4px;
+  }
+}
+
+/* Loading spinner */
+.ant-spin {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Empty state */
+.ant-empty {
+  padding: 50px 0;
+}
+
+/* Popconfirm styling */
+.ant-popconfirm-inner {
+  border-radius: 4px;
+}
+
+.ant-popconfirm-inner-content {
+  color: #262626;
+}
+
+/* Tooltip styling */
+.ant-tooltip-inner {
+  background: rgba(0, 0, 0, 0.85);
+  border-radius: 4px;
+}
+
+/* Input styling */
+.ant-input,
+.ant-select-selector,
+.ant-input-number {
+  border-radius: 4px;
+}
+
+.ant-input:hover,
+.ant-select-selector:hover,
+.ant-input-number:hover {
+  border-color: #667eea;
+}
+
+.ant-input:focus,
+.ant-select-selector:focus-within,
+.ant-input-number:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+}
+
+/* Header with gradient text */
+.manage-users-header h1 {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}

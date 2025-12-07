@@ -2,6 +2,8 @@
 import os
 from datetime import datetime, timedelta
 from typing import Optional, Tuple, Dict, Any
+import secrets
+import string
 
 from passlib.context import CryptContext
 import jwt  # PyJWT
@@ -17,6 +19,18 @@ def verify_password(plain: str, hashed: str) -> bool:
         return pwd_context.verify(plain, hashed)
     except Exception:
         return False
+
+def generate_temp_password(length: int = 10) -> str:
+    """Generate a strong temporary password"""
+    chars = string.ascii_letters + string.digits + "!@#$%^&*"
+    while True:
+        pwd = "".join(secrets.choice(chars) for _ in range(length))
+        if (
+            any(c.islower() for c in pwd)
+            and any(c.isupper() for c in pwd)
+            and any(c.isdigit() for c in pwd)
+        ):
+            return pwd
 
 # JWT configuration (read from env if present)
 JWT_SECRET = os.getenv("JWT_SECRET", "change-me-to-a-long-secret")

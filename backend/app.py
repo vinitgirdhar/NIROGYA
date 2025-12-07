@@ -65,6 +65,7 @@ from backend.services.merger import merge_and_predict_and_store
 from backend.auth.routes import router as auth_router
 from backend.auth.otp_routes import router as otp_router
 from backend.auth.alert_routes import router as alert_router
+from backend.routes.user_management import router as user_management_router
 
 # CONFIG
 POLL_INTERVAL_SECONDS = int(os.getenv("POLL_INTERVAL_SECONDS", "5"))
@@ -81,7 +82,7 @@ origins = [
 ]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins for development
+    allow_origins=origins,  # Use specific origins when credentials are enabled
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -91,6 +92,7 @@ app.add_middleware(
 app.include_router(auth_router)
 app.include_router(otp_router)
 app.include_router(alert_router)
+app.include_router(user_management_router)
 
 # ML availability flag
 ML_READY = True if LOADED_MODEL is not None else False

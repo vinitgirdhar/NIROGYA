@@ -33,6 +33,7 @@ import RainfallAlert from './pages/RainfallAlert';
 
 // ⭐ NEW IMPORT — this is the correct page for /report-symptoms
 import SymptomReporting from './pages/SymptomReporting';
+import ManageUsers from './pages/ManageUsers';
 
 import './App.css';
 import './locales';
@@ -201,6 +202,24 @@ function App() {
                 <ProtectedRoute requiredRole={["community_user", "volunteer"]}>
                   <Layout type="dashboard"> 
                     <AshaWorker />
+                  </Layout>
+                </ProtectedRoute>
+              } />
+
+              {/* Manage Users - Government Officials Only */}
+              <Route path="/manage-users" element={
+                <ProtectedRoute requiredRole="government_body">
+                  <Layout type="dashboard">
+                    <ManageUsers />
+                  </Layout>
+                </ProtectedRoute>
+              } />
+
+              {/* Alternative route for Government section */}
+              <Route path="/government/manage-users" element={
+                <ProtectedRoute requiredRole="government_body">
+                  <Layout type="dashboard">
+                    <ManageUsers />
                   </Layout>
                 </ProtectedRoute>
               } />

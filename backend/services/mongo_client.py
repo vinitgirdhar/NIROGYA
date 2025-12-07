@@ -28,6 +28,9 @@ alerts_col = db["water_alerts"]
 # ASHA workers collection
 asha_workers_col = db["asha_workers"]
 
+# Audit logs collection (for user management actions)
+audit_logs_col = db["audit_logs"]
+
 
 def get_db():
     return db
