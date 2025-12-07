@@ -4,49 +4,37 @@
  * Displays all registered user accounts across every role with management capabilities
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
-  Card,
   Table,
   Button,
   Modal,
   Form,
   Input,
   Select,
-  Space,
-  Tag,
   Tooltip,
-  Row,
-  Col,
   Drawer,
-  Tabs,
-  Statistic,
   Empty,
   Spin,
   message,
-  Popconfirm,
-  DatePicker,
   Pagination,
-  InputNumber,
-  Segmented,
 } from 'antd';
 import {
-  EditOutlined,
   DeleteOutlined,
   LockOutlined,
   EyeOutlined,
   ReloadOutlined,
-  DownloadOutlined,
   UnlockOutlined,
-  FilePdfOutlined,
+  SearchOutlined,
+  MoreOutlined,
+  ClockCircleOutlined,
+  EditOutlined,
 } from '@ant-design/icons';
 import { useAuth } from '../contexts/AuthContext';
 import userManagementService, { User, UserActivityLog } from '../services/userManagementService';
 import './ManageUsers.css';
-import dayjs from 'dayjs';
 
 const { Option } = Select;
-const { RangePicker } = DatePicker;
 
 interface TableUser extends User {
   key: string;
@@ -86,6 +74,15 @@ const ManageUsers: React.FC = () => {
   const [activityLoading, setActivityLoading] = useState(false);
   const [resetPasswordModal, setResetPasswordModal] = useState(false);
   const [tempPassword, setTempPassword] = useState('');
+  const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
+  const [confirmModal, setConfirmModal] = useState<{
+    visible: boolean;
+    title: string;
+    description: string;
+    action: () => void;
+    danger?: boolean;
+  }>({ visible: false, title: '', description: '', action: () => {} });
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Check authorization
   useEffect(() => {
@@ -93,6 +90,29 @@ const ManageUsers: React.FC = () => {
       message.error('You do not have permission to access this page');
     }
   }, [currentUser]);
+
+  // Close dropdown on click outside or ESC key
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setOpenDropdownId(null);
+      }
+    };
+
+    const handleEscKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setOpenDropdownId(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleEscKey);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscKey);
+    };
+  }, []);
 
   // Load users and counts on component mount or filter change
   useEffect(() => {
@@ -238,63 +258,58 @@ const ManageUsers: React.FC = () => {
   // Table columns
   const columns = [
     {
-      title: 'Name',
-      dataIndex: 'full_name',
-      key: 'full_name',
-      sorter: (a: TableUser, b: TableUser) => a.full_name.localeCompare(b.full_name),
-      width: 180,
-    },
-    {
-      title: 'Email',
-      dataIndex: 'email',
-      key: 'email',
-      width: 200,
-      render: (text: string) => <a href={`mailto:${text}`}>{text}</a>,
+      title: 'User Profile',
+      key: 'profile',
+      width: 280,
+      render: (_: unknown, record: TableUser) => (
+        <div className="user-profile">
+          <div className={`user-avatar ${record.role}`}>
+            {getInitials(record.full_name)}
+          </div>
+          <div className="user-info">
+            <span className="user-name">{record.full_name}</span>
+            <span className="user-email">{record.email}</span>
+          </div>
+        </div>
+      ),
     },
     {
       title: 'Role',
       dataIndex: 'role',
       key: 'role',
-      width: 120,
-      render: (role: string) => {
-        const colors: Record<string, string> = {
-          admin: 'red',
-          government_body: 'blue',
-          asha_worker: 'green',
-          community_user: 'purple',
-        };
-        return <Tag color={colors[role] || 'default'}>{role.replace(/_/g, ' ').toUpperCase()}</Tag>;
-      },
+      width: 180,
+      render: (role: string) => (
+        <div className="role-badge">
+          {getRoleIcon(role)}
+          {formatRole(role)}
+        </div>
+      ),
     },
     {
       title: 'Status',
       dataIndex: 'status',
       key: 'status',
-      width: 100,
+      width: 120,
       render: (status: string) => (
-        <Tag color={status === 'active' ? 'green' : 'red'}>{status.toUpperCase()}</Tag>
+        <div className={`status-pill status-${status}`}>
+          <span className="status-dot"></span>
+          {status.charAt(0).toUpperCase() + status.slice(1)}
+        </div>
       ),
-    },
-    {
-      title: 'Phone',
-      dataIndex: 'phone',
-      key: 'phone',
-      width: 130,
-      render: (text: string) => text || '-',
     },
     {
       title: 'District',
       dataIndex: 'district',
       key: 'district',
-      width: 120,
+      width: 140,
       render: (text: string) => text || '-',
     },
     {
-      title: 'Created',
+      title: 'Last Active',
       dataIndex: 'created_at',
       key: 'created_at',
-      width: 150,
-      render: (text: string) => (text ? new Date(text).toLocaleDateString() : '-'),
+      width: 140,
+      render: (text: string) => (text ? formatDate(text) : 'Never'),
       sorter: (a: TableUser, b: TableUser) => {
         const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
         const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
@@ -304,222 +319,323 @@ const ManageUsers: React.FC = () => {
     {
       title: 'Actions',
       key: 'actions',
-      width: 280,
+      width: 80,
       fixed: 'right' as const,
       render: (_: unknown, record: TableUser) => (
-        <Space size="small" wrap>
-          <Tooltip title="View Details">
-            <Button
-              icon={<EyeOutlined />}
-              onClick={() => handleViewDetails(record)}
-              type="primary"
-              ghost
-              size="small"
-            />
-          </Tooltip>
-
-          <Tooltip title="View Activity">
-            <Button
-              icon={<ReloadOutlined />}
-              onClick={() => handleViewActivity(record)}
-              type="primary"
-              ghost
-              size="small"
-            />
-          </Tooltip>
-
-          <Tooltip title={record.status === 'active' ? 'Deactivate' : 'Activate'}>
-            <Popconfirm
-              title={`${record.status === 'active' ? 'Deactivate' : 'Activate'} User`}
-              description={`Are you sure you want to ${record.status === 'active' ? 'deactivate' : 'activate'} this user?`}
-              onConfirm={() => handleToggleStatus(record)}
-              okText="Yes"
-              cancelText="No"
-            >
-              <Button
-                icon={record.status === 'active' ? <LockOutlined /> : <UnlockOutlined />}
-                danger={record.status === 'active'}
-                ghost
-                size="small"
-              />
-            </Popconfirm>
-          </Tooltip>
-
-          <Tooltip title="Reset Password">
-            <Popconfirm
-              title="Reset Password"
-              description="Generate a new temporary password for this user?"
-              onConfirm={() => handleResetPassword(record)}
-              okText="Yes"
-              cancelText="No"
-            >
-              <Button
-                icon={<LockOutlined />}
-                type="primary"
-                danger
-                ghost
-                size="small"
-              />
-            </Popconfirm>
-          </Tooltip>
-
-          {record.role !== 'admin' && (
-            <Tooltip title="Delete">
-              <Popconfirm
-                title="Delete User"
-                description="Are you sure you want to delete this user? This action cannot be undone."
-                onConfirm={() => handleDeleteUser(record)}
-                okText="Yes"
-                cancelText="No"
-                okButtonProps={{ danger: true }}
+        <div className="actions-dropdown-container" ref={openDropdownId === record.id ? dropdownRef : null}>
+          <button
+            className="kebab-menu-btn"
+            onClick={() => setOpenDropdownId(openDropdownId === record.id ? null : record.id)}
+            aria-label="Actions menu"
+            aria-expanded={openDropdownId === record.id}
+            aria-haspopup="true"
+          >
+            <MoreOutlined />
+          </button>
+          
+          {openDropdownId === record.id && (
+            <div className="actions-dropdown" role="menu">
+              <button
+                className="dropdown-item"
+                onClick={() => {
+                  handleViewDetails(record);
+                  setOpenDropdownId(null);
+                }}
+                role="menuitem"
+                tabIndex={0}
               >
-                <Button
-                  icon={<DeleteOutlined />}
-                  danger
-                  ghost
-                  size="small"
-                />
-              </Popconfirm>
-            </Tooltip>
+                <EyeOutlined />
+                <span>View Details</span>
+              </button>
+              
+              <button
+                className="dropdown-item"
+                onClick={() => {
+                  handleViewDetails(record);
+                  setOpenDropdownId(null);
+                }}
+                role="menuitem"
+                tabIndex={0}
+              >
+                <EditOutlined />
+                <span>Edit User</span>
+              </button>
+              
+              <button
+                className="dropdown-item"
+                onClick={() => {
+                  handleViewActivity(record);
+                  setOpenDropdownId(null);
+                }}
+                role="menuitem"
+                tabIndex={0}
+              >
+                <ClockCircleOutlined />
+                <span>View Activity</span>
+              </button>
+              
+              <div className="dropdown-divider"></div>
+              
+              <button
+                className="dropdown-item"
+                onClick={() => {
+                  setOpenDropdownId(null);
+                  setConfirmModal({
+                    visible: true,
+                    title: `${record.status === 'active' ? 'Deactivate' : 'Activate'} User`,
+                    description: `Are you sure you want to ${record.status === 'active' ? 'deactivate' : 'activate'} this user?`,
+                    action: () => handleToggleStatus(record),
+                  });
+                }}
+                role="menuitem"
+                tabIndex={0}
+              >
+                {record.status === 'active' ? <LockOutlined /> : <UnlockOutlined />}
+                <span>{record.status === 'active' ? 'Deactivate' : 'Activate'}</span>
+              </button>
+              
+              <button
+                className="dropdown-item"
+                onClick={() => {
+                  setOpenDropdownId(null);
+                  setConfirmModal({
+                    visible: true,
+                    title: 'Reset Password',
+                    description: 'Generate a new temporary password for this user?',
+                    action: () => handleResetPassword(record),
+                  });
+                }}
+                role="menuitem"
+                tabIndex={0}
+              >
+                <LockOutlined />
+                <span>Reset Password</span>
+              </button>
+              
+              {record.role !== 'admin' && (
+                <>
+                  <div className="dropdown-divider"></div>
+                  <button
+                    className="dropdown-item danger"
+                    onClick={() => {
+                      setOpenDropdownId(null);
+                      setConfirmModal({
+                        visible: true,
+                        title: 'Delete User',
+                        description: 'Are you sure you want to delete this user? This action cannot be undone.',
+                        action: () => handleDeleteUser(record),
+                        danger: true,
+                      });
+                    }}
+                    role="menuitem"
+                    tabIndex={0}
+                  >
+                    <DeleteOutlined />
+                    <span>Delete User</span>
+                  </button>
+                </>
+              )}
+            </div>
           )}
-        </Space>
+        </div>
       ),
     },
   ];
 
+  // Helper functions
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  const formatRole = (role: string) => {
+    const roleMap: Record<string, string> = {
+      admin: 'Admin',
+      government_body: 'Government Official',
+      asha_worker: 'ASHA Worker',
+      community_user: 'Community User',
+    };
+    return roleMap[role] || role;
+  };
+
+  const getRoleIcon = (role: string) => {
+    const icons: Record<string, React.ReactNode> = {
+      admin: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+        </svg>
+      ),
+      government_body: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="3" y1="9" x2="21" y2="9"></line>
+          <line x1="9" y1="21" x2="9" y2="9"></line>
+        </svg>
+      ),
+      asha_worker: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+        </svg>
+      ),
+      community_user: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+          <circle cx="9" cy="7" r="4"></circle>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+        </svg>
+      ),
+    };
+    return icons[role] || null;
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins} min ago`;
+    if (diffHours < 24) return `${diffHours} hours ago`;
+    if (diffDays < 7) return `${diffDays} days ago`;
+    return date.toLocaleDateString();
+  };
+
   return (
     <div className="manage-users-container">
-      {/* Header */}
-      <Card className="manage-users-header">
-        <Row gutter={16}>
-          <Col span={24}>
-            <h1 style={{ marginBottom: 16 }}>👥 Manage Users</h1>
-            <p style={{ color: '#666' }}>
-              View, edit, and manage all user accounts across the system
-            </p>
-          </Col>
-        </Row>
+      {/* Header Card */}
+      <div className="header-card">
+        <div className="header-title">
+          <h1>Manage Users</h1>
+          <p>View, edit, and manage all user accounts across the system</p>
+        </div>
 
-        {/* Statistics */}
+        {/* Stats Row */}
         {counts && (
-          <Row gutter={16}>
-            <Col xs={12} sm={6}>
-              <Statistic title="Total Users" value={counts.total_count} />
-            </Col>
-            <Col xs={12} sm={6}>
-              <Statistic title="Admins" value={counts.admin_count} />
-            </Col>
-            <Col xs={12} sm={6}>
-              <Statistic title="Government Officials" value={counts.government_count} />
-            </Col>
-            <Col xs={12} sm={6}>
-              <Statistic title="ASHA Workers" value={counts.asha_count} />
-            </Col>
-            <Col xs={12} sm={6}>
-              <Statistic title="Community Users" value={counts.community_count} />
-            </Col>
-          </Row>
+          <div className="stats-row">
+            <div className="stat-item">
+              <div className="stat-label">Total Users</div>
+              <div className="stat-value">{counts.total_count.toLocaleString()}</div>
+            </div>
+            <div className="stat-item">
+              <div className="stat-label">Admins</div>
+              <div className="stat-value">{counts.admin_count}</div>
+            </div>
+            <div className="stat-item">
+              <div className="stat-label">Government Officials</div>
+              <div className="stat-value">{counts.government_count}</div>
+            </div>
+            <div className="stat-item">
+              <div className="stat-label">ASHA Workers</div>
+              <div className="stat-value">{counts.asha_count}</div>
+            </div>
+            <div className="stat-item">
+              <div className="stat-label">Community Users</div>
+              <div className="stat-value">{counts.community_count.toLocaleString()}</div>
+            </div>
+          </div>
         )}
-      </Card>
+      </div>
 
-      {/* Filters */}
-      <Card className="manage-users-filters">
-        <Row gutter={[16, 16]}>
-          <Col xs={24} sm={12} md={6}>
-            <Input
-              placeholder="Search by name or email"
-              value={searchText}
-              onChange={(e) => {
-                setSearchText(e.target.value);
-                setPagination({ ...pagination, current: 1 });
-              }}
-              allowClear
-            />
-          </Col>
+      {/* Filters Card */}
+      <div className="filters-card">
+        <div className="search-input-wrapper">
+          <SearchOutlined className="search-icon" />
+          <Input
+            placeholder="Search by name, email, or ID..."
+            value={searchText}
+            onChange={(e) => {
+              setSearchText(e.target.value);
+              setPagination({ ...pagination, current: 1 });
+            }}
+            allowClear
+          />
+        </div>
 
-          <Col xs={24} sm={12} md={4}>
-            <Select
-              placeholder="Filter by Role"
-              value={roleFilter}
-              onChange={(value) => {
-                setRoleFilter(value);
-                setPagination({ ...pagination, current: 1 });
-              }}
-              allowClear
-              style={{ width: '100%' }}
-            >
-              <Option value="admin">Admin</Option>
-              <Option value="government_body">Government Official</Option>
-              <Option value="asha_worker">ASHA Worker</Option>
-              <Option value="community_user">Community User</Option>
-            </Select>
-          </Col>
+        <Select
+          placeholder="All Roles"
+          value={roleFilter || undefined}
+          onChange={(value) => {
+            setRoleFilter(value || '');
+            setPagination({ ...pagination, current: 1 });
+          }}
+          allowClear
+        >
+          <Option value="admin">Admin</Option>
+          <Option value="government_body">Government Official</Option>
+          <Option value="asha_worker">ASHA Worker</Option>
+          <Option value="community_user">Community User</Option>
+        </Select>
 
-          <Col xs={24} sm={12} md={4}>
-            <Select
-              placeholder="Filter by Status"
-              value={statusFilter}
-              onChange={(value) => {
-                setStatusFilter(value);
-                setPagination({ ...pagination, current: 1 });
-              }}
-              allowClear
-              style={{ width: '100%' }}
-            >
-              <Option value="active">Active</Option>
-              <Option value="inactive">Inactive</Option>
-              <Option value="deleted">Deleted</Option>
-            </Select>
-          </Col>
+        <Select
+          placeholder="Status: Any"
+          value={statusFilter || undefined}
+          onChange={(value) => {
+            setStatusFilter(value || '');
+            setPagination({ ...pagination, current: 1 });
+          }}
+          allowClear
+        >
+          <Option value="active">Active</Option>
+          <Option value="inactive">Inactive</Option>
+          <Option value="deleted">Deleted</Option>
+        </Select>
 
-          <Col xs={24} sm={12} md={4}>
-            <Input
-              placeholder="Filter by District"
-              value={districtFilter}
-              onChange={(e) => {
-                setDistrictFilter(e.target.value);
-                setPagination({ ...pagination, current: 1 });
-              }}
-              allowClear
-            />
-          </Col>
+        <Input
+          placeholder="Filter by District"
+          value={districtFilter}
+          onChange={(e) => {
+            setDistrictFilter(e.target.value);
+            setPagination({ ...pagination, current: 1 });
+          }}
+          allowClear
+        />
 
-          <Col xs={24} sm={12} md={6}>
-            <Button
-              type="primary"
-              icon={<ReloadOutlined />}
-              onClick={() => {
-                setSearchText('');
-                setRoleFilter('');
-                setStatusFilter('');
-                setDistrictFilter('');
-                setPagination({ ...pagination, current: 1 });
-              }}
-              block
-            >
-              Reset Filters
-            </Button>
-          </Col>
-        </Row>
-      </Card>
+        <button
+          className="reset-btn"
+          onClick={() => {
+            setSearchText('');
+            setRoleFilter('');
+            setStatusFilter('');
+            setDistrictFilter('');
+            setPagination({ ...pagination, current: 1 });
+          }}
+        >
+          <ReloadOutlined />
+          Reset
+        </button>
+      </div>
 
-      {/* Users Table */}
-      <Card className="manage-users-table">
-        <Spin spinning={loading}>
-          {users.length === 0 ? (
-            <Empty description="No users found" />
+      {/* Table Card */}
+      <div className="table-card">
+        <Spin spinning={loading} className="loading-state">
+          {users.length === 0 && !loading ? (
+            <div className="empty-state">
+              <Empty description="No users found" />
+            </div>
           ) : (
             <>
               <Table
                 columns={columns}
                 dataSource={users}
-                loading={loading}
-                scroll={{ x: 1500 }}
+                loading={false}
+                scroll={{ x: 1200 }}
                 pagination={false}
-                className="users-table"
               />
-              
-              <Row justify="end" style={{ marginTop: 16 }}>
+
+              <div className="pagination-wrapper">
+                <div className="pagination-info">
+                  Showing {((pagination.current - 1) * pagination.pageSize) + 1} to{' '}
+                  {Math.min(pagination.current * pagination.pageSize, pagination.total)} of{' '}
+                  {pagination.total.toLocaleString()} users
+                </div>
                 <Pagination
                   current={pagination.current}
                   pageSize={pagination.pageSize}
@@ -531,21 +647,37 @@ const ManageUsers: React.FC = () => {
                     setPagination({ ...pagination, current: 1, pageSize: size })
                   }
                   showSizeChanger
-                  showTotal={(total) => `Total ${total} users`}
+                  size="small"
                 />
-              </Row>
+              </div>
             </>
           )}
         </Spin>
-      </Card>
+      </div>
 
       {/* Edit User Drawer */}
       <Drawer
-        title="Edit User Details"
+        title={
+          <div>
+            <div>Edit User Details</div>
+            <div className="drawer-subtitle">Update account information</div>
+          </div>
+        }
         placement="right"
         onClose={() => setEditDrawerVisible(false)}
         open={editDrawerVisible}
-        width={500}
+        width={420}
+        className="user-drawer"
+        footer={
+          <div className="drawer-footer">
+            <button className="cancel-btn" onClick={() => setEditDrawerVisible(false)}>
+              Cancel
+            </button>
+            <button className="save-btn" onClick={() => editForm.submit()}>
+              Save Changes
+            </button>
+          </div>
+        }
       >
         {selectedUser && (
           <Form
@@ -553,15 +685,12 @@ const ManageUsers: React.FC = () => {
             layout="vertical"
             onFinish={handleUpdateUser}
           >
-            <Form.Item label="User ID" className="user-id-field">
+            <Form.Item label="User ID">
               <Input value={selectedUser.id} disabled />
             </Form.Item>
 
-            <Form.Item label="Role" className="role-field">
-              <Input
-                value={selectedUser.role.replace(/_/g, ' ').toUpperCase()}
-                disabled
-              />
+            <Form.Item label="Role">
+              <Input value={formatRole(selectedUser.role)} disabled />
             </Form.Item>
 
             <Form.Item
@@ -569,40 +698,34 @@ const ManageUsers: React.FC = () => {
               name="full_name"
               rules={[{ required: true, message: 'Please enter full name' }]}
             >
-              <Input />
+              <Input placeholder="e.g. John Doe" />
             </Form.Item>
 
             <Form.Item
-              label="Email"
+              label="Email Address"
               name="email"
               rules={[
                 { required: true, message: 'Please enter email' },
                 { type: 'email', message: 'Invalid email' },
               ]}
             >
-              <Input />
+              <Input placeholder="john@company.com" />
             </Form.Item>
 
             <Form.Item label="Phone" name="phone">
-              <Input />
+              <Input placeholder="+91 XXXXX XXXXX" />
             </Form.Item>
 
             <Form.Item label="Organization" name="organization">
-              <Input />
+              <Input placeholder="Organization name" />
             </Form.Item>
 
             <Form.Item label="Location" name="location">
-              <Input />
+              <Input placeholder="City, State" />
             </Form.Item>
 
             <Form.Item label="District" name="district">
-              <Input />
-            </Form.Item>
-
-            <Form.Item>
-              <Button type="primary" htmlType="submit" block>
-                Save Changes
-              </Button>
+              <Input placeholder="District name" />
             </Form.Item>
           </Form>
         )}
@@ -610,38 +733,40 @@ const ManageUsers: React.FC = () => {
 
       {/* Activity Logs Drawer */}
       <Drawer
-        title="User Activity Logs"
+        title={
+          <div>
+            <div>User Activity Logs</div>
+            <div className="drawer-subtitle">Recent account activity</div>
+          </div>
+        }
         placement="right"
         onClose={() => setActivityDrawerVisible(false)}
         open={activityDrawerVisible}
-        width={600}
+        width={480}
+        className="user-drawer"
       >
         {selectedUser && (
           <Spin spinning={activityLoading}>
             {activityLogs.length === 0 ? (
               <Empty description="No activity logs" />
             ) : (
-              <div className="activity-logs">
+              <div className="activity-timeline">
+                <div className="timeline-header">Recent Activity</div>
                 {activityLogs.map((log, index) => (
-                  <Card key={index} className="activity-log-item" size="small" style={{ marginBottom: 16 }}>
-                    <Row gutter={16}>
-                      <Col span={24}>
-                        <strong>{log.action}</strong>
-                        <div style={{ color: '#999', fontSize: '12px' }}>
-                          {new Date(log.timestamp).toLocaleString()}
-                        </div>
-                      </Col>
-                    </Row>
-                    {log.changes && Object.keys(log.changes).length > 0 && (
-                      <Row gutter={16} style={{ marginTop: 8 }}>
-                        <Col span={24}>
-                          <pre style={{ fontSize: '12px', backgroundColor: '#f5f5f5', padding: 8, borderRadius: 4 }}>
-                            {JSON.stringify(log.changes, null, 2)}
-                          </pre>
-                        </Col>
-                      </Row>
-                    )}
-                  </Card>
+                  <div key={index} className="timeline-item">
+                    <span className="timeline-dot"></span>
+                    <div className="timeline-content">
+                      <p>{log.action}</p>
+                      <div className="timeline-date">
+                        {new Date(log.timestamp).toLocaleString()}
+                      </div>
+                      {log.changes && Object.keys(log.changes).length > 0 && (
+                        <pre className="timeline-changes">
+                          {JSON.stringify(log.changes, null, 2)}
+                        </pre>
+                      )}
+                    </div>
+                  </div>
                 ))}
               </div>
             )}
@@ -655,6 +780,7 @@ const ManageUsers: React.FC = () => {
         open={resetPasswordModal}
         onOk={() => setResetPasswordModal(false)}
         onCancel={() => setResetPasswordModal(false)}
+        className="password-modal"
         footer={[
           <Button key="copy" type="primary" onClick={() => copyToClipboard(tempPassword)}>
             Copy Password
@@ -679,10 +805,28 @@ const ManageUsers: React.FC = () => {
               </Button>
             }
           />
-          <p style={{ marginTop: 16, color: '#ff7875' }}>
-            ⚠️ User must change this password on first login. This password expires in 24 hours.
-          </p>
+          <div className="password-warning">
+            <span>⚠️</span>
+            <span>User must change this password on first login. This password expires in 24 hours.</span>
+          </div>
         </div>
+      </Modal>
+
+      {/* Confirmation Modal */}
+      <Modal
+        title={confirmModal.title}
+        open={confirmModal.visible}
+        onOk={() => {
+          confirmModal.action();
+          setConfirmModal({ ...confirmModal, visible: false });
+        }}
+        onCancel={() => setConfirmModal({ ...confirmModal, visible: false })}
+        okText="Yes"
+        cancelText="No"
+        okButtonProps={{ danger: confirmModal.danger }}
+        className="confirm-modal"
+      >
+        <p>{confirmModal.description}</p>
       </Modal>
     </div>
   );
