@@ -20,17 +20,11 @@ const Footer: React.FC = () => {
               AI-powered water quality monitoring and proactive healthcare surveillance.
             </p>
             <div className="social-links">
-              <a href="#" className="social-icon" aria-label="Twitter">
-                <i className="fa-brands fa-x-twitter"></i>
-              </a>
-              <a href="#" className="social-icon" aria-label="LinkedIn">
-                <i className="fa-brands fa-linkedin-in"></i>
-              </a>
               <a href="#" className="social-icon" aria-label="Facebook">
                 <i className="fa-brands fa-facebook"></i>
               </a>
-              <a href="#" className="social-icon" aria-label="GitHub">
-                <i className="fa-brands fa-github"></i>
+              <a href="#" className="social-icon" aria-label="X">
+                <i className="fa-brands fa-x-twitter"></i>
               </a>
             </div>
           </div>

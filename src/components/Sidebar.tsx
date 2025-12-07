@@ -19,6 +19,7 @@ import {
   PushpinOutlined,
   ThunderboltOutlined,
   BookOutlined,
+  CloudOutlined,
   FileTextOutlined,
   MedicineBoxOutlined,
   UserAddOutlined
@@ -125,6 +126,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onCollapse }) => {
     { key: '/asha-communication', icon: <MessageOutlined />, label: 'ASHA Communication', badge: 5 },
     { key: '/ai-prediction', icon: <RobotOutlined />, label: 'Report Water Quality', badge: 0 },
     { key: '/alerts', icon: <AlertOutlined />, label: t('nav.alerts'), badge: 8 },
+    { key: '/rainfall-alert', icon: <CloudOutlined />, label: 'Rainfall Alert', badge: 0 },
     { key: '/report-symptoms', icon: <MedicineBoxOutlined />, label: 'Report Symptoms', badge: 0 },
     { key: '/community', icon: <TeamOutlined />, label: t('nav.community'), badge: 0 },
     { key: '/education', icon: <BookOutlined />, label: t('nav.education'), badge: 0 },
@@ -144,19 +146,19 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onCollapse }) => {
       case 'admin':
         return all;
       case 'asha_worker':
-        // ASHA: dashboard, asha communication, report water, report symptoms, alerts, education, community
-        return ['/', '/asha-communication', '/ai-prediction', '/report-symptoms', '/alerts', '/education', '/community'];
+        // ASHA: dashboard, asha communication, report water, report symptoms, alerts, rainfall alert, education, community
+        return ['/', '/asha-communication', '/ai-prediction', '/report-symptoms', '/alerts', '/rainfall-alert', '/education', '/community'];
       case 'community_user':
-        return ['/community', '/alerts', '/education', '/goverment-reports', '/asha-worker'];
+        return ['/community', '/alerts', '/rainfall-alert', '/education', '/goverment-reports', '/asha-worker'];
       case 'healthcare_worker':
-        return ['/', '/health', '/disease-mapping', '/alerts'];
+        return ['/', '/health', '/disease-mapping', '/alerts', '/rainfall-alert'];
       case 'district_health_official':
-        return ['/', '/disease-mapping', '/health', '/alerts', '/reports'];
+        return ['/', '/disease-mapping', '/health', '/alerts', '/rainfall-alert', '/reports'];
       case 'government_body':
         // everything except ASHA-specific items
         return all.filter(k => !['/asha-communication', '/ai-prediction', '/report-symptoms'].includes(k));
       case 'volunteer':
-        return ['/', '/community', '/report-symptoms', '/alerts', '/education', '/goverment-reports', '/asha-worker'];
+        return ['/', '/community', '/report-symptoms', '/alerts', '/rainfall-alert', '/education', '/goverment-reports', '/asha-worker'];
       default:
         
         return ['/'];

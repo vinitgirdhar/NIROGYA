@@ -29,6 +29,7 @@ import WaterQualityPrediction from './pages/ReportWaterQuality';
 import GovernmentReports from './pages/GovermentReports'; 
 import AshaWorker from './pages/AshaWorker';
 import EmergencyContacts from './pages/EmergencyContacts';
+import RainfallAlert from './pages/RainfallAlert';
 
 // ⭐ NEW IMPORT — this is the correct page for /report-symptoms
 import SymptomReporting from './pages/SymptomReporting';
@@ -163,6 +164,15 @@ function App() {
                 </Layout>
               </ProtectedRoute>
             } />
+
+              {/* Rainfall Alert */}
+              <Route path="/rainfall-alert" element={
+                <ProtectedRoute>
+                  <Layout type="dashboard">
+                    <RainfallAlert />
+                  </Layout>
+                </ProtectedRoute>
+              } />
 
 
               {/* Education */}
