@@ -28,6 +28,7 @@ import ASHACommunication from './pages/ASHACommunication';
 import WaterQualityPrediction from './pages/ReportWaterQuality';
 import GovernmentReports from './pages/GovermentReports'; 
 import AshaWorker from './pages/AshaWorker';
+import EmergencyContacts from './pages/EmergencyContacts';
 
 // ⭐ NEW IMPORT — this is the correct page for /report-symptoms
 import SymptomReporting from './pages/SymptomReporting';
@@ -78,6 +79,10 @@ function App() {
                 <PublicLayout>
                   <News />
                 </PublicLayout>
+              } />
+
+              <Route path="/emergency-contacts" element={
+                <EmergencyContacts />
               } />
 
               {/* Community Chat */}

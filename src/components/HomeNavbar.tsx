@@ -112,6 +112,7 @@ const HomeNavbar: React.FC = () => {
     { key: 'news', label: t('nav.news'), path: '/news' },
     { key: 'about', label: t('nav.about'), path: '/about' },
     { key: 'contact', label: t('nav.contact'), path: '/contact' },
+    { key: 'emergency', label: 'Emergency Service', path: '/emergency-contacts' },
   ];
 
   const handleNavClick = (path: string) => {

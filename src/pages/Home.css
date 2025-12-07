@@ -335,9 +335,12 @@
   padding: 0 24px;
 }
 
-/* Modern Stats Section */
+/* =========================================
+   STATS SECTION - IMPROVED VERSION
+   ========================================= */
+
 .stats-section {
-  padding: 120px 0;
+  padding: 100px 0;
   position: relative;
   background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
   overflow: hidden;
@@ -355,27 +358,16 @@
   height: 100%;
   background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><defs><pattern id="grid" width="50" height="50" patternUnits="userSpaceOnUse"><path d="M 50 0 L 0 0 0 50" fill="none" stroke="rgba(59,130,246,0.1)" stroke-width="1"/></pattern></defs><rect width="100%" height="100%" fill="url(%23grid)"/></svg>');
   opacity: 0.5;
-  animation: gridMove 20s linear infinite;
-}
-
-@keyframes gridMove {
-  0% { transform: translate(0, 0); }
-  100% { transform: translate(50px, 50px); }
+  pointer-events: none;
 }
 
 .stats-header {
   text-align: center;
   margin-bottom: 4rem;
-  animation: statsHeaderSlide 0.8s ease-out;
-}
-
-@keyframes statsHeaderSlide {
-  0% { opacity: 0; transform: translateY(30px); }
-  100% { opacity: 1; transform: translateY(0); }
 }
 
 .stats-title {
-  font-size: 3rem !important;
+  font-size: 2.5rem !important;
   font-weight: 800 !important;
   color: #1e293b !important;
   margin-bottom: 1rem !important;
@@ -386,7 +378,6 @@
 }
 
 .home-page.dark .stats-title {
-  color: #f1f5f9 !important;
   background: linear-gradient(135deg, #60a5fa, #a78bfa);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -405,58 +396,55 @@
   color: #94a3b8;
 }
 
-/* Enhanced Stat Cards */
-.modern-card {
-  background: rgba(255, 255, 255, 0.8) !important;
-  backdrop-filter: blur(20px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.2) !important;
-  border-radius: 24px !important;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1) !important;
-  transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
+/* Stats Grid */
+.stats-grid {
+  position: relative;
+  z-index: 2;
+}
+
+/* Stat Cards */
+.stat-card {
+  opacity: 1 !important;
+  visibility: visible !important;
+  display: block !important;
+  height: 100%;
+  min-height: 240px;
+  text-align: center;
+  border-radius: 20px !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08) !important;
+  border: none !important;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  background: white !important;
   overflow: hidden !important;
   position: relative !important;
-  animation: cardSlideUp 0.8s ease-out forwards;
-  opacity: 0;
-  transform: translateY(30px);
 }
 
-.home-page.dark .modern-card {
-  background: rgba(30, 41, 59, 0.8) !important;
-  border: 1px solid rgba(51, 65, 85, 0.3) !important;
+.home-page.dark .stat-card {
+  background: rgba(30, 41, 59, 0.9) !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3) !important;
 }
 
-.modern-card:nth-child(1) { animation-delay: 0.1s; }
-.modern-card:nth-child(2) { animation-delay: 0.2s; }
-.modern-card:nth-child(3) { animation-delay: 0.3s; }
-.modern-card:nth-child(4) { animation-delay: 0.4s; }
-
-@keyframes cardSlideUp {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.stat-card:hover {
+  transform: translateY(-10px) scale(1.02) !important;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15) !important;
 }
 
-.modern-card:hover {
-  transform: translateY(-12px) scale(1.03) !important;
-  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.2) !important;
-  background: rgba(255, 255, 255, 0.95) !important;
+.home-page.dark .stat-card:hover {
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4) !important;
 }
 
-.home-page.dark .modern-card:hover {
-  background: rgba(30, 41, 59, 0.95) !important;
-}
-
-.modern-card::before {
+/* Top gradient indicator */
+.stat-card::before {
   content: '';
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, #3b82f6, #3b82f6, #a855f7, #f59e0b);
+  height: 5px;
+  background: linear-gradient(90deg, #3b82f6, #8b5cf6, #a855f7, #f59e0b);
   background-size: 300% 300%;
-  animation: gradientShift 3s ease infinite;
+  animation: gradientShift 6s ease infinite;
+  z-index: 1;
 }
 
 @keyframes gradientShift {
@@ -464,179 +452,150 @@
   50% { background-position: 100% 50%; }
 }
 
+/* Card content */
 .stat-content {
-  padding: 2rem;
+  padding: 2.5rem 1.5rem;
   text-align: center;
   position: relative;
+  opacity: 1 !important;
+  visibility: visible !important;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  min-height: 200px;
+  justify-content: center;
 }
 
 .stat-icon {
-  font-size: 3rem;
-  margin-bottom: 1.5rem;
-  animation: iconPulse 2s ease-in-out infinite;
+  font-size: 3.5rem !important;
+  margin-bottom: 0.5rem;
+  opacity: 1 !important;
   display: block;
+  animation: iconFloat 3s ease-in-out infinite;
 }
 
-@keyframes iconPulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.1); }
+@keyframes iconFloat {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
 }
 
-.enhanced-statistic .ant-statistic-title {
-  font-size: 1rem !important;
+.stat-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.stat-title {
+  font-size: 0.875rem !important;
   font-weight: 600 !important;
   color: #64748b !important;
-  margin-bottom: 0.5rem !important;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 1px;
+  margin-bottom: 0.25rem;
 }
 
-.home-page.dark .enhanced-statistic .ant-statistic-title {
+.home-page.dark .stat-title {
   color: #94a3b8 !important;
 }
 
+.stat-value {
+  font-size: 2.75rem !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  letter-spacing: -0.02em;
+}
+
+.stat-suffix {
+  font-size: 1.75rem !important;
+  margin-left: 0.125rem;
+  opacity: 0.9;
+}
+
+/* Bottom indicator bar */
 .stat-indicator {
   position: absolute;
   bottom: 0;
   left: 50%;
   transform: translateX(-50%);
-  width: 60px;
+  width: 80px;
   height: 4px;
-  border-radius: 2px;
-  animation: indicatorGlow 2s ease-in-out infinite alternate;
+  border-radius: 2px 2px 0 0;
+  animation: indicatorPulse 2s ease-in-out infinite;
 }
 
-@keyframes indicatorGlow {
-  0% { opacity: 0.6; box-shadow: 0 0 10px currentColor; }
-  100% { opacity: 1; box-shadow: 0 0 20px currentColor; }
-}
-
-.cta-button::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  transition: left 0.6s;
-}
-
-.cta-button:hover::before {
-  left: 100%;
-}
-
-.cta-button:hover {
-  transform: translateY(-3px) scale(1.02) !important;
-  box-shadow: 0 12px 35px rgba(24, 144, 255, 0.5) !important;
-  background: linear-gradient(45deg, #096dd9, #389e0d) !important;
-}
-
-.demo-button {
-  height: 48px !important;
-  padding: 0 32px !important;
-  font-size: 1rem !important;
-  border: 2px solid rgba(255, 255, 255, 0.8) !important;
-  color: white !important;
-  border-radius: 8px !important;
-  backdrop-filter: blur(10px) !important;
-  transition: all 0.3s ease !important;
-}
-
-.demo-button:hover {
-  background: rgba(255, 255, 255, 0.1) !important;
-  border-color: white !important;
-  transform: translateY(-2px) !important;
-}
-
-/* Container */
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 24px;
-}
-
-/* Enhanced Stats Section */
-.stats-section {
-  padding: 80px 0;
-  background: linear-gradient(135deg, #f0f9ff 0%, #e6f7ff 100%);
-  position: relative;
-  overflow: hidden;
-}
-
-.stats-section::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="dots" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="1" fill="rgba(24,144,255,0.1)"/></pattern></defs><rect width="100%" height="100%" fill="url(%23dots)"/></svg>');
-  opacity: 0.5;
-  z-index: 1;
-}
-
-.stats-section .container {
-  position: relative;
-  z-index: 2;
-}
-
-.stat-card {
-  text-align: center;
-  border-radius: 20px !important;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08) !important;
-  border: none !important;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
-  background: linear-gradient(145deg, #ffffff, #f8fafc) !important;
-  overflow: hidden !important;
-  animation: statsSlideUp 0.6s ease-out forwards;
-  opacity: 0;
-  transform: translateY(30px);
-}
-
-.stat-card:nth-child(1) { animation-delay: 0.1s; }
-.stat-card:nth-child(2) { animation-delay: 0.2s; }
-.stat-card:nth-child(3) { animation-delay: 0.3s; }
-.stat-card:nth-child(4) { animation-delay: 0.4s; }
-
-@keyframes statsSlideUp {
-  to {
-    opacity: 1;
-    transform: translateY(0);
+@keyframes indicatorPulse {
+  0%, 100% { 
+    opacity: 0.7; 
+    width: 80px;
+  }
+  50% { 
+    opacity: 1; 
+    width: 100px;
   }
 }
 
-.stat-card:hover {
-  transform: translateY(-8px) scale(1.02) !important;
-  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15) !important;
+/* Remove old Statistic styles if they conflict */
+.enhanced-statistic {
+  display: none;
 }
 
-.stat-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 4px;
-  background: linear-gradient(90deg, #1890ff, #000000, #722ed1, #fa8c16);
-  background-size: 400% 400%;
-  animation: gradientMove 3s ease infinite;
+/* Modern card variant */
+.modern-card {
+  opacity: 1 !important;
+  visibility: visible !important;
 }
 
-@keyframes gradientMove {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
+/* Force all nested elements to be visible */
+.stat-card .ant-card-body {
+  opacity: 1 !important;
+  visibility: visible !important;
+  height: 100%;
+  padding: 0 !important;
 }
 
-.stat-icon {
-  font-size: 2.5rem;
-  margin-bottom: 1rem;
-  animation: iconBounce 2s ease-in-out infinite;
+/* Responsive */
+@media (max-width: 992px) {
+  .stat-card {
+    min-height: 220px;
+  }
+  
+  .stat-icon {
+    font-size: 3rem !important;
+  }
+  
+  .stat-value {
+    font-size: 2.25rem !important;
+  }
+  
+  .stat-suffix {
+    font-size: 1.5rem !important;
+  }
 }
 
-@keyframes iconBounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-5px); }
+@media (max-width: 576px) {
+  .stats-section {
+    padding: 60px 0;
+  }
+  
+  .stat-content {
+    padding: 2rem 1rem;
+    min-height: 180px;
+  }
+  
+  .stat-icon {
+    font-size: 2.5rem !important;
+  }
+  
+  .stat-value {
+    font-size: 2rem !important;
+  }
+  
+  .stat-suffix {
+    font-size: 1.25rem !important;
+  }
 }
 
 /* Enhanced Features Section with Glassmorphism */
@@ -1427,4 +1386,62 @@
 [data-theme='dark'] .stat-card {
   background: #1f1f1f !important;
   border: 1px solid #303030 !important;
+}
+
+/* ============================================================================
+   NUCLEAR PATCH - STATS CARDS VISIBILITY FIX
+   ============================================================================ */
+
+/* Force stats section visibility */
+.stats-section,
+.stats-section *,
+.stats-section .container,
+.stats-section .stats-grid,
+.stats-section .ant-row,
+.stats-section .ant-col {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Force stat cards visibility */
+.stat-card,
+.stat-card *,
+.modern-card,
+.modern-card *,
+.stat-card .ant-card-body,
+.stat-card .stat-content,
+.stat-card .stat-icon,
+.stat-card .stat-text,
+.stat-card .stat-title,
+.stat-card .stat-value,
+.stat-card .stat-suffix,
+.stat-card .stat-indicator {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Allow icon floating animation only */
+.stat-icon {
+  animation: iconFloat 3s ease-in-out infinite !important;
+}
+
+/* Allow indicator pulse animation only */
+.stat-indicator {
+  animation: indicatorPulse 2s ease-in-out infinite !important;
+}
+
+/* Allow gradient shift animation only */
+.stat-card::before {
+  animation: gradientShift 6s ease infinite !important;
+}
+
+/* Force card body padding reset */
+.stat-card .ant-card-body {
+  padding: 0 !important;
+  height: 100% !important;
+}
+
+/* Ensure hover still works */
+.stat-card:hover {
+  transform: translateY(-10px) scale(1.02) !important;
 }

@@ -1,0 +1,30 @@
+.emergency-contacts-page {
+  padding: 28px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.emergency-contacts-page .state-quick-numbers {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.state-numbers {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+.state-number-item {
+  background: rgba(24,144,255,0.04);
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(24,144,255,0.06);
+}
+
+@media (max-width: 768px) {
+  .emergency-contacts-page { padding: 16px; }
+}

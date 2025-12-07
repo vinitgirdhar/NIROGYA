@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { Button, Typography, Row, Col, Card, Statistic, Space, Progress } from 'antd';
-import { 
-  PlayCircleOutlined, 
+import React, { useEffect } from 'react';
+import { Button, Typography, Row, Col, Card, Space, Progress } from 'antd';
+import {
+  PlayCircleOutlined,
   SafetyCertificateOutlined,
   TeamOutlined,
   ExperimentOutlined,
@@ -30,13 +30,81 @@ const Home: React.FC = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAuth();
   const { isDark } = useTheme();
-  const [videoLoaded, setVideoLoaded] = useState(false);
 
+  // Force stats cards to be visible - Comprehensive fix
   useEffect(() => {
-    // Preload video
-    const video = document.createElement('video');
-    video.src = '/videos/paanicarehome.mp4';
-    video.onloadeddata = () => setVideoLoaded(true);
+    const forceStatsVisible = () => {
+      // Target all stat-related elements with setProperty for maximum priority
+      const selectors = [
+        '.stats-section',
+        '.stats-section .container',
+        '.stats-grid',
+        '.stats-grid .ant-col',
+        '.stat-card',
+        '.stat-card.ant-card',
+        '.stat-card .ant-card-body',
+        '.stat-content',
+        '.stat-icon',
+        '.enhanced-statistic',
+        '.ant-statistic',
+        '.ant-statistic-title',
+        '.ant-statistic-content',
+        '.ant-statistic-content-value',
+        '.ant-statistic-content-suffix',
+        '.stat-indicator',
+        '.modern-card'
+      ];
+      
+      selectors.forEach(selector => {
+        document.querySelectorAll(selector).forEach((el) => {
+          const htmlEl = el as HTMLElement;
+          htmlEl.style.setProperty('opacity', '1', 'important');
+          htmlEl.style.setProperty('visibility', 'visible', 'important');
+          htmlEl.style.setProperty('animation', 'none', 'important');
+        });
+      });
+      
+      // Force display on cards
+      document.querySelectorAll('.stat-card, .stat-card .ant-card-body').forEach((el) => {
+        (el as HTMLElement).style.setProperty('display', 'block', 'important');
+      });
+    };
+    
+    // Run immediately and at multiple intervals
+    forceStatsVisible();
+    const timeouts = [0, 50, 100, 200, 500, 1000, 2000].map(d => setTimeout(forceStatsVisible, d));
+    
+    // Listen for load and resize events
+    window.addEventListener('load', forceStatsVisible);
+    window.addEventListener('resize', forceStatsVisible);
+    
+    // MutationObserver on document body
+    const observer = new MutationObserver(forceStatsVisible);
+    observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['style', 'class'] });
+    
+    return () => {
+      timeouts.forEach(id => clearTimeout(id));
+      window.removeEventListener('load', forceStatsVisible);
+      window.removeEventListener('resize', forceStatsVisible);
+      observer.disconnect();
+    };
+  }, []);
+
+  // Continuous visibility enforcement - runs for 10 seconds
+  useEffect(() => {
+    const forceVisible = () => {
+      document.querySelectorAll('.stat-card, .stat-card .ant-card-body, .stat-content, .enhanced-statistic, .ant-statistic-content').forEach((el) => {
+        const htmlEl = el as HTMLElement;
+        const cs = window.getComputedStyle(htmlEl);
+        if (cs.opacity !== '1' || cs.visibility !== 'visible') {
+          htmlEl.style.setProperty('opacity', '1', 'important');
+          htmlEl.style.setProperty('visibility', 'visible', 'important');
+        }
+      });
+    };
+    const intervalId = setInterval(forceVisible, 100);
+    const timeoutId = setTimeout(() => clearInterval(intervalId), 10000);
+    return () => { clearInterval(intervalId); clearTimeout(timeoutId); };
   }, []);
 
   const features = [
@@ -84,66 +152,62 @@ const Home: React.FC = () => {
   const testimonials = [
     {
       id: 1,
-      name: "Dr. Priya Sharma",
-      role: "District Health Officer, Guwahati",
-      image: "/images/testimonials/user1.jpg",
+      name: 'Dr. Priya Sharma',
+      role: 'District Health Officer, Guwahati',
+      image: '/images/testimonials/user1.jpg',
       rating: 5,
-      content: "Nirogya has revolutionized how we monitor water-borne diseases in our district. The early warning system helped us prevent a major cholera outbreak last month. The real-time data and community reporting features are game-changers.",
-      location: "Assam"
+      content:
+        'Nirogya has revolutionized how we monitor water-borne diseases in our district. The early warning system helped us prevent a major cholera outbreak last month. The real-time data and community reporting features are game-changers.',
+      location: 'Assam'
     },
     {
       id: 2,
-      name: "Ravi Kumar",
-      role: "Community Health Worker",
-      image: "/images/testimonials/user2.jpg",
+      name: 'Ravi Kumar',
+      role: 'Community Health Worker',
+      image: '/images/testimonials/user2.jpg',
       rating: 5,
-      content: "As a frontline health worker, this platform makes my job so much easier. I can quickly report symptoms, track water quality issues, and get immediate alerts. The mobile interface is intuitive and works well even with poor connectivity.",
-      location: "Meghalaya"
+      content:
+        'As a frontline health worker, this platform makes my job so much easier. I can quickly report symptoms, track water quality issues, and get immediate alerts. The mobile interface is intuitive and works well even with poor connectivity.',
+      location: 'Meghalaya'
     },
     {
       id: 3,
-      name: "Mrs. Anita Devi",
-      role: "Village Water Committee Head",
-      image: "/images/testimonials/user3.jpg",
+      name: 'Mrs. Anita Devi',
+      role: 'Village Water Committee Head',
+      image: '/images/testimonials/user3.jpg',
       rating: 5,
-      content: "Our village water sources are now properly monitored thanks to Nirogya. We received an alert about contamination that saved many families from illness. The system truly protects our community.",
-      location: "Manipur"
+      content:
+        'Our village water sources are now properly monitored thanks to Nirogya. We received an alert about contamination that saved many families from illness. The system truly protects our community.',
+      location: 'Manipur'
     },
     {
       id: 4,
-      name: "Dr. James Mawlong",
-      role: "Public Health Specialist",
-      image: "/images/testimonials/user4.jpg",
+      name: 'Dr. James Mawlong',
+      role: 'Public Health Specialist',
+      image: '/images/testimonials/user4.jpg',
       rating: 5,
-      content: "The AI-powered analytics and predictive capabilities of Nirogya are impressive. We can now identify disease patterns and take preventive action before outbreaks occur. It's exactly what our region needed.",
-      location: "Shillong"
+      content:
+        'The AI-powered analytics and predictive capabilities of Nirogya are impressive. We can now identify disease patterns and take preventive action before outbreaks occur. It is exactly what our region needed.',
+      location: 'Shillong'
     }
   ];
 
   return (
     <div className={`home-page ${isDark ? 'dark' : ''}`}>
-      {/* Navigation Bar */}
+      {/* Navbar */}
       <HomeNavbar />
-      
-      {/* Hero Section with Video Background */}
+
+      {/* HERO */}
       <section className="hero-section">
         <div className="hero-particles"></div>
         <div className="video-background">
-          {videoLoaded && (
-            <video
-              autoPlay
-              muted
-              loop
-              playsInline
-              className="background-video"
-            >
-              <source src="/videos/paanicarehome.mp4" type="video/mp4" />
-              Your browser does not support the video tag.
-            </video>
-          )}
+          <video autoPlay muted loop playsInline className="background-video">
+            <source src="/videos/paanicarehome.mp4" type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
           <div className="video-overlay"></div>
         </div>
-        
+
         <div className="hero-content">
           <div className="hero-text">
             <div className="hero-badge">
@@ -153,19 +217,18 @@ const Home: React.FC = () => {
               {isAuthenticated ? `Welcome back, ${user?.name?.split(' ')[0]}!` : 'Nirogya'}
             </Title>
             <Title level={2} className="hero-subtitle">
-              Smart Health Surveillance & Early Warning System
+              Smart Health Surveillance &amp; Early Warning System
             </Title>
             <Paragraph className="hero-description">
-              {isAuthenticated 
-                ? `Continue your important work in protecting communities through advanced water-borne disease monitoring and health surveillance.`
-                : `Protecting communities in the Northeastern Region through advanced water-borne disease monitoring, real-time alerts, and community-driven health surveillance.`
-              }
+              {isAuthenticated
+                ? 'Continue your important work in protecting communities through advanced water-borne disease monitoring and health surveillance.'
+                : 'Protecting communities in the Northeastern Region through advanced water-borne disease monitoring, real-time alerts, and community-driven health surveillance.'}
             </Paragraph>
-            
+
             <Space size="large" className="hero-actions">
-              <Button 
-                type="primary" 
-                size="large" 
+              <Button
+                type="primary"
+                size="large"
                 icon={<ArrowRightOutlined />}
                 className="cta-button primary-cta"
                 onClick={() => navigate(isAuthenticated ? '/dashboard' : '/login')}
@@ -173,17 +236,12 @@ const Home: React.FC = () => {
                 {isAuthenticated ? 'Go to Dashboard' : 'Get Started'}
               </Button>
               {!isAuthenticated && (
-                <Button 
-                  size="large" 
-                  icon={<PlayCircleOutlined />}
-                  className="demo-button glass-button"
-                  ghost
-                >
+                <Button size="large" icon={<PlayCircleOutlined />} className="demo-button glass-button" ghost>
                   Watch Demo
                 </Button>
               )}
             </Space>
-            
+
             <div className="hero-trust-indicators">
               <div className="trust-item">
                 <span className="trust-number">150+</span>
@@ -202,7 +260,7 @@ const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* Stats Section */}
+      {/* STATS */}
       <section className="stats-section">
         <div className="stats-background"></div>
         <div className="container">
@@ -214,27 +272,22 @@ const Home: React.FC = () => {
               Our platform has already made significant improvements in community health across the region
             </Paragraph>
           </div>
-          
-          <Row gutter={[32, 32]} className="stats-grid">
+
+          <Row gutter={[24, 24]} className="stats-grid">
             {stats.map((stat, index) => (
-              <Col xs={12} sm={6} key={index}>
+              <Col xs={24} sm={12} lg={6} key={index}>
                 <Card className="stat-card modern-card" hoverable>
                   <div className="stat-content">
                     <div className="stat-icon" style={{ color: stat.color }}>
                       {stat.icon}
                     </div>
-                    <Statistic
-                      title={stat.title}
-                      value={stat.value}
-                      suffix={stat.suffix}
-                      valueStyle={{ 
-                        color: stat.color,
-                        fontSize: '2.5rem',
-                        fontWeight: 'bold',
-                        lineHeight: 1
-                      }}
-                      className="enhanced-statistic"
-                    />
+                    <div className="stat-text">
+                      <div className="stat-title">{stat.title}</div>
+                      <div className="stat-value" style={{ color: stat.color }}>
+                        {stat.value.toLocaleString()}
+                        <span className="stat-suffix">{stat.suffix}</span>
+                      </div>
+                    </div>
                     <div className="stat-indicator" style={{ backgroundColor: stat.color }}></div>
                   </div>
                 </Card>
@@ -244,7 +297,7 @@ const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* Features Section */}
+      {/* FEATURES */}
       <section className="features-section">
         <div className="features-background"></div>
         <div className="container">
@@ -256,39 +309,42 @@ const Home: React.FC = () => {
               Comprehensive Health Protection
             </Title>
             <Paragraph className="section-description">
-              Our integrated platform provides end-to-end solutions for water-borne disease 
-              prevention and community health management with cutting-edge technology.
+              Our integrated platform provides end-to-end solutions for water-borne disease prevention and community
+              health management with cutting-edge technology.
             </Paragraph>
           </div>
 
           <Row gutter={[32, 32]} className="features-grid">
             {features.map((feature, index) => (
               <Col xs={24} sm={12} lg={6} key={index}>
-                <Card 
-                  className="feature-card glass-card" 
+                <Card
+                  className="feature-card glass-card"
                   hoverable
-                  style={{ animationDelay: feature.delay }}
+                  style={{ animationDelay: feature.delay as React.CSSProperties['animationDelay'] }}
                 >
                   <div className="feature-header">
-                    <div 
+                    <div
                       className="feature-icon"
-                      style={{ backgroundColor: `${feature.color}15`, color: feature.color }}
+                      style={{
+                        backgroundColor: `${feature.color}15`,
+                        color: feature.color
+                      }}
                     >
-                      {React.cloneElement(feature.icon, { 
-                        style: { fontSize: '2.5rem', color: feature.color } 
+                      {React.cloneElement(feature.icon as React.ReactElement<{ style?: React.CSSProperties }>, {
+                        style: { fontSize: '2.5rem', color: feature.color }
                       })}
                     </div>
                     <div className="feature-badge" style={{ backgroundColor: feature.color }}>
                       New
                     </div>
                   </div>
-                  
+
                   <div className="feature-body">
-                    <Title level={4} className="feature-title">{feature.title}</Title>
-                    <Paragraph className="feature-description">
-                      {feature.description}
-                    </Paragraph>
-                    
+                    <Title level={4} className="feature-title">
+                      {feature.title}
+                    </Title>
+                    <Paragraph className="feature-description">{feature.description}</Paragraph>
+
                     <div className="feature-progress">
                       <div className="progress-header">
                         <span className="progress-label">Implementation</span>
@@ -296,25 +352,20 @@ const Home: React.FC = () => {
                           {feature.progress}%
                         </span>
                       </div>
-                      <Progress 
-                        percent={feature.progress} 
+                      <Progress
+                        percent={feature.progress}
                         strokeColor={{
                           '0%': feature.color,
-                          '100%': feature.color + '80'
+                          '100%': `${feature.color}80`
                         }}
-                        size="small"
+                        size={6}
                         showInfo={false}
-                        strokeWidth={6}
                       />
                     </div>
                   </div>
-                  
+
                   <div className="feature-footer">
-                    <Button 
-                      type="text" 
-                      className="learn-more-btn"
-                      style={{ color: feature.color }}
-                    >
+                    <Button type="text" className="learn-more-btn" style={{ color: feature.color }}>
                       Learn More →
                     </Button>
                   </div>
@@ -325,7 +376,7 @@ const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* Testimonials Section */}
+      {/* TESTIMONIALS */}
       <section className="testimonials-section">
         <div className="testimonials-background"></div>
         <div className="container">
@@ -334,12 +385,13 @@ const Home: React.FC = () => {
               What Our Users Say
             </Title>
             <Paragraph className="section-description">
-              Healthcare professionals and community members across the Northeast trust Nirogya to protect their communities
+              Healthcare professionals and community members across the Northeast trust Nirogya to protect their
+              communities
             </Paragraph>
           </div>
-          
+
           <Row gutter={[32, 32]} className="testimonials-grid">
-            {testimonials.map((testimonial, index) => (
+            {testimonials.map((testimonial) => (
               <Col xs={24} sm={12} lg={6} key={testimonial.id}>
                 <Card className="testimonial-card modern-card" hoverable>
                   <div className="testimonial-content">
@@ -353,14 +405,16 @@ const Home: React.FC = () => {
                         ))}
                       </div>
                     </div>
-                    
+
                     <div className="testimonial-text">
                       <Paragraph>"{testimonial.content}"</Paragraph>
                     </div>
-                    
+
                     <div className="testimonial-footer">
                       <div className="testimonial-author">
-                        <Title level={5} className="author-name">{testimonial.name}</Title>
+                        <Title level={5} className="author-name">
+                          {testimonial.name}
+                        </Title>
                         <Paragraph className="author-role">{testimonial.role}</Paragraph>
                         <span className="author-location">{testimonial.location}</span>
                       </div>
@@ -373,7 +427,7 @@ const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* Mission Section */}
+      {/* MISSION */}
       <section className="mission-section">
         <div className="container">
           <Row gutter={[48, 48]} align="middle">
@@ -383,11 +437,11 @@ const Home: React.FC = () => {
                   Our Mission
                 </Title>
                 <Paragraph className="mission-text">
-                  To safeguard the health of vulnerable communities in the Northeastern Region 
-                  by providing cutting-edge technology solutions for early disease detection, 
-                  water quality monitoring, and community health surveillance.
+                  To safeguard the health of vulnerable communities in the Northeastern Region by providing cutting-edge
+                  technology solutions for early disease detection, water quality monitoring, and community health
+                  surveillance.
                 </Paragraph>
-                
+
                 <div className="mission-points">
                   <div className="mission-point">
                     <CheckCircleOutlined className="check-icon" />
@@ -432,33 +486,29 @@ const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
+      {/* CTA */}
       <section className="cta-section">
         <div className="container">
           <div className="cta-content">
             <Title level={2} className="cta-title">
-              {isAuthenticated 
-                ? 'Continue Your Important Work' 
-                : 'Ready to Protect Your Community?'
-              }
+              {isAuthenticated ? 'Continue Your Important Work' : 'Ready to Protect Your Community?'}
             </Title>
             <Paragraph className="cta-description">
-              {isAuthenticated 
+              {isAuthenticated
                 ? `Welcome back, ${user?.name}! Access your dashboard to continue monitoring health data, managing water quality reports, and protecting communities.`
-                : 'Join thousands of health workers and community members using Nirogya to monitor and prevent water-borne diseases.'
-              }
+                : 'Join thousands of health workers and community members using Nirogya to monitor and prevent water-borne diseases.'}
             </Paragraph>
-            
+
             <Space size="large" className="cta-actions">
-              <Button 
-                type="primary" 
+              <Button
+                type="primary"
                 size="large"
                 onClick={() => navigate(isAuthenticated ? '/dashboard' : '/register')}
                 className="cta-primary"
               >
                 {isAuthenticated ? 'Open Dashboard' : 'Join Now'}
               </Button>
-              <Button 
+              <Button
                 size="large"
                 onClick={() => navigate(isAuthenticated ? '/community' : '/login')}
                 className="cta-secondary"
@@ -469,11 +519,9 @@ const Home: React.FC = () => {
           </div>
         </div>
       </section>
-      
-      {/* Footer */}
+
+      {/* FOOTER + CHATBOT */}
       <Footer />
-      
-      {/* AI Chatbot */}
       <AIChatbot />
     </div>
   );
