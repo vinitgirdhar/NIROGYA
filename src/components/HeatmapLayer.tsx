@@ -21,18 +21,23 @@ const HeatmapLayer: React.FC<HeatmapLayerProps> = ({ points, options = {} }) => 
   useEffect(() => {
     if (!points || points.length === 0) return;
 
+    // Professional epidemiological color palette
+    // Inspired by CDC/WHO disease mapping standards
     const defaultOptions = {
-      radius: 25,
-      blur: 15,
-      maxZoom: 10,
+      radius: 30,
+      blur: 20,
+      maxZoom: 12,
       max: 1.0,
-      minOpacity: 0.4,
+      minOpacity: 0.35,
       gradient: {
-        0.0: '#00ff00',  // Green (low)
-        0.4: '#ffff00',  // Yellow (medium)
-        0.6: '#ffa500',  // Orange
-        0.8: '#ff0000',  // Red (high)
-        1.0: '#8b0000',  // Dark red (very high)
+        0.0: 'rgba(49, 130, 189, 0.1)',   // Light blue (minimal)
+        0.15: 'rgba(107, 174, 214, 0.4)', // Sky blue (low)
+        0.3: 'rgba(158, 202, 225, 0.5)',  // Pale blue (low-moderate)
+        0.45: 'rgba(253, 205, 172, 0.6)', // Peach (moderate)
+        0.6: 'rgba(252, 146, 114, 0.7)',  // Salmon (moderate-high)
+        0.75: 'rgba(239, 101, 72, 0.8)',  // Coral (high)
+        0.85: 'rgba(203, 24, 29, 0.85)',  // Crimson (very high)
+        1.0: 'rgba(103, 0, 13, 0.9)',     // Dark burgundy (critical)
       },
       ...options,
     };

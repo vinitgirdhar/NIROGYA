@@ -1,7 +1,8 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { Spin, Empty, Badge, Button, message } from 'antd';
 import { ReloadOutlined, BellOutlined } from '@ant-design/icons';
 import { useAlerts } from '../contexts/AlertContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import AlertNotificationPopup from '../components/AlertNotificationPopup';
 import './Alerts.css';
 
@@ -78,8 +79,55 @@ const Alerts: React.FC = () => {
   const [activeFilter, setActiveFilter] = useState<string>('all');
   const [selectedAlert, setSelectedAlert] = useState<any>(null);
   const [showAlertPopup, setShowAlertPopup] = useState(false);
+  const [translatedContent, setTranslatedContent] = useState<Record<string, string>>({});
   
   const { alerts: backendAlerts, unreadCount, fetchAlerts, acknowledgeAlert, isLoading } = useAlerts();
+  const { currentLanguage, translateBulk } = useLanguage();
+
+  // Translation effect
+  useEffect(() => {
+    const translateContent = async () => {
+      if (currentLanguage.code === 'en') {
+        setTranslatedContent({});
+        return;
+      }
+      
+      const textsToTranslate = [
+        'Health Alerts & Incident Management',
+        'Real-time water quality alerts and community health notifications from ASHA workers and health officials.',
+        'Refresh',
+        'Active Alerts',
+        'requiring attention',
+        'Unread',
+        'new alerts',
+        'Critical',
+        'high priority',
+        'Total Alerts',
+        'all time',
+        'Filters',
+        'All',
+        'Active',
+        'Sent',
+        'Pending',
+        'High',
+        'Medium',
+        'Low',
+        'Alert acknowledged',
+        'No alerts found',
+        'View Details',
+        'Acknowledge'
+      ];
+      
+      const results = await translateBulk(textsToTranslate);
+      const translated: Record<string, string> = {};
+      results.forEach((value, key) => {
+        translated[key] = value;
+      });
+      setTranslatedContent(translated);
+    };
+    
+    translateContent();
+  }, [currentLanguage.code, translateBulk]);
 
   // Convert backend alerts to display format
   const displayAlerts: Alert[] = useMemo(() => {
@@ -108,11 +156,11 @@ const Alerts: React.FC = () => {
   }, [activeFilter, displayAlerts]);
 
   const stats = useMemo(() => [
-    { label: 'Active Alerts', value: String(displayAlerts.filter(a => a.status !== 'resolved').length), note: 'requiring attention', key: 'active' },
-    { label: 'Unread', value: String(unreadCount), note: 'new alerts', key: 'unread' },
-    { label: 'Critical', value: String(displayAlerts.filter(a => a.priority === 'critical').length), note: 'high priority', key: 'critical' },
-    { label: 'Total Alerts', value: String(displayAlerts.length), note: 'all time', key: 'total' },
-  ], [displayAlerts, unreadCount]);
+    { label: translatedContent['Active Alerts'] || 'Active Alerts', value: String(displayAlerts.filter(a => a.status !== 'resolved').length), note: translatedContent['requiring attention'] || 'requiring attention', key: 'active' },
+    { label: translatedContent['Unread'] || 'Unread', value: String(unreadCount), note: translatedContent['new alerts'] || 'new alerts', key: 'unread' },
+    { label: translatedContent['Critical'] || 'Critical', value: String(displayAlerts.filter(a => a.priority === 'critical').length), note: translatedContent['high priority'] || 'high priority', key: 'critical' },
+    { label: translatedContent['Total Alerts'] || 'Total Alerts', value: String(displayAlerts.length), note: translatedContent['all time'] || 'all time', key: 'total' },
+  ], [displayAlerts, unreadCount, translatedContent]);
 
   const handleViewAlert = (alert: Alert) => {
     setSelectedAlert({
@@ -131,7 +179,7 @@ const Alerts: React.FC = () => {
 
   const handleAcknowledge = (alertId: string) => {
     acknowledgeAlert(alertId);
-    message.success('Alert acknowledged');
+    message.success(translatedContent['Alert acknowledged'] || 'Alert acknowledged');
   };
 
   return (
@@ -145,9 +193,9 @@ const Alerts: React.FC = () => {
             &nbsp; Nirogya
           </div>
           <div className="hero-title-block">
-            <h1 className="hero-title">Health Alerts & Incident Management</h1>
+            <h1 className="hero-title">{translatedContent['Health Alerts & Incident Management'] || 'Health Alerts & Incident Management'}</h1>
             <p className="hero-subtitle">
-              Real-time water quality alerts and community health notifications from ASHA workers and health officials.
+              {translatedContent['Real-time water quality alerts and community health notifications from ASHA workers and health officials.'] || 'Real-time water quality alerts and community health notifications from ASHA workers and health officials.'}
             </p>
           </div>
           <Button 
@@ -155,7 +203,7 @@ const Alerts: React.FC = () => {
             onClick={() => fetchAlerts()}
             style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white' }}
           >
-            Refresh
+            {translatedContent['Refresh'] || 'Refresh'}
           </Button>
         </div>
       </header>
@@ -175,18 +223,30 @@ const Alerts: React.FC = () => {
 
         <section className="filter-section" aria-label="Alert filters">
           <div className="filter-card">
-            <div className="filter-title">Filters</div>
+            <div className="filter-title">{translatedContent['Filters'] || 'Filters'}</div>
             <div className="filter-group" role="tablist" aria-label="Alert filter list">
-              {FILTERS.map((f) => (
-                <button
-                  key={f}
-                  className={`filter-button ${activeFilter === f ? 'active' : ''}`}
-                  onClick={() => setActiveFilter(f)}
-                  aria-pressed={activeFilter === f}
-                >
-                  {f === 'all' ? 'All' : f.charAt(0).toUpperCase() + f.slice(1)}
-                </button>
-              ))}
+              {FILTERS.map((f) => {
+                const filterLabels: Record<string, string> = {
+                  'all': translatedContent['All'] || 'All',
+                  'critical': translatedContent['Critical'] || 'Critical',
+                  'high': translatedContent['High'] || 'High',
+                  'medium': translatedContent['Medium'] || 'Medium',
+                  'low': translatedContent['Low'] || 'Low',
+                  'active': translatedContent['Active'] || 'Active',
+                  'sent': translatedContent['Sent'] || 'Sent',
+                  'pending': translatedContent['Pending'] || 'Pending'
+                };
+                return (
+                  <button
+                    key={f}
+                    className={`filter-button ${activeFilter === f ? 'active' : ''}`}
+                    onClick={() => setActiveFilter(f)}
+                    aria-pressed={activeFilter === f}
+                  >
+                    {filterLabels[f] || f.charAt(0).toUpperCase() + f.slice(1)}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </section>

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button, Typography, Row, Col, Card, Space, Progress } from 'antd';
 import {
   PlayCircleOutlined,
@@ -19,6 +19,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../components/ThemeProvider';
+import { useLanguage } from '../contexts/LanguageContext';
 import HomeNavbar from '../components/HomeNavbar';
 import AIChatbot from '../components/AIChatbot';
 import Footer from '../components/Footer';
@@ -30,6 +31,61 @@ const Home: React.FC = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAuth();
   const { isDark } = useTheme();
+  const { translate, currentLanguage, translateBulk } = useLanguage();
+  const [translatedContent, setTranslatedContent] = useState<Record<string, string>>({});
+
+  // Translate dynamic content using LibreTranslate API
+  useEffect(() => {
+    const translateContent = async () => {
+      const textsToTranslate = [
+        // Features
+        'Health Surveillance',
+        'Real-time monitoring and tracking of water-borne diseases in communities',
+        'Water Quality Testing',
+        'IoT sensor integration and manual testing for water contamination detection',
+        'Community Reporting',
+        'Easy-to-use interface for community members to report health symptoms',
+        'Early Warning System',
+        'AI-powered alerts for potential disease outbreaks and contamination',
+        // Stats
+        'Communities Served',
+        'Health Cases Tracked',
+        'Water Sources Monitored',
+        'Lives Protected',
+        // Hero Section
+        'Protecting Communities Through Smart Health Surveillance',
+        'Get Started',
+        'Go to Dashboard',
+        'Watch Demo',
+        'Why Choose Nirogya?',
+        'Protecting Communities Since 2025',
+        'Nirogya',
+        'Smart Health Surveillance & Early Warning System',
+        'Protecting communities in the Northeastern Region through advanced water-borne disease monitoring, real-time alerts, and community-driven health surveillance.',
+        'Continue your important work in protecting communities through advanced water-borne disease monitoring and health surveillance.',
+        'Welcome back',
+        // Section Titles
+        'Impacting Communities Across the Northeast',
+        'What Our Users Say',
+        'Loved by Health Workers & Communities',
+        'Hear from the people who use Nirogya daily to protect their communities',
+        // Testimonials
+        'District Health Officer',
+        'Community Health Worker',
+        'Village Water Committee Head',
+        'Public Health Specialist'
+      ];
+      
+      const results = await translateBulk(textsToTranslate);
+      const translated: Record<string, string> = {};
+      results.forEach((value, key) => {
+        translated[key] = value;
+      });
+      setTranslatedContent(translated);
+    };
+    
+    translateContent();
+  }, [currentLanguage.code, translateBulk]);
 
   // Force stats cards to be visible - Comprehensive fix
   useEffect(() => {
@@ -110,32 +166,32 @@ const Home: React.FC = () => {
   const features = [
     {
       icon: <MedicineBoxOutlined />,
-      title: 'Health Surveillance',
-      description: 'Real-time monitoring and tracking of water-borne diseases in communities',
+      title: translatedContent['Health Surveillance'] || 'Health Surveillance',
+      description: translatedContent['Real-time monitoring and tracking of water-borne diseases in communities'] || 'Real-time monitoring and tracking of water-borne diseases in communities',
       color: '#52c41a',
       progress: 95,
       delay: '0.1s'
     },
     {
       icon: <DropboxOutlined />,
-      title: 'Water Quality Testing',
-      description: 'IoT sensor integration and manual testing for water contamination detection',
+      title: translatedContent['Water Quality Testing'] || 'Water Quality Testing',
+      description: translatedContent['IoT sensor integration and manual testing for water contamination detection'] || 'IoT sensor integration and manual testing for water contamination detection',
       color: '#1890ff',
       progress: 87,
       delay: '0.2s'
     },
     {
       icon: <TeamOutlined />,
-      title: 'Community Reporting',
-      description: 'Easy-to-use interface for community members to report health symptoms',
+      title: translatedContent['Community Reporting'] || 'Community Reporting',
+      description: translatedContent['Easy-to-use interface for community members to report health symptoms'] || 'Easy-to-use interface for community members to report health symptoms',
       color: '#722ed1',
       progress: 92,
       delay: '0.3s'
     },
     {
       icon: <AlertOutlined />,
-      title: 'Early Warning System',
-      description: 'AI-powered alerts for potential disease outbreaks and contamination',
+      title: translatedContent['Early Warning System'] || 'Early Warning System',
+      description: translatedContent['AI-powered alerts for potential disease outbreaks and contamination'] || 'AI-powered alerts for potential disease outbreaks and contamination',
       color: '#fa8c16',
       progress: 89,
       delay: '0.4s'
@@ -143,10 +199,10 @@ const Home: React.FC = () => {
   ];
 
   const stats = [
-    { title: 'Communities Served', value: 150, suffix: '+', icon: <TeamOutlined />, color: '#52c41a' },
-    { title: 'Health Cases Tracked', value: 5420, suffix: '+', icon: <HeartOutlined />, color: '#1890ff' },
-    { title: 'Water Sources Monitored', value: 89, suffix: '+', icon: <DropboxOutlined />, color: '#722ed1' },
-    { title: 'Lives Protected', value: 25000, suffix: '+', icon: <TrophyOutlined />, color: '#fa8c16' }
+    { title: translatedContent['Communities Served'] || 'Communities Served', value: 150, suffix: '+', icon: <TeamOutlined />, color: '#52c41a' },
+    { title: translatedContent['Health Cases Tracked'] || 'Health Cases Tracked', value: 5420, suffix: '+', icon: <HeartOutlined />, color: '#1890ff' },
+    { title: translatedContent['Water Sources Monitored'] || 'Water Sources Monitored', value: 89, suffix: '+', icon: <DropboxOutlined />, color: '#722ed1' },
+    { title: translatedContent['Lives Protected'] || 'Lives Protected', value: 25000, suffix: '+', icon: <TrophyOutlined />, color: '#fa8c16' }
   ];
 
   const testimonials = [
@@ -211,18 +267,18 @@ const Home: React.FC = () => {
         <div className="hero-content">
           <div className="hero-text">
             <div className="hero-badge">
-              <span className="badge-text">🌊 Protecting Communities Since 2025</span>
+              <span className="badge-text">🌊 {translatedContent['Protecting Communities Since 2025'] || 'Protecting Communities Since 2025'}</span>
             </div>
             <Title level={1} className="hero-title">
-              {isAuthenticated ? `Welcome back, ${user?.name?.split(' ')[0]}!` : 'Nirogya'}
+              {isAuthenticated ? `${translatedContent['Welcome back'] || 'Welcome back'}, ${user?.name?.split(' ')[0]}!` : (translatedContent['Nirogya'] || 'Nirogya')}
             </Title>
             <Title level={2} className="hero-subtitle">
-              Smart Health Surveillance &amp; Early Warning System
+              {translatedContent['Smart Health Surveillance & Early Warning System'] || 'Smart Health Surveillance & Early Warning System'}
             </Title>
             <Paragraph className="hero-description">
               {isAuthenticated
-                ? 'Continue your important work in protecting communities through advanced water-borne disease monitoring and health surveillance.'
-                : 'Protecting communities in the Northeastern Region through advanced water-borne disease monitoring, real-time alerts, and community-driven health surveillance.'}
+                ? (translatedContent['Continue your important work in protecting communities through advanced water-borne disease monitoring and health surveillance.'] || 'Continue your important work in protecting communities through advanced water-borne disease monitoring and health surveillance.')
+                : (translatedContent['Protecting communities in the Northeastern Region through advanced water-borne disease monitoring, real-time alerts, and community-driven health surveillance.'] || 'Protecting communities in the Northeastern Region through advanced water-borne disease monitoring, real-time alerts, and community-driven health surveillance.')}
             </Paragraph>
 
             <Space size="large" className="hero-actions">
@@ -233,11 +289,11 @@ const Home: React.FC = () => {
                 className="cta-button primary-cta"
                 onClick={() => navigate(isAuthenticated ? '/dashboard' : '/login')}
               >
-                {isAuthenticated ? 'Go to Dashboard' : 'Get Started'}
+                {isAuthenticated ? (translatedContent['Go to Dashboard'] || 'Go to Dashboard') : (translatedContent['Get Started'] || 'Get Started')}
               </Button>
               {!isAuthenticated && (
                 <Button size="large" icon={<PlayCircleOutlined />} className="demo-button glass-button" ghost>
-                  Watch Demo
+                  {translatedContent['Watch Demo'] || 'Watch Demo'}
                 </Button>
               )}
             </Space>
@@ -382,11 +438,10 @@ const Home: React.FC = () => {
         <div className="container">
           <div className="section-header">
             <Title level={2} className="section-title">
-              What Our Users Say
+              {translatedContent['What Our Users Say'] || 'What Our Users Say'}
             </Title>
             <Paragraph className="section-description">
-              Healthcare professionals and community members across the Northeast trust Nirogya to protect their
-              communities
+              {translatedContent['Hear from the people who use Nirogya daily to protect their communities'] || 'Healthcare professionals and community members across the Northeast trust Nirogya to protect their communities'}
             </Paragraph>
           </div>
 
@@ -415,7 +470,7 @@ const Home: React.FC = () => {
                         <Title level={5} className="author-name">
                           {testimonial.name}
                         </Title>
-                        <Paragraph className="author-role">{testimonial.role}</Paragraph>
+                        <Paragraph className="author-role">{translatedContent[testimonial.role] || testimonial.role}</Paragraph>
                         <span className="author-location">{testimonial.location}</span>
                       </div>
                     </div>

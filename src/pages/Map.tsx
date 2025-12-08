@@ -137,16 +137,28 @@ const getQualityColor = (qualityClass: string) => {
   }
 };
 
+// Professional severity color palette (WHO/CDC inspired)
 const zoneFillColor = (severity: 'high' | 'medium' | 'low') => {
   switch (severity) {
-    case 'high': return '#ff0000';
-    case 'medium': return '#ffa500';
-    case 'low': default: return '#00c853';
+    case 'high': return '#c0392b';    // Deep crimson
+    case 'medium': return '#d68910';  // Amber gold
+    case 'low': default: return '#27ae60'; // Forest green
+  }
+};
+
+const zoneStrokeColor = (severity: 'high' | 'medium' | 'low') => {
+  switch (severity) {
+    case 'high': return '#922b21';
+    case 'medium': return '#9c640c';
+    case 'low': default: return '#1e8449';
   }
 };
 
 const colorBySeverity = (s: string) =>
-  s === 'high' ? '#ff4d4f' : s === 'medium' ? '#faad14' : '#52c41a';
+  s === 'high' ? '#c0392b' : s === 'medium' ? '#d68910' : '#27ae60';
+
+const strokeBySeverity = (s: string) =>
+  s === 'high' ? '#922b21' : s === 'medium' ? '#9c640c' : '#1e8449';
 
 const radiusFromCount = (count: number) =>
   Math.min(3000, 200 * Math.sqrt(Math.max(1, count)));
@@ -432,15 +444,15 @@ const Map: React.FC = () => {
             <div className="legend-section">
               <Title level={5}>Disease Risk</Title>
               <div className="legend-item">
-                <span className="legend-color" style={{ background: '#ff0000' }}></span>
+                <span className="legend-color" style={{ background: 'linear-gradient(135deg, #c0392b 0%, #922b21 100%)' }}></span>
                 <span>High Risk</span>
               </div>
               <div className="legend-item">
-                <span className="legend-color" style={{ background: '#ffa500' }}></span>
+                <span className="legend-color" style={{ background: 'linear-gradient(135deg, #d68910 0%, #9c640c 100%)' }}></span>
                 <span>Medium Risk</span>
               </div>
               <div className="legend-item">
-                <span className="legend-color" style={{ background: '#00c853' }}></span>
+                <span className="legend-color" style={{ background: 'linear-gradient(135deg, #27ae60 0%, #1e8449 100%)' }}></span>
                 <span>Low Risk</span>
               </div>
             </div>
@@ -498,60 +510,96 @@ const Map: React.FC = () => {
             <HeatmapLayer points={heatmapPoints} />
           )}
 
-          {/* Risk Zones */}
+          {/* Risk Zones - Professional styling with distinct stroke */}
           {showRiskZones && riskZones.map(zone => (
             <Circle
               key={zone.id}
               center={zone.center}
               radius={zone.radius}
               pathOptions={{
-                color: zoneFillColor(zone.severity),
+                color: zoneStrokeColor(zone.severity),
+                weight: 2,
                 fillColor: zoneFillColor(zone.severity),
-                fillOpacity: 0.35,
+                fillOpacity: 0.18,
+                dashArray: zone.severity === 'high' ? undefined : '5, 8',
               }}
+              className={zone.severity === 'high' ? 'risk-zone-critical' : ''}
             >
               <Popup>
-                <div className="map-popup">
+                <div className="map-popup risk-popup">
+                  <div className={`risk-badge ${zone.severity}`}>{zone.severity.toUpperCase()}</div>
                   <h3>{zone.name}</h3>
-                  <p><strong>District:</strong> {zone.district}</p>
-                  <p><strong>Severity:</strong> {zone.severity}</p>
-                  <p>{zone.summary}</p>
+                  <p className="popup-district"><i className="fa-solid fa-location-dot"></i> {zone.district}</p>
+                  <p className="popup-summary">{zone.summary}</p>
                 </div>
               </Popup>
             </Circle>
           ))}
 
-          {/* Hotspots */}
+          {/* Hotspots - Professional disease markers */}
           {showHotspots && mockHotspots.map((h, idx) => {
             if (!h.center) return null;
+            const baseRadius = radiusFromCount(h.count);
             return (
-              <Circle
-                key={`hotspot-${idx}`}
-                center={h.center}
-                radius={radiusFromCount(h.count)}
-                pathOptions={{
-                  color: colorBySeverity(h.severity),
-                  fillOpacity: 0.5,
-                }}
-              >
-                <Popup>
-                  <div className="map-popup">
-                    <h3>{h.disease}</h3>
-                    <p><strong>Location:</strong> {h.location}</p>
-                    <p><strong>Cases:</strong> {h.count}</p>
-                    {h.samples && h.samples.length > 0 && (
-                      <div style={{ marginTop: '8px', fontSize: '0.9em' }}>
-                        <strong>Recent Samples:</strong>
-                        <ul style={{ paddingLeft: '16px', margin: '4px 0' }}>
-                          {h.samples.slice(0, 3).map((s, i) => (
-                            <li key={i}>{s.patientName || 'Unknown'}</li>
-                          ))}
-                        </ul>
+              <React.Fragment key={`hotspot-${idx}`}>
+                {/* Outer glow ring for high severity */}
+                {h.severity === 'high' && (
+                  <Circle
+                    center={h.center}
+                    radius={baseRadius * 1.4}
+                    pathOptions={{
+                      color: 'transparent',
+                      fillColor: colorBySeverity(h.severity),
+                      fillOpacity: 0.08,
+                      weight: 0,
+                    }}
+                  />
+                )}
+                {/* Main hotspot circle */}
+                <Circle
+                  center={h.center}
+                  radius={baseRadius}
+                  pathOptions={{
+                    color: strokeBySeverity(h.severity),
+                    weight: 2,
+                    fillColor: colorBySeverity(h.severity),
+                    fillOpacity: 0.25,
+                  }}
+                  className={`hotspot-marker ${h.severity}`}
+                >
+                  <Popup>
+                    <div className="map-popup hotspot-popup">
+                      <div className={`disease-header ${h.severity}`}>
+                        <span className="disease-icon">⚠</span>
+                        <h3>{h.disease}</h3>
                       </div>
-                    )}
-                  </div>
-                </Popup>
-              </Circle>
+                      <div className="hotspot-stats">
+                        <div className="stat-item">
+                          <span className="stat-value">{h.count}</span>
+                          <span className="stat-label">Cases</span>
+                        </div>
+                        <div className="stat-item">
+                          <span className="stat-value location">{h.location}</span>
+                          <span className="stat-label">Location</span>
+                        </div>
+                      </div>
+                      {h.samples && h.samples.length > 0 && (
+                        <div className="recent-cases">
+                          <span className="cases-header">Recent Reports</span>
+                          <ul>
+                            {h.samples.slice(0, 3).map((s, i) => (
+                              <li key={i}>
+                                <span className="case-dot"></span>
+                                {s.patientName || 'Anonymous'}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  </Popup>
+                </Circle>
+              </React.Fragment>
             );
           })}
 

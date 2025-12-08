@@ -3,6 +3,7 @@ import { message } from 'antd';
 import { Mail, Lock, CheckCircle2, ArrowLeft, Eye, EyeOff, ChevronUp, ChevronDown, Users } from 'lucide-react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import './Login.css';
 
 interface FeatureItemProps {
@@ -27,13 +28,67 @@ const Login: React.FC = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [selectedDemoIndex, setSelectedDemoIndex] = useState(0);
+  const [translatedContent, setTranslatedContent] = useState<Record<string, string>>({});
   const carouselRef = useRef<HTMLDivElement>(null);
 
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const { currentLanguage, translateBulk } = useLanguage();
 
   const from = location.state?.from?.pathname || '/dashboard';
+
+  // Translation effect
+  useEffect(() => {
+    const translateContent = async () => {
+      if (currentLanguage.code === 'en') {
+        setTranslatedContent({});
+        return;
+      }
+      
+      const textsToTranslate = [
+        'Sign in to your account',
+        'Welcome back! Enter your credentials to continue',
+        'Email address',
+        'Password',
+        'Remember me',
+        'Forgot password?',
+        'Sign In',
+        'Signing in...',
+        'Don\'t have an account?',
+        'Create account',
+        'Or continue with',
+        'Demo Accounts',
+        'Try the platform without creating an account',
+        'Community Health & Wellness Platform',
+        'Join thousands of users monitoring their health and environment in real-time.',
+        'Real-time health data monitoring',
+        'Community-driven communication',
+        'Water quality analysis & tracking',
+        'Disease & symptom rapid reporting',
+        'Login successful!',
+        'Login failed! Check credentials.',
+        'System Administrator',
+        'Full system access and management',
+        'ASHA Worker',
+        'Community health worker access',
+        'Government Official',
+        'Policy and administrative access',
+        'Community User',
+        'Report symptoms and view alerts',
+        'Back to Home'
+      ];
+      
+      const results = await translateBulk(textsToTranslate);
+      const translated: Record<string, string> = {};
+      results.forEach((value, key) => {
+        translated[key] = value;
+      });
+      setTranslatedContent(translated);
+    };
+    
+    translateContent();
+  }, [currentLanguage.code, translateBulk]);
 
   useEffect(() => {
     document.body.classList.add('login-page-active');
@@ -116,10 +171,10 @@ const Login: React.FC = () => {
   };
 
   const demoAccounts = [
-    { role: 'admin', title: 'System Administrator', description: 'Full system access and management', color: '#ef4444' },
-    { role: 'asha_worker', title: 'ASHA Worker', description: 'Community health worker access', color: '#22c55e' },
-    { role: 'government_body', title: 'Government Official', description: 'Policy and administrative access', color: '#ec4899' },
-    { role: 'community_user', title: 'Community User', description: 'Report symptoms and view alerts', color: '#06b6d4' }
+    { role: 'admin', title: translatedContent['System Administrator'] || 'System Administrator', description: translatedContent['Full system access and management'] || 'Full system access and management', color: '#ef4444' },
+    { role: 'asha_worker', title: translatedContent['ASHA Worker'] || 'ASHA Worker', description: translatedContent['Community health worker access'] || 'Community health worker access', color: '#22c55e' },
+    { role: 'government_body', title: translatedContent['Government Official'] || 'Government Official', description: translatedContent['Policy and administrative access'] || 'Policy and administrative access', color: '#ec4899' },
+    { role: 'community_user', title: translatedContent['Community User'] || 'Community User', description: translatedContent['Report symptoms and view alerts'] || 'Report symptoms and view alerts', color: '#06b6d4' }
   ];
 
   return (
@@ -162,17 +217,17 @@ const Login: React.FC = () => {
         {/* Main Content */}
         <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', justifyContent: 'center', flexGrow: 1, paddingLeft: 0 }}>
           <h2 style={{ fontSize: '1.875rem', fontWeight: 700, lineHeight: 1.3, margin: '0 0 0.75rem 0' }}>
-            Community Health <br /> & Wellness Platform
+            {translatedContent['Community Health & Wellness Platform'] || 'Community Health'} <br /> {translatedContent['Community Health & Wellness Platform'] ? '' : '& Wellness Platform'}
           </h2>
           <p style={{ color: '#bfdbfe', marginBottom: '1.5rem', fontSize: '1rem', maxWidth: '24rem', margin: '0 0 1.5rem 0' }}>
-            Join thousands of users monitoring their health and environment in real-time.
+            {translatedContent['Join thousands of users monitoring their health and environment in real-time.'] || 'Join thousands of users monitoring their health and environment in real-time.'}
           </p>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            <FeatureItem text="Real-time health data monitoring" />
-            <FeatureItem text="Community-driven communication" />
-            <FeatureItem text="Water quality analysis & tracking" />
-            <FeatureItem text="Disease & symptom rapid reporting" />
+            <FeatureItem text={translatedContent['Real-time health data monitoring'] || 'Real-time health data monitoring'} />
+            <FeatureItem text={translatedContent['Community-driven communication'] || 'Community-driven communication'} />
+            <FeatureItem text={translatedContent['Water quality analysis & tracking'] || 'Water quality analysis & tracking'} />
+            <FeatureItem text={translatedContent['Disease & symptom rapid reporting'] || 'Disease & symptom rapid reporting'} />
           </div>
         </div>
 
@@ -203,13 +258,13 @@ const Login: React.FC = () => {
             style={{ display: 'flex', alignItems: 'center', color: '#64748b', marginBottom: '2rem', fontSize: '0.875rem', fontWeight: 500, background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Home
+            {translatedContent['Back to Home'] || 'Back to Home'}
           </button>
 
           <div className="mb-10">
-            <h2 className="text-3xl font-bold text-slate-900 mb-2">Welcome Back</h2>
+            <h2 className="text-3xl font-bold text-slate-900 mb-2">{translatedContent['Sign in to your account'] || 'Welcome Back'}</h2>
             <p className="text-slate-500">
-              Please enter your details to sign in to your account.
+              {translatedContent['Welcome back! Enter your credentials to continue'] || 'Please enter your details to sign in to your account.'}
             </p>
           </div>
 
@@ -218,7 +273,7 @@ const Login: React.FC = () => {
             {/* Email Input */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700 block" htmlFor="email">
-                Email Address
+                {translatedContent['Email address'] || 'Email Address'}
               </label>
               <div className="relative group">
                 <div className="login-input-icon absolute left-0 top-0 h-full w-10 flex items-center justify-center text-slate-400 group-focus-within:text-blue-600 transition-colors">
@@ -239,7 +294,7 @@ const Login: React.FC = () => {
             {/* Password Input */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700 block" htmlFor="password">
-                Password
+                {translatedContent['Password'] || 'Password'}
               </label>
               <div className="relative group">
                 <div className="login-input-icon absolute left-0 top-0 h-full w-10 flex items-center justify-center text-slate-400 group-focus-within:text-blue-600 transition-colors">
@@ -287,11 +342,11 @@ const Login: React.FC = () => {
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg>
                 </div>
-                <span className="text-sm text-slate-600 group-hover:text-slate-800 transition-colors">Remember me</span>
+                <span className="text-sm text-slate-600 group-hover:text-slate-800 transition-colors">{translatedContent['Remember me'] || 'Remember me'}</span>
               </label>
               
               <Link to="/forgot-password" className="text-sm font-semibold text-blue-600 hover:text-blue-700 hover:underline">
-                Forgot password?
+                {translatedContent['Forgot password?'] || 'Forgot password?'}
               </Link>
             </div>
 
@@ -301,14 +356,14 @@ const Login: React.FC = () => {
               disabled={loading}
               className="login-submit-btn w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-bold py-3.5 rounded-lg shadow-lg shadow-blue-600/30 hover:shadow-blue-600/40 active:scale-[0.98] transition-all duration-200 cursor-pointer border-none"
             >
-              {loading ? 'Signing In...' : 'Sign In'}
+              {loading ? (translatedContent['Signing in...'] || 'Signing In...') : (translatedContent['Sign In'] || 'Sign In')}
             </button>
 
             {/* Demo Account Carousel Section */}
             <div style={{ marginTop: '1.5rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
                 <Users style={{ width: '1rem', height: '1rem', color: '#64748b' }} />
-                <span style={{ fontSize: '0.8rem', fontWeight: 500, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Try Demo Account</span>
+                <span style={{ fontSize: '0.8rem', fontWeight: 500, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{translatedContent['Demo Accounts'] || 'Try Demo Account'}</span>
               </div>
               
               {/* Carousel Container */}
@@ -464,7 +519,7 @@ const Login: React.FC = () => {
                   boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)'
                 }}
               >
-                {loading ? 'Signing In...' : `Login as ${demoAccounts[selectedDemoIndex].title}`}
+                {loading ? (translatedContent['Signing in...'] || 'Signing In...') : `Login as ${demoAccounts[selectedDemoIndex].title}`}
               </button>
 
               {/* Dots Indicator */}
@@ -495,9 +550,9 @@ const Login: React.FC = () => {
             </div>
 
             <p className="text-center text-sm text-slate-600 mt-8">
-              Don't have an account?{' '}
+              {translatedContent["Don't have an account?"] || "Don't have an account?"}{' '}
               <Link to="/register" className="font-semibold text-blue-600 hover:text-blue-700 hover:underline">
-                Create one now
+                {translatedContent['Create account'] || 'Create one now'}
               </Link>
             </p>
           </form>

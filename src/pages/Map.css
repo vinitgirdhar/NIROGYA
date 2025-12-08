@@ -203,3 +203,193 @@
   height: 24px;
   font: 16px/14px Tahoma, Verdana, sans-serif;
 }
+
+/* ============================================
+   PROFESSIONAL HOTSPOT & RISK ZONE STYLING
+   ============================================ */
+
+/* Risk Zone Popups */
+.risk-popup {
+  padding: 0;
+  overflow: hidden;
+}
+
+.risk-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+
+.risk-badge.high {
+  background: linear-gradient(135deg, #c0392b 0%, #922b21 100%);
+  color: #fff;
+}
+
+.risk-badge.medium {
+  background: linear-gradient(135deg, #d68910 0%, #9c640c 100%);
+  color: #fff;
+}
+
+.risk-badge.low {
+  background: linear-gradient(135deg, #27ae60 0%, #1e8449 100%);
+  color: #fff;
+}
+
+.popup-district {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  margin-bottom: 6px;
+}
+
+.popup-summary {
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--text-primary);
+  border-top: 1px solid var(--border-color);
+  padding-top: 8px;
+  margin-top: 4px;
+}
+
+/* Hotspot Popups - Professional Disease Cards */
+.hotspot-popup {
+  padding: 0;
+  overflow: hidden;
+  min-width: 220px;
+}
+
+.disease-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  margin: -12px -16px 12px -16px;
+}
+
+.disease-header.high {
+  background: linear-gradient(135deg, rgba(192, 57, 43, 0.1) 0%, rgba(146, 43, 33, 0.15) 100%);
+  border-bottom: 2px solid #c0392b;
+}
+
+.disease-header.medium {
+  background: linear-gradient(135deg, rgba(214, 137, 16, 0.1) 0%, rgba(156, 100, 12, 0.15) 100%);
+  border-bottom: 2px solid #d68910;
+}
+
+.disease-header.low {
+  background: linear-gradient(135deg, rgba(39, 174, 96, 0.1) 0%, rgba(30, 132, 73, 0.15) 100%);
+  border-bottom: 2px solid #27ae60;
+}
+
+.disease-icon {
+  font-size: 1.1rem;
+}
+
+.disease-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.hotspot-stats {
+  display: flex;
+  gap: 16px;
+  padding: 0 16px 12px;
+  margin: 0 -16px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.stat-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.stat-value.location {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.stat-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.recent-cases {
+  padding-top: 10px;
+}
+
+.cases-header {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+  font-weight: 600;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.recent-cases ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.recent-cases li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  font-size: 0.82rem;
+  color: var(--text-primary);
+}
+
+.case-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+/* Professional Legend Colors - Epidemiological Palette */
+.legend-color.heatmap-low {
+  background: linear-gradient(135deg, #6baed6 0%, #3182bd 100%);
+}
+
+.legend-color.heatmap-medium {
+  background: linear-gradient(135deg, #fc9272 0%, #de5833 100%);
+}
+
+.legend-color.heatmap-high {
+  background: linear-gradient(135deg, #cb181d 0%, #67000d 100%);
+}
+
+/* Subtle pulse animation for critical zones (optional - CSS only) */
+@keyframes subtle-pulse {
+  0%, 100% { opacity: 0.18; }
+  50% { opacity: 0.28; }
+}
+
+/* Apply via JS class if needed */
+.leaflet-interactive.risk-zone-critical {
+  animation: subtle-pulse 3s ease-in-out infinite;
+}

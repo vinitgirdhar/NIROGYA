@@ -1,5 +1,5 @@
 // src/pages/Dashboard.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Row, Col, Card, Statistic, Table, Tag, Progress, Timeline, List, Button, Empty } from 'antd';
 import { 
   ArrowUpOutlined, 
@@ -14,7 +14,7 @@ import {
   NotificationOutlined
 } from '@ant-design/icons';
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { useTranslation } from 'react-i18next';
+import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../components/ThemeProvider';
 import { useAuth } from '../contexts/AuthContext';
 import WaterAlertModal from '../components/WaterAlertModal';
@@ -312,8 +312,25 @@ const CommunityView: React.FC = () => {
 
 // --- Original full dashboard (kept mostly unchanged) ---
 const FullDashboard: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, translate, currentLanguage } = useLanguage();
   const { isDark } = useTheme();
+  const [translatedLabels, setTranslatedLabels] = useState<Record<string, string>>({});
+
+  // Translate dynamic labels using LibreTranslate API
+  useEffect(() => {
+    const translateLabels = async () => {
+      const labels = [
+        'Weekly Cases', 'Disease Distribution', 'Water Quality by Location',
+        'Recent Alerts', 'Cases', 'Recovered', 'Active', 'Safe', 'Warning', 'Contaminated'
+      ];
+      const translated: Record<string, string> = {};
+      for (const label of labels) {
+        translated[label] = await translate(label);
+      }
+      setTranslatedLabels(translated);
+    };
+    translateLabels();
+  }, [currentLanguage.code, translate]);
 
   return (
     <div className="dashboard">
@@ -371,7 +388,7 @@ const FullDashboard: React.FC = () => {
       {/* Charts Row */}
       <Row gutter={[16, 16]} className="charts-row">
         <Col xs={24} lg={16}>
-          <Card title="Weekly Health Trends" className="chart-card">
+          <Card title={translatedLabels['Weekly Cases'] || 'Weekly Health Trends'} className="chart-card">
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={weeklyData}>
                 <CartesianGrid 
@@ -396,15 +413,15 @@ const FullDashboard: React.FC = () => {
                   }}
                 />
                 <Legend />
-                <Line type="monotone" dataKey="cases" stroke="#8884d8" strokeWidth={2} />
-                <Line type="monotone" dataKey="recovered" stroke="#82ca9d" strokeWidth={2} />
-                <Line type="monotone" dataKey="active" stroke="#ffc658" strokeWidth={2} />
+                <Line type="monotone" dataKey="cases" stroke="#8884d8" strokeWidth={2} name={translatedLabels['Cases'] || 'Cases'} />
+                <Line type="monotone" dataKey="recovered" stroke="#82ca9d" strokeWidth={2} name={translatedLabels['Recovered'] || 'Recovered'} />
+                <Line type="monotone" dataKey="active" stroke="#ffc658" strokeWidth={2} name={translatedLabels['Active'] || 'Active'} />
               </LineChart>
             </ResponsiveContainer>
           </Card>
         </Col>
         <Col xs={24} lg={8}>
-          <Card title="Disease Distribution" className="chart-card">
+          <Card title={translatedLabels['Disease Distribution'] || 'Disease Distribution'} className="chart-card">
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
@@ -438,7 +455,7 @@ const FullDashboard: React.FC = () => {
       {/* Water Quality and Recent Activity */}
       <Row gutter={[16, 16]}>
         <Col xs={24} lg={14}>
-          <Card title="Water Quality Overview" className="chart-card">
+          <Card title={translatedLabels['Water Quality by Location'] || 'Water Quality Overview'} className="chart-card">
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={waterQualityData}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -446,15 +463,15 @@ const FullDashboard: React.FC = () => {
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Bar dataKey="safe" stackId="a" fill="#52c41a" />
-                <Bar dataKey="warning" stackId="a" fill="#faad14" />
-                <Bar dataKey="contaminated" stackId="a" fill="#f5222d" />
+                <Bar dataKey="safe" stackId="a" fill="#52c41a" name={translatedLabels['Safe'] || 'Safe'} />
+                <Bar dataKey="warning" stackId="a" fill="#faad14" name={translatedLabels['Warning'] || 'Warning'} />
+                <Bar dataKey="contaminated" stackId="a" fill="#f5222d" name={translatedLabels['Contaminated'] || 'Contaminated'} />
               </BarChart>
             </ResponsiveContainer>
           </Card>
         </Col>
         <Col xs={24} lg={10}>
-          <Card title="Recent Activity">
+          <Card title={translatedLabels['Recent Alerts'] || 'Recent Activity'}>
             <Timeline>
               <Timeline.Item color="red">
                 <p>Outbreak alert in Village A</p>
@@ -480,7 +497,7 @@ const FullDashboard: React.FC = () => {
       {/* Recent Alerts Table */}
       <Row gutter={[16, 16]}>
         <Col span={24}>
-          <Card title="Recent Alerts">
+          <Card title={translatedLabels['Recent Alerts'] || 'Recent Alerts'}>
             <Table 
               columns={alertColumns} 
               dataSource={recentAlerts} 

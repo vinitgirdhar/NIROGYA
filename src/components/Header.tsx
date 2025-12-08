@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Layout, Button, Dropdown, Space, Avatar } from 'antd';
 import { 
   DashboardOutlined, 
@@ -9,10 +9,10 @@ import {
   SunOutlined,
   MoonOutlined
 } from '@ant-design/icons';
-import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from './ThemeProvider';
+import { useLanguage, languages } from '../contexts/LanguageContext';
 import './Header.css';
 
 const { Header: AntHeader } = Layout;
@@ -23,13 +23,28 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ collapsed, onToggleCollapse }) => {
-  const { i18n } = useTranslation();
+  const { currentLanguage, setLanguage, t, translate } = useLanguage();
   const { isDark, toggleTheme } = useTheme();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [translatedLabels, setTranslatedLabels] = useState<Record<string, string>>({});
 
-  const changeLanguage = (lng: string) => {
-    i18n.changeLanguage(lng);
+  // Translate dynamic labels
+  useEffect(() => {
+    const translateLabels = async () => {
+      const labels = ['Profile', 'Settings', 'Logout', 'Health Surveillance System'];
+      const translated: Record<string, string> = {};
+      for (const label of labels) {
+        translated[label] = await translate(label);
+      }
+      setTranslatedLabels(translated);
+    };
+    translateLabels();
+  }, [currentLanguage.code, translate]);
+
+  const changeLanguage = (langCode: string) => {
+    const lang = languages.find(l => l.code === langCode);
+    if (lang) setLanguage(lang);
   };
 
   const handleLogout = () => {
@@ -38,31 +53,24 @@ const Header: React.FC<HeaderProps> = ({ collapsed, onToggleCollapse }) => {
   };
 
   const languageMenu = {
-    items: [
-      {
-        key: 'en',
-        label: 'English',
-        onClick: () => changeLanguage('en'),
-      },
-      {
-        key: 'hi',
-        label: 'हिंदी',
-        onClick: () => changeLanguage('hi'),
-      },
-    ],
+    items: languages.map(lang => ({
+      key: lang.code,
+      label: `${lang.flag} ${lang.nativeName}`,
+      onClick: () => changeLanguage(lang.code),
+    })),
   };
 
   const userMenu = {
     items: [
       {
         key: 'profile',
-        label: 'Profile',
+        label: translatedLabels['Profile'] || 'Profile',
         icon: <UserOutlined />,
         onClick: () => navigate('/profile'),
       },
       {
         key: 'settings',
-        label: 'Settings',
+        label: translatedLabels['Settings'] || 'Settings',
         icon: <SettingOutlined />,
       },
       {
@@ -70,7 +78,7 @@ const Header: React.FC<HeaderProps> = ({ collapsed, onToggleCollapse }) => {
       },
       {
         key: 'logout',
-        label: 'Logout',
+        label: translatedLabels['Logout'] || 'Logout',
         icon: <LogoutOutlined />,
         onClick: handleLogout,
       },
@@ -88,7 +96,7 @@ const Header: React.FC<HeaderProps> = ({ collapsed, onToggleCollapse }) => {
         />
         <div className="app-title">
           <span className="app-name">Nirogya</span>
-          <span className="app-subtitle">Health Surveillance System</span>
+          <span className="app-subtitle">{translatedLabels['Health Surveillance System'] || 'Health Surveillance System'}</span>
         </div>
       </div>
       
@@ -104,7 +112,7 @@ const Header: React.FC<HeaderProps> = ({ collapsed, onToggleCollapse }) => {
           
           <Dropdown menu={languageMenu} placement="bottomRight">
             <Button type="text" icon={<GlobalOutlined />}>
-              {i18n.language.toUpperCase()}
+              {currentLanguage.flag} {currentLanguage.code.toUpperCase()}
             </Button>
           </Dropdown>
           

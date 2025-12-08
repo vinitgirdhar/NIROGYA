@@ -23,7 +23,7 @@ import {
   MedicineBoxOutlined
 } from '@ant-design/icons';
 import { useAuth } from '../contexts/AuthContext';
-import { useTranslation } from 'react-i18next';
+import { useLanguage } from '../contexts/LanguageContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import type { MenuProps } from 'antd';
 import { useTheme } from './ThemeProvider';
@@ -52,11 +52,28 @@ interface SidebarSettings {
 
 const Sidebar: React.FC<SidebarProps> = ({ collapsed, onCollapse }) => {
   const { user, logout } = useAuth();
-  const { t } = useTranslation();
+  const { t, translate, currentLanguage } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const { isDark } = useTheme();
+  const [translatedLabels, setTranslatedLabels] = useState<Record<string, string>>({});
+
+  // Translate dynamic labels that don't have static translations
+  useEffect(() => {
+    const translateLabels = async () => {
+      const labels = [
+        'Disease Mapping', 'ASHA Communication', 'Report Water Quality',
+        'Report Symptoms', 'Self Report Symptoms'
+      ];
+      const translated: Record<string, string> = {};
+      for (const label of labels) {
+        translated[label] = await translate(label);
+      }
+      setTranslatedLabels(translated);
+    };
+    translateLabels();
+  }, [currentLanguage.code, translate]);
 
   const [settings, setSettings] = useState<SidebarSettings>(() => {
     const saved = localStorage.getItem('sidebarSettings');
@@ -131,15 +148,15 @@ const baseMenuItems = [
   { key: '/', icon: <DashboardOutlined />, label: t('nav.dashboard'), badge: 0 },
   { key: '/health', icon: <HeartOutlined />, label: t('nav.healthData'), badge: 0 },
   { key: '/water-quality', icon: <ExperimentOutlined />, label: t('nav.waterQuality'), badge: 0 },
-  { key: '/disease-mapping', icon: <EnvironmentOutlined />, label: 'Disease Mapping', badge: 0 },
-  { key: '/asha-communication', icon: <MessageOutlined />, label: 'ASHA Communication', badge: 0 },
-  { key: '/ai-prediction', icon: <RobotOutlined />, label: 'Report Water Quality', badge: 0 },
+  { key: '/disease-mapping', icon: <EnvironmentOutlined />, label: translatedLabels['Disease Mapping'] || 'Disease Mapping', badge: 0 },
+  { key: '/asha-communication', icon: <MessageOutlined />, label: translatedLabels['ASHA Communication'] || 'ASHA Communication', badge: 0 },
+  { key: '/ai-prediction', icon: <RobotOutlined />, label: translatedLabels['Report Water Quality'] || 'Report Water Quality', badge: 0 },
   { key: '/alerts', icon: <AlertOutlined />, label: t('nav.alerts'), badge: 0 },
-  { key: '/report-symptoms', icon: <MedicineBoxOutlined />, label: 'Report Symptoms', badge: 0 },
+  { key: '/report-symptoms', icon: <MedicineBoxOutlined />, label: translatedLabels['Report Symptoms'] || 'Report Symptoms', badge: 0 },
   { key: '/community', icon: <TeamOutlined />, label: t('nav.community'), badge: 0 },
   { key: '/education', icon: <BookOutlined />, label: t('nav.education'), badge: 0 },
   { key: '/reports', icon: <FileTextOutlined />, label: t('nav.reports'), badge: 0 },
-  { key: '/self-report', icon: <MedicineBoxOutlined />, label: 'Self Report Symptoms', badge: 0 },
+  { key: '/self-report', icon: <MedicineBoxOutlined />, label: translatedLabels['Self Report Symptoms'] || 'Self Report Symptoms', badge: 0 },
 ];
 
 
