@@ -87,6 +87,21 @@ interface RiskZone {
   summary?: string;
 }
 
+// Prediction-based outbreak from backend
+interface PredictionOutbreak {
+  id: string;
+  district: string;
+  areaName: string;
+  disease: string;
+  totalPredictions: number;
+  latestPredictionDate: string;
+  earliestPredictionDate?: string;
+  coordinates: [number, number] | null;
+  color: 'red' | 'yellow' | 'green';
+  severity: 'high' | 'medium' | 'low';
+  status: string;
+}
+
 /* ---------------------- Map helpers ---------------------- */
 
 const NE_BOUNDS = {
@@ -199,6 +214,12 @@ const DiseaseMapping: React.FC = () => {
   const [districtStats, setDistrictStats] = useState<DistrictStats | null>(null);
   const [loadingDistrictStats, setLoadingDistrictStats] =
     useState<boolean>(false);
+
+  // Prediction-based outbreaks state
+  const [predictionOutbreaks, setPredictionOutbreaks] = useState<PredictionOutbreak[]>([]);
+  const [loadingPredictionOutbreaks, setLoadingPredictionOutbreaks] = useState<boolean>(false);
+  const [showPredictionOutbreaks, setShowPredictionOutbreaks] = useState<boolean>(true);
+  const [outbreakDays, setOutbreakDays] = useState<number>(30);
 
   /* ---------------------- Mock Data ---------------------- */
 
@@ -374,6 +395,58 @@ const DiseaseMapping: React.FC = () => {
     return () => clearInterval(id);
   }, [selectedDistrict]);
 
+  /* ---------------------- Prediction Outbreaks loader ---------------------- */
+
+  useEffect(() => {
+    loadPredictionOutbreaks();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedDistrict, outbreakDays, hotspotDiseaseFilter]);
+
+  async function loadPredictionOutbreaks() {
+    setLoadingPredictionOutbreaks(true);
+    try {
+      const qs = new URLSearchParams();
+      qs.set('days', String(outbreakDays));
+      if (selectedDistrict !== 'all') qs.set('district', selectedDistrict);
+      if (hotspotDiseaseFilter) qs.set('disease', hotspotDiseaseFilter);
+
+      const res = await fetch(`/api/prediction-outbreaks?${qs.toString()}`, {
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (!res.ok) {
+        console.warn('Prediction outbreaks endpoint returned error, using empty array.');
+        setPredictionOutbreaks([]);
+        return;
+      }
+
+      const payload = await res.json();
+      const outbreaks = (payload.outbreaks || []).map((o: any) => ({
+        id: o.id,
+        district: o.district || '',
+        areaName: o.areaName || o.district || 'Unknown',
+        disease: o.disease || 'Unknown',
+        totalPredictions: o.totalPredictions || 0,
+        latestPredictionDate: o.latestPredictionDate || '',
+        earliestPredictionDate: o.earliestPredictionDate || '',
+        coordinates: Array.isArray(o.coordinates) && o.coordinates.length === 2
+          ? ([Number(o.coordinates[0]), Number(o.coordinates[1])] as [number, number])
+          : null,
+        color: o.color || 'yellow',
+        severity: o.severity || 'medium',
+        status: o.status || 'PREDICTED OUTBREAK',
+      })) as PredictionOutbreak[];
+
+      setPredictionOutbreaks(outbreaks);
+    } catch (err) {
+      console.error('loadPredictionOutbreaks error', err);
+      setPredictionOutbreaks([]);
+      message.warning('Could not load prediction outbreaks.');
+    } finally {
+      setLoadingPredictionOutbreaks(false);
+    }
+  }
+
   /* ---------------------- UI Helpers ---------------------- */
 
   const getSeverityColor = (severity: string) => {
@@ -410,8 +483,19 @@ const DiseaseMapping: React.FC = () => {
   const colorBySeverity = (s: string) =>
     s === 'high' ? '#ff4d4f' : s === 'medium' ? '#faad14' : '#52c41a';
 
+  // Color for prediction outbreak circles (yellow for 20-24, red for 25+)
+  const outbreakCircleColor = (color: string) => {
+    if (color === 'red') return '#ff4d4f';
+    if (color === 'yellow') return '#faad14';
+    return '#52c41a';
+  };
+
   const radiusFromCount = (count: number) =>
     Math.min(3000, 200 * Math.sqrt(Math.max(1, count)));
+
+  // Radius for prediction outbreaks (scale with total predictions)
+  const outbreakRadiusFromPredictions = (totalPredictions: number) =>
+    Math.min(8000, 400 * Math.sqrt(Math.max(1, totalPredictions)));
 
   const mapCenter: [number, number] = useMemo(() => {
     let base: [number, number] = DEFAULT_NE_CENTER;
@@ -455,6 +539,17 @@ const DiseaseMapping: React.FC = () => {
         (z) => selectedDistrict === 'all' || z.district === selectedDistrict,
       ),
     [selectedDistrict],
+  );
+
+  // Filter prediction outbreaks by severity if needed
+  const filteredPredictionOutbreaks = useMemo(
+    () =>
+      predictionOutbreaks.filter((outbreak) => {
+        const severityMatch =
+          selectedSeverity === 'all' || outbreak.severity === selectedSeverity;
+        return severityMatch;
+      }),
+    [predictionOutbreaks, selectedSeverity],
   );
 
   const filteredReports = useMemo(
@@ -520,11 +615,68 @@ const DiseaseMapping: React.FC = () => {
     },
   ];
 
+  // Prediction Outbreak columns for the "Recent Outbreak Reports" table
+  const predictionOutbreakColumns = [
+    {
+      title: 'Location / Area',
+      dataIndex: 'areaName',
+      key: 'areaName',
+      render: (text: string, record: PredictionOutbreak) => (
+        <Space>
+          <EnvironmentFilled style={{ color: outbreakCircleColor(record.color) }} />
+          <div>
+            <div className="reports-location">{text || 'Unknown Area'}</div>
+            <div className="reports-sub">{record.district}</div>
+          </div>
+        </Space>
+      ),
+    },
+    { title: 'Disease', dataIndex: 'disease', key: 'disease' },
+    {
+      title: 'Severity',
+      dataIndex: 'severity',
+      key: 'severity',
+      render: (s: string, record: PredictionOutbreak) => (
+        <Space>
+          {getSeverityIcon(s)}
+          <span className="capitalize">{s}</span>
+        </Space>
+      ),
+    },
+    {
+      title: 'Predictions',
+      dataIndex: 'totalPredictions',
+      key: 'totalPredictions',
+      render: (count: number, record: PredictionOutbreak) => (
+        <Tag color={outbreakCircleColor(record.color)}>{count}</Tag>
+      ),
+    },
+    {
+      title: 'Latest Date',
+      dataIndex: 'latestPredictionDate',
+      key: 'latestPredictionDate',
+      render: (date: string) =>
+        date ? new Date(date).toLocaleDateString() : '-',
+    },
+    {
+      title: 'Status',
+      dataIndex: 'status',
+      key: 'status',
+      render: (s: string, record: PredictionOutbreak) => (
+        <Tag color={record.color === 'red' ? 'red' : 'orange'}>
+          {s || 'PREDICTED OUTBREAK'}
+        </Tag>
+      ),
+    },
+  ];
+
   const summaryStats = {
-    total: diseaseReports.length,
-    active: diseaseReports.filter((r) => r.status === 'active').length,
-    high: diseaseReports.filter((r) => r.severity === 'high').length,
-    totalCases: diseaseReports.reduce((sum, r) => sum + r.casesCount, 0),
+    total: diseaseReports.length + predictionOutbreaks.length,
+    active: diseaseReports.filter((r) => r.status === 'active').length + predictionOutbreaks.length,
+    high: diseaseReports.filter((r) => r.severity === 'high').length + 
+          predictionOutbreaks.filter((o) => o.severity === 'high').length,
+    totalCases: diseaseReports.reduce((sum, r) => sum + r.casesCount, 0) +
+                predictionOutbreaks.reduce((sum, o) => sum + o.totalPredictions, 0),
   };
 
   const isOutbreakInSelectedDistrict =
@@ -685,6 +837,10 @@ const DiseaseMapping: React.FC = () => {
               <span>Hotspots</span>
               <Switch checked={showCircles} onChange={setShowCircles} />
             </div>
+            <div className="control-toggle">
+              <span>Outbreaks</span>
+              <Switch checked={showPredictionOutbreaks} onChange={setShowPredictionOutbreaks} />
+            </div>
           </Col>
 
           <Col xs={24} md={4} style={{ textAlign: 'right' }}>
@@ -733,14 +889,14 @@ const DiseaseMapping: React.FC = () => {
         style={{ marginTop: 16 }}
       >
         <div className="map-legend-inline">
-          <Badge color="#ff0000" text="High Risk Zones" />
-          <Badge color="#ffa500" text="Medium Risk Zones" />
+          <Badge color="#ff0000" text="High Risk / Outbreak (25+ predictions)" />
+          <Badge color="#ffa500" text="Medium Risk / Outbreak (20-24 predictions)" />
           <Badge color="#00c853" text="Low/Safe Zones" />
         </div>
 
-        {loadingHotspots ? (
+        {(loadingHotspots || loadingPredictionOutbreaks) ? (
           <div className="map-loading">
-            <Spin />
+            <Spin tip={loadingPredictionOutbreaks ? "Loading outbreaks..." : "Loading hotspots..."} />
           </div>
         ) : (
           <div className="map-wrapper">
@@ -833,6 +989,51 @@ const DiseaseMapping: React.FC = () => {
                     </Circle>
                   );
                 })}
+
+              {/* Prediction Outbreak circles (from backend aggregation) */}
+              {showPredictionOutbreaks &&
+                filteredPredictionOutbreaks.map((outbreak) => {
+                  const coords = outbreak.coordinates;
+                  if (!coords) return null;
+                  const [lat, lng] = coords;
+                  if (!isWithinNorthEast(lat, lng)) return null;
+
+                  const circleColor = outbreakCircleColor(outbreak.color);
+
+                  return (
+                    <Circle
+                      key={outbreak.id}
+                      center={[lat, lng]}
+                      radius={outbreakRadiusFromPredictions(outbreak.totalPredictions)}
+                      pathOptions={{
+                        color: circleColor,
+                        fillColor: circleColor,
+                        fillOpacity: 0.25,
+                        weight: 3,
+                        dashArray: '5, 10', // Dashed line to distinguish from hotspots
+                      }}
+                    >
+                      <Popup>
+                        <div className="popup-content">
+                          <strong style={{ color: circleColor }}>
+                            🔴 PREDICTED OUTBREAK
+                          </strong>
+                          <div><strong>Area:</strong> {outbreak.areaName}</div>
+                          <div><strong>District:</strong> {outbreak.district}</div>
+                          <div><strong>Disease:</strong> {outbreak.disease}</div>
+                          <div><strong>Total Predictions:</strong> {outbreak.totalPredictions}</div>
+                          <div><strong>Severity:</strong> {outbreak.severity}</div>
+                          {outbreak.latestPredictionDate && (
+                            <div>
+                              <strong>Latest:</strong>{' '}
+                              {new Date(outbreak.latestPredictionDate).toLocaleString()}
+                            </div>
+                          )}
+                        </div>
+                      </Popup>
+                    </Circle>
+                  );
+                })}
             </MapContainer>
           </div>
         )}
@@ -852,9 +1053,52 @@ const DiseaseMapping: React.FC = () => {
         />
       </Card>
 
-      {/* Recent reports table */}
+      {/* Prediction-based Outbreak Reports table */}
       <Card
-        title="Recent Outbreak Reports"
+        title={
+          <Space>
+            <span>Recent Outbreak Reports (Prediction-Based)</span>
+            {loadingPredictionOutbreaks && <Spin size="small" />}
+          </Space>
+        }
+        className="reports-table-card"
+        style={{ marginTop: 20, marginBottom: 16 }}
+        extra={
+          <Space>
+            <span style={{ fontSize: 12, color: '#888' }}>
+              Showing areas with ≥20 predictions in last {outbreakDays} days
+            </span>
+            <InputNumber
+              min={7}
+              max={90}
+              value={outbreakDays}
+              onChange={(v: number | null) => v != null && setOutbreakDays(v)}
+              style={{ width: 80 }}
+              size="small"
+            />
+            <span style={{ fontSize: 12, color: '#888' }}>days</span>
+          </Space>
+        }
+      >
+        {filteredPredictionOutbreaks.length > 0 ? (
+          <Table
+            columns={predictionOutbreakColumns}
+            dataSource={filteredPredictionOutbreaks}
+            pagination={{ pageSize: 10 }}
+            rowKey={(r: PredictionOutbreak) => r.id}
+          />
+        ) : (
+          <div style={{ textAlign: 'center', padding: 20, color: '#888' }}>
+            {loadingPredictionOutbreaks
+              ? 'Loading prediction outbreaks...'
+              : 'No outbreak areas detected meeting the threshold (≥20 predictions).'}
+          </div>
+        )}
+      </Card>
+
+      {/* Legacy manual reports table (optional - keeping for reference) */}
+      <Card
+        title="Manual Outbreak Reports"
         className="reports-table-card"
         style={{ marginTop: 20, marginBottom: 32 }}
       >

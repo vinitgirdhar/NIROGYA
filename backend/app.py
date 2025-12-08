@@ -72,6 +72,7 @@ from backend.routes.water_bodies import router as water_bodies_router
 from backend.routes.hotspots import router as hotspots_router
 from backend.routes.heatmap import router as heatmap_router
 from backend.routes.district_stats import router as district_router
+from backend.routes.prediction_outbreaks import router as prediction_outbreaks_router
 
 # CONFIG
 POLL_INTERVAL_SECONDS = int(os.getenv("POLL_INTERVAL_SECONDS", "5"))
@@ -104,6 +105,7 @@ app.include_router(water_bodies_router)
 app.include_router(heatmap_router)
 app.include_router(hotspots_router)
 app.include_router(district_router)
+app.include_router(prediction_outbreaks_router)
 
 # ML availability flag
 ML_READY = True if LOADED_MODEL is not None else False

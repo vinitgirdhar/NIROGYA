@@ -9,6 +9,7 @@
     background-color: #ffffff;
     border-top: 1px solid #e2e8f0;
     color: #0f172a;
+    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
 }
 
 .footer-container {
@@ -62,6 +63,7 @@
     font-weight: 700;
     letter-spacing: -0.03em;
     color: #0f172a;
+    transition: color 0.3s ease;
 }
 
 .brand-tagline {
@@ -70,6 +72,7 @@
     color: #64748b;
     margin: 0;
     font-weight: 400;
+    transition: color 0.3s ease;
 }
 
 /* Social Links */
@@ -111,6 +114,7 @@
     letter-spacing: 0.08em;
     margin-bottom: 16px;
     margin-top: 0;
+    transition: color 0.3s ease;
 }
 
 /* Footer Links */
@@ -151,12 +155,14 @@
     color: #475569;
     font-size: 14px;
     font-weight: 500;
+    transition: color 0.3s ease;
 }
 
 .contact-item i {
     color: #94a3b8;
     width: 16px;
     text-align: center;
+    transition: color 0.3s ease;
 }
 
 /* Emergency Card - Compact Version */
@@ -189,6 +195,7 @@
     color: #e11d48;
     font-size: 14px;
     box-shadow: 0 2px 4px rgba(225, 29, 72, 0.1);
+    transition: background-color 0.3s ease;
 }
 
 .emergency-content {
@@ -218,11 +225,13 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    transition: border-color 0.3s ease;
 }
 
 .copyright {
     font-size: 13px;
     color: #94a3b8;
+    transition: color 0.3s ease;
 }
 
 .legal-links {
@@ -239,6 +248,95 @@
 
 .legal-links a:hover {
     color: #0f172a;
+}
+
+/* =========================================
+   DARK MODE STYLES
+   ========================================= */
+
+[data-theme="dark"] .modern-footer {
+    background-color: #0f172a;
+    border-top-color: #1e293b;
+    color: #e2e8f0;
+}
+
+[data-theme="dark"] .brand-name {
+    color: #f1f5f9;
+}
+
+[data-theme="dark"] .brand-tagline {
+    color: #94a3b8;
+}
+
+[data-theme="dark"] .social-icon {
+    background: #1e293b;
+    border-color: #334155;
+    color: #94a3b8;
+}
+
+[data-theme="dark"] .social-icon:hover {
+    background: #334155;
+    color: #60a5fa;
+    border-color: #60a5fa;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .section-title {
+    color: #64748b;
+}
+
+[data-theme="dark"] .footer-links li a {
+    color: #94a3b8;
+}
+
+[data-theme="dark"] .footer-links li a:hover {
+    color: #60a5fa;
+}
+
+[data-theme="dark"] .contact-item {
+    color: #94a3b8;
+}
+
+[data-theme="dark"] .contact-item i {
+    color: #64748b;
+}
+
+[data-theme="dark"] .emergency-card {
+    background: #1e1b1b;
+    border-color: #7f1d1d;
+}
+
+[data-theme="dark"] .emergency-card:hover {
+    background: #2a2020;
+}
+
+[data-theme="dark"] .emergency-icon-box {
+    background: #1e293b;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .emergency-label {
+    color: #fca5a5;
+}
+
+[data-theme="dark"] .emergency-numbers {
+    color: #f87171;
+}
+
+[data-theme="dark"] .footer-bottom {
+    border-top-color: #1e293b;
+}
+
+[data-theme="dark"] .copyright {
+    color: #64748b;
+}
+
+[data-theme="dark"] .legal-links a {
+    color: #94a3b8;
+}
+
+[data-theme="dark"] .legal-links a:hover {
+    color: #f1f5f9;
 }
 
 
