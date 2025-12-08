@@ -1,14 +1,14 @@
 # backend/routes/prediction_outbreaks.py
 """
 Prediction-based outbreak detection endpoint.
-Aggregates prediction_reports by area (district + village/area) and disease,
+Aggregates prediction_reports AND symptoms_reports by area (district + village/area) and disease,
 then identifies outbreak areas based on configurable thresholds.
 """
 
 from fastapi import APIRouter, Query, HTTPException
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Any
-from backend.services.mongo_client import prediction_col
+from backend.services.mongo_client import prediction_col, symptom_col
 from backend.app import serialize_bson
 from bson import ObjectId
 
@@ -19,9 +19,9 @@ router = APIRouter(prefix="/api", tags=["prediction-outbreaks"])
 # ============================================================
 # These can be moved to environment variables or a config file
 
-OUTBREAK_MIN_THRESHOLD = 20      # Minimum predictions to be considered an outbreak
-OUTBREAK_HIGH_THRESHOLD = 25     # Predictions >= this are "red" (high severity)
-# 20-24 predictions = "yellow" (medium severity)
+OUTBREAK_MIN_THRESHOLD = 5       # Minimum reports to be considered an outbreak (lowered for testing)
+OUTBREAK_HIGH_THRESHOLD = 15     # Reports >= this are "red" (high severity)
+# 5-14 reports = "yellow" (medium severity)
 
 # District coordinates for mapping (same as hotspots.py)
 DISTRICT_COORDS = {
@@ -128,63 +128,42 @@ async def get_prediction_outbreaks(
     district: Optional[str] = Query(None, description="Filter by district name"),
     disease: Optional[str] = Query(None, description="Filter by disease name"),
     days: int = Query(30, description="Time window in days (lookback period)"),
-    min_threshold: int = Query(OUTBREAK_MIN_THRESHOLD, description="Minimum predictions to be an outbreak"),
-    high_threshold: int = Query(OUTBREAK_HIGH_THRESHOLD, description="Predictions >= this are high severity"),
+    min_threshold: int = Query(OUTBREAK_MIN_THRESHOLD, description="Minimum reports to be an outbreak"),
+    high_threshold: int = Query(OUTBREAK_HIGH_THRESHOLD, description="Reports >= this are high severity"),
     limit: int = Query(100, description="Max outbreak areas to return"),
 ):
     """
-    Returns outbreak areas based on aggregated prediction_reports.
+    Returns outbreak areas based on aggregated prediction_reports AND symptoms_reports.
     
     An outbreak is defined as an area (district + village/location) with
-    >= min_threshold predictions within the specified time window.
-    
-    Response format:
-    {
-        "outbreaks": [
-            {
-                "id": "unique_id",
-                "district": "Kamrup Metro",
-                "areaName": "Fancy Bazar",
-                "disease": "Cholera",
-                "totalPredictions": 25,
-                "latestPredictionDate": "2024-01-15T10:30:00Z",
-                "coordinates": [26.17, 91.75],
-                "color": "red",
-                "severity": "high",
-                "status": "PREDICTED OUTBREAK"
-            },
-            ...
-        ],
-        "thresholds": {
-            "min": 20,
-            "high": 25
-        },
-        "window_days": 30
-    }
+    >= min_threshold reports within the specified time window.
     """
     now = _now_utc()
     since = now - timedelta(days=days)
-
-    # Build match stage
-    match_stage: Dict[str, Any] = {
+    
+    outbreaks = []
+    
+    # ============================================================
+    # QUERY 1: Check prediction_reports collection (ML processed data)
+    # ============================================================
+    pred_match_stage: Dict[str, Any] = {
         "features.predicted_at": {"$gte": since}
     }
 
     if disease:
-        match_stage["features.predicted_disease"] = {
+        pred_match_stage["features.predicted_disease"] = {
             "$regex": f"^{disease}$",
             "$options": "i",
         }
 
     if district:
-        match_stage["$or"] = [
+        pred_match_stage["$or"] = [
             {"input_water.district": {"$regex": district, "$options": "i"}},
             {"district": {"$regex": district, "$options": "i"}},
         ]
 
-    # Aggregation pipeline
-    pipeline = [
-        {"$match": match_stage},
+    pred_pipeline = [
+        {"$match": pred_match_stage},
         {
             "$group": {
                 "_id": {
@@ -195,92 +174,153 @@ async def get_prediction_outbreaks(
                 "totalPredictions": {"$sum": 1},
                 "latestPredictionDate": {"$max": "$features.predicted_at"},
                 "earliestPredictionDate": {"$min": "$features.predicted_at"},
-                # Collect sample prediction IDs for reference
-                "sampleIds": {
-                    "$push": {
-                        "id": "$_id",
-                        "predicted_at": "$features.predicted_at",
-                    }
-                },
             }
         },
-        # Only include areas meeting the outbreak threshold
         {"$match": {"totalPredictions": {"$gte": min_threshold}}},
         {"$sort": {"totalPredictions": -1}},
         {"$limit": limit},
-        {
-            "$project": {
-                "_id": 0,
-                "district": "$_id.district",
-                "areaName": "$_id.area",
-                "disease": "$_id.disease",
-                "totalPredictions": 1,
-                "latestPredictionDate": 1,
-                "earliestPredictionDate": 1,
-                "sampleIds": {"$slice": ["$sampleIds", 5]},  # Limit samples
-            }
-        },
     ]
 
     try:
-        cursor = prediction_col.aggregate(pipeline)
-        outbreaks = []
-
+        cursor = prediction_col.aggregate(pred_pipeline)
         async for doc in cursor:
-            district_name = doc.get("district") or ""
-            area_name = doc.get("areaName") or district_name
+            district_name = doc["_id"].get("district") or ""
+            area_name = doc["_id"].get("area") or district_name
+            disease_name = doc["_id"].get("disease") or "Unknown"
             total = doc.get("totalPredictions", 0)
             
-            # Get coordinates
             coords = _get_coordinates(district_name, area_name)
-            
-            # Determine color and severity based on thresholds
             color = _determine_color(total)
             severity = _determine_severity(total)
+            outbreak_id = f"pred-{district_name}-{area_name}-{disease_name}".replace(" ", "_").lower()
             
-            # Generate a unique ID
-            outbreak_id = f"{district_name}-{area_name}-{doc.get('disease', 'unknown')}".replace(" ", "_").lower()
-            
-            # Process dates - convert datetime to ISO string if needed
             latest_date = doc.get("latestPredictionDate")
             if latest_date and isinstance(latest_date, datetime):
                 latest_date = latest_date.isoformat()
             
-            earliest_date = doc.get("earliestPredictionDate")
-            if earliest_date and isinstance(earliest_date, datetime):
-                earliest_date = earliest_date.isoformat()
-            
-            outbreak_entry = {
+            outbreaks.append({
                 "id": outbreak_id,
                 "district": district_name,
                 "areaName": area_name,
-                "disease": doc.get("disease"),
+                "disease": disease_name,
                 "totalPredictions": total,
                 "latestPredictionDate": latest_date,
-                "earliestPredictionDate": earliest_date,
                 "coordinates": list(coords) if coords else None,
                 "color": color,
                 "severity": severity,
                 "status": "PREDICTED OUTBREAK",
-            }
-            
-            # Serialize to handle ObjectId, numpy, etc.
-            outbreak_entry = serialize_bson(outbreak_entry)
-            
-            outbreaks.append(outbreak_entry)
-
-        return {
-            "outbreaks": outbreaks,
-            "thresholds": {
-                "min": min_threshold,
-                "high": high_threshold,
-            },
-            "window_days": days,
-            "total_outbreak_areas": len(outbreaks),
-        }
-
+                "source": "prediction_reports",
+            })
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Aggregation failed: {e}")
+        print(f"Error querying prediction_reports: {e}")
+
+    # ============================================================
+    # QUERY 2: Check symptoms_reports collection (raw symptom data)
+    # ============================================================
+    symptom_match_stage: Dict[str, Any] = {}
+    
+    # Use created_at or any date field in symptoms_reports
+    symptom_match_stage["$or"] = [
+        {"created_at": {"$gte": since}},
+        {"reported_at": {"$gte": since}},
+        {"meta.received_at": {"$gte": since}},
+    ]
+
+    if district:
+        symptom_match_stage["district"] = {"$regex": district, "$options": "i"}
+
+    symptom_pipeline = [
+        {"$match": symptom_match_stage},
+        {
+            "$group": {
+                "_id": {
+                    "district": "$district",
+                    "area": {"$ifNull": ["$location", "$village", "$area"]},
+                },
+                "totalReports": {"$sum": 1},
+                "latestReportDate": {"$max": {"$ifNull": ["$created_at", "$reported_at", "$meta.received_at"]}},
+                "symptoms": {"$push": "$symptoms"},
+            }
+        },
+        {"$match": {"totalReports": {"$gte": min_threshold}}},
+        {"$sort": {"totalReports": -1}},
+        {"$limit": limit},
+    ]
+
+    try:
+        cursor = symptom_col.aggregate(symptom_pipeline)
+        async for doc in cursor:
+            district_name = doc["_id"].get("district") or ""
+            area_name = doc["_id"].get("area") or district_name
+            total = doc.get("totalReports", 0)
+            
+            # Check if we already have this area from prediction_reports
+            existing = next((o for o in outbreaks if o["district"].lower() == district_name.lower() 
+                           and o["areaName"].lower() == area_name.lower()), None)
+            if existing:
+                continue  # Skip duplicate, prefer prediction_reports data
+            
+            coords = _get_coordinates(district_name, area_name)
+            color = _determine_color(total)
+            severity = _determine_severity(total)
+            outbreak_id = f"symptom-{district_name}-{area_name}".replace(" ", "_").lower()
+            
+            latest_date = doc.get("latestReportDate")
+            if latest_date and isinstance(latest_date, datetime):
+                latest_date = latest_date.isoformat()
+            
+            # Infer disease from common symptoms if possible
+            all_symptoms = doc.get("symptoms", [])
+            flat_symptoms = []
+            for s in all_symptoms:
+                if isinstance(s, list):
+                    flat_symptoms.extend(s)
+                elif s:
+                    flat_symptoms.append(s)
+            
+            # Simple disease inference based on symptom keywords
+            symptom_str = " ".join(flat_symptoms).lower()
+            inferred_disease = "Unknown"
+            if "diarrhea" in symptom_str and ("vomiting" in symptom_str or "dehydration" in symptom_str):
+                inferred_disease = "Cholera"
+            elif "fever" in symptom_str and "abdominal" in symptom_str:
+                inferred_disease = "Typhoid"
+            elif "fever" in symptom_str and "headache" in symptom_str:
+                inferred_disease = "Typhoid"
+            elif "diarrhea" in symptom_str:
+                inferred_disease = "Diarrhea"
+            
+            outbreaks.append({
+                "id": outbreak_id,
+                "district": district_name,
+                "areaName": area_name,
+                "disease": inferred_disease,
+                "totalPredictions": total,
+                "latestPredictionDate": latest_date,
+                "coordinates": list(coords) if coords else None,
+                "color": color,
+                "severity": severity,
+                "status": "SYMPTOM CLUSTER",
+                "source": "symptoms_reports",
+            })
+    except Exception as e:
+        print(f"Error querying symptoms_reports: {e}")
+
+    # Sort combined results by totalPredictions descending
+    outbreaks.sort(key=lambda x: x.get("totalPredictions", 0), reverse=True)
+    
+    # Serialize all
+    outbreaks = [serialize_bson(o) for o in outbreaks]
+
+    return {
+        "outbreaks": outbreaks[:limit],
+        "thresholds": {
+            "min": min_threshold,
+            "high": high_threshold,
+        },
+        "window_days": days,
+        "total_outbreak_areas": len(outbreaks),
+    }
 
 
 @router.get("/prediction-outbreaks/summary")

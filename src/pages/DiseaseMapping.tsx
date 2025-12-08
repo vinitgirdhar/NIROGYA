@@ -494,8 +494,9 @@ const DiseaseMapping: React.FC = () => {
     Math.min(3000, 200 * Math.sqrt(Math.max(1, count)));
 
   // Radius for prediction outbreaks (scale with total predictions)
+  // Increased base radius for better visibility when zoomed out
   const outbreakRadiusFromPredictions = (totalPredictions: number) =>
-    Math.min(8000, 400 * Math.sqrt(Math.max(1, totalPredictions)));
+    Math.min(25000, 2000 + 800 * Math.sqrt(Math.max(1, totalPredictions)));
 
   const mapCenter: [number, number] = useMemo(() => {
     let base: [number, number] = DEFAULT_NE_CENTER;

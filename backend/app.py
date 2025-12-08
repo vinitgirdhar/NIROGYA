@@ -115,6 +115,7 @@ ML_READY = True if LOADED_MODEL is not None else False
 # --------------------------
 class Report(BaseModel):
     location: Optional[str] = None
+    district: Optional[str] = None
 
     pH: Optional[float] = None
     ph: Optional[float] = None
