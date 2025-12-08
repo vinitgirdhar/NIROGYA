@@ -145,7 +145,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onCollapse }) => {
   // Base menu items (modify labels or badges as needed)
   // ---------------------------
 const baseMenuItems = [
-  { key: '/', icon: <DashboardOutlined />, label: t('nav.dashboard'), badge: 0 },
+  { key: '/', icon: <DashboardOutlined />, label: t('nav.home'), badge: 0 },
   { key: '/health', icon: <HeartOutlined />, label: t('nav.healthData'), badge: 0 },
   { key: '/water-quality', icon: <ExperimentOutlined />, label: t('nav.waterQuality'), badge: 0 },
   { key: '/disease-mapping', icon: <EnvironmentOutlined />, label: translatedLabels['Disease Mapping'] || 'Disease Mapping', badge: 0 },
@@ -169,12 +169,12 @@ const baseMenuItems = [
 
     switch (role) {
       case 'admin':
-        return all.filter(k => !['/government/manage-users', '/government/manage-accounts'].includes(k));
+        return all.filter(k => !['/government/manage-users', '/government/manage-accounts', '/self-report', '/community'].includes(k));
       case 'asha_worker':
-        // ASHA: dashboard, asha communication, report water, report symptoms, alerts, education, community
-        return ['/', '/asha-communication', '/ai-prediction', '/report-symptoms', '/alerts', '/education', '/community'];
+        // ASHA: dashboard, asha communication, report water, report symptoms, alerts, education
+        return ['/', '/asha-communication', '/ai-prediction', '/report-symptoms', '/alerts', '/education'];
       case 'community_user':
-        return ['/community', '/alerts', '/education', '/self-report'];
+        return ['/', '/community', '/alerts', '/education', '/self-report'];
       case 'healthcare_worker':
         return ['/', '/health', '/disease-mapping', '/alerts'];
       case 'district_health_official':

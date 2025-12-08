@@ -657,4 +657,3 @@ const Education: React.FC = () => {
 };
 
 export default Education;
-
