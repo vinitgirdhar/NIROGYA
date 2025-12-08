@@ -147,23 +147,13 @@ const Register: React.FC = () => {
         phone: formData.phone?.trim() || undefined,
       });
 
-      if (result === true) {
+      if (result) {
         // Small delay to ensure auth state is updated
         setTimeout(() => {
           navigate('/dashboard', { replace: true });
         }, 500);
-      } else if (typeof result === 'object' && result.error) {
-        // Handle specific field errors from backend
-        if (result.error.toLowerCase().includes('email already')) {
-          setFieldErrors({ email: 'This email is already registered' });
-        } else if (result.error.toLowerCase().includes('password')) {
-          setFieldErrors({ password: result.error });
-        } else {
-          message.error(result.error);
-        }
-      } else {
-        message.error('Registration failed. Please check the form and try again.');
       }
+      // Note: Error messages are already shown by the register function in AuthContext
     } catch (error) {
       console.error('Registration error:', error);
       message.error('Registration failed. Please try again.');

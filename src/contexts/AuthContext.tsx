@@ -19,6 +19,9 @@ interface User {
   role:
     | "admin"
     | "asha_worker"
+    | "volunteer"
+    | "healthcare_worker"
+    | "district_health_official"
     | "government_body"
     | "community_user";
   avatar?: string;
@@ -48,17 +51,12 @@ interface RegisterData {
   confirmPassword?: string;
 }
 
-interface RegisterResult {
-  success: boolean;
-  error?: string;
-}
-
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<boolean>;
-  register: (data: RegisterData) => Promise<boolean | RegisterResult>;
+  register: (data: RegisterData) => Promise<boolean>;
   logout: () => void;
   updateProfile: (data: Partial<User>) => Promise<boolean>;
   authHeaders: () => Record<string, string>;
@@ -73,7 +71,116 @@ export const useAuth = () => {
   return ctx;
 };
 
-const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:8000";
+/* ---------------------------------------------------------
+   MOCK USERS DATABASE (FRONTEND-ONLY)
+--------------------------------------------------------- */
+const MOCK_USERS = [
+  {
+    id: "1",
+    email: "admin@paanicare.com",
+    password: "admin123",
+    name: "System Administrator",
+    role: "admin" as const,
+    organization: "Nirogya Platform",
+    location: "Mumbai",
+    phone: "+91 9876543210"
+  },
+  {
+    id: "2",
+    email: "asha@paanicare.com",
+    password: "asha123",
+    name: "ASHA Worker",
+    role: "asha_worker" as const,
+    organization: "Community Health Center",
+    location: "Delhi",
+    village: "Mehrauli"
+  },
+  {
+    id: "3",
+    email: "volunteer@paanicare.com",
+    password: "volunteer123",
+    name: "Community Volunteer",
+    role: "volunteer" as const,
+    organization: "Volunteer Network",
+    location: "Bangalore"
+  },
+  {
+    id: "4",
+    email: "healthcare@paanicare.com",
+    password: "healthcare123",
+    name: "Dr. Priya Sharma",
+    role: "healthcare_worker" as const,
+    organization: "District Hospital",
+    location: "Pune",
+    specialization: "General Medicine"
+  },
+  {
+    id: "5",
+    email: "district@paanicare.com",
+    password: "district123",
+    name: "District Health Official",
+    role: "district_health_official" as const,
+    organization: "District Health Office",
+    district: "Mumbai District",
+    location: "Mumbai"
+  },
+  {
+    id: "6",
+    email: "government@paanicare.com",
+    password: "government123",
+    name: "Government Official",
+    role: "government_body" as const,
+    organization: "State Health Department",
+    location: "Mumbai"
+  },
+  {
+    id: "7",
+    email: "user@paanicare.com",
+    password: "user123",
+    name: "Community User",
+    role: "community_user" as const,
+    organization: "Community Member",
+    location: "Mumbai"
+  }
+];
+
+/* ---------------------------------------------------------
+   MOCK REGISTERED USERS STORAGE KEY
+--------------------------------------------------------- */
+const REGISTERED_USERS_KEY = "paanicare-registered-users";
+
+/* ---------------------------------------------------------
+   HELPER: GET ALL USERS (MOCK + REGISTERED)
+--------------------------------------------------------- */
+const getAllUsers = () => {
+  try {
+    const registered = localStorage.getItem(REGISTERED_USERS_KEY);
+    const registeredUsers = registered ? JSON.parse(registered) : [];
+    return [...MOCK_USERS, ...registeredUsers];
+  } catch {
+    return MOCK_USERS;
+  }
+};
+
+/* ---------------------------------------------------------
+   HELPER: SAVE REGISTERED USER
+--------------------------------------------------------- */
+const saveRegisteredUser = (user: any) => {
+  try {
+    const registered = localStorage.getItem(REGISTERED_USERS_KEY);
+    const registeredUsers = registered ? JSON.parse(registered) : [];
+    registeredUsers.push(user);
+    localStorage.setItem(REGISTERED_USERS_KEY, JSON.stringify(registeredUsers));
+  } catch (error) {
+    console.error("Error saving registered user:", error);
+  }
+};
+
+/* ---------------------------------------------------------
+   HELPER: SIMULATE API DELAY
+--------------------------------------------------------- */
+const simulateDelay = (ms: number = 500) => 
+  new Promise(resolve => setTimeout(resolve, ms));
 
 /* ---------------------------------------------------------
    AUTH PROVIDER
@@ -82,8 +189,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(() => {
     try {
       const saved = localStorage.getItem("paanicare-user");
-      return saved ? JSON.parse(saved) : null;
-    } catch {
+      if (saved) {
+        console.log("✅ Restored user from localStorage");
+        return JSON.parse(saved);
+      }
+      return null;
+    } catch (error) {
+      console.error("❌ Error restoring user:", error);
       return null;
     }
   });
@@ -91,126 +203,83 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setLoading] = useState(false);
 
   /* ---------------------------------------------------------
-     FIXED: ALWAYS RETURNS VALID HEADERS
+     AUTH HEADERS (FOR CONSISTENCY)
   --------------------------------------------------------- */
   const authHeaders = (): Record<string, string> => {
     const token = localStorage.getItem("paanicare-token");
-
-    if (token) {
-      return {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      };
-    }
-
     return {
       "Content-Type": "application/json",
+      ...(token && { Authorization: `Bearer ${token}` })
     };
   };
 
   /* ---------------------------------------------------------
-     MAP BACKEND USER → CLIENT USER
-  --------------------------------------------------------- */
-  const mapUser = (b: any): User => ({
-    id: b.id || b._id || String(Date.now()),
-    email: b.email,
-    name: b.full_name || b.name || b.email.split("@")[0],
-    role: b.role || "community_user",
-    organization: b.organization,
-    location: b.location,
-    phone: b.phone,
-  });
-
-  /* ---------------------------------------------------------
-     FETCH PROFILE FROM BACKEND
+     FETCH PROFILE (MOCK)
   --------------------------------------------------------- */
   const fetchProfile = async (): Promise<User | null> => {
     const token = localStorage.getItem("paanicare-token");
     if (!token) return null;
 
     try {
-      const res = await fetch(`${API_BASE}/api/auth/me`, {
-        headers: authHeaders(),
-      });
-
-      if (!res.ok) return null;
-
-      const backend = await res.json();
-      const mapped = mapUser(backend);
-
-      setUser(mapped);
-      localStorage.setItem("paanicare-user", JSON.stringify(mapped));
-      return mapped;
+      const saved = localStorage.getItem("paanicare-user");
+      return saved ? JSON.parse(saved) : null;
     } catch {
       return null;
     }
   };
 
   /* ---------------------------------------------------------
-     FIXED: SAFE useEffect + ESLINT IGNORE
-  --------------------------------------------------------- */
-  useEffect(() => {
-    const token = localStorage.getItem("paanicare-token");
-    const stored = localStorage.getItem("paanicare-user");
-
-    if (token && stored) {
-      setUser(JSON.parse(stored));
-      return;
-    }
-
-    if (token && !stored) fetchProfile();
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  /* ---------------------------------------------------------
-     LOGIN
+     LOGIN (FRONTEND-ONLY MOCK)
   --------------------------------------------------------- */
   const login = async (email: string, password: string): Promise<boolean> => {
+    console.log("=== MOCK LOGIN (FRONTEND-ONLY) ===");
+    console.log("📧 Email:", email);
+    
     setLoading(true);
+
     try {
-      const res = await fetch(`${API_BASE}/api/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        message.error(err.detail || "Login failed");
+      // Validate inputs
+      if (!email || !password) {
+        message.error("Please enter both email and password");
         return false;
       }
 
-      const data = await res.json();
-      const token = data.access_token;
+      // Simulate network delay
+      await simulateDelay(800);
 
-      if (!token) {
-        message.error("No token returned");
+      // Find user in mock database
+      const allUsers = getAllUsers();
+      const foundUser = allUsers.find(
+        u => u.email.toLowerCase() === email.toLowerCase() && u.password === password
+      );
+
+      if (!foundUser) {
+        console.error("❌ Invalid credentials");
+        message.error("Invalid email or password");
         return false;
       }
 
-      localStorage.setItem("paanicare-token", token);
+      // Create user object (without password)
+      const { password: _, ...userWithoutPassword } = foundUser;
+      const authenticatedUser: User = userWithoutPassword as User;
 
-      // If login response includes user → use it
-      let u: User | null = data.user ? mapUser(data.user) : await fetchProfile();
+      // Generate mock token
+      const mockToken = `mock_token_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      // Save to localStorage
+      localStorage.setItem("paanicare-token", mockToken);
+      localStorage.setItem("paanicare-user", JSON.stringify(authenticatedUser));
+      
+      // Update state
+      setUser(authenticatedUser);
 
-      if (!u) {
-        u = {
-          id: Date.now().toString(),
-          email,
-          name: email.split("@")[0],
-          role: "community_user",
-        };
-      }
-
-      setUser(u);
-      localStorage.setItem("paanicare-user", JSON.stringify(u));
-
-      message.success("Logged in");
+      console.log("✅ Mock login successful:", authenticatedUser);
+      message.success(`Welcome back, ${authenticatedUser.name}!`);
       return true;
-    } catch (err) {
-      console.error(err);
-      message.error("Login error");
+
+    } catch (error) {
+      console.error("❌ Login error:", error);
+      message.error("Login failed. Please try again.");
       return false;
     } finally {
       setLoading(false);
@@ -218,75 +287,73 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   /* ---------------------------------------------------------
-     REGISTER
+     REGISTER (FRONTEND-ONLY MOCK)
   --------------------------------------------------------- */
-  const register = async (data: RegisterData): Promise<boolean | { success: boolean; error: string }> => {
+  const register = async (data: RegisterData): Promise<boolean> => {
+    console.log("=== MOCK REGISTRATION (FRONTEND-ONLY) ===");
     setLoading(true);
+
     try {
-      // Ensure all required fields are present and clean
+      // Validate required fields
       if (!data.name || !data.email || !data.password) {
         message.error("Please fill in all required fields");
-        return { success: false, error: "Please fill in all required fields" };
+        return false;
       }
 
-      const body = {
-        full_name: data.name.trim(),
+      // Validate password match
+      if (data.confirmPassword && data.password !== data.confirmPassword) {
+        message.error("Passwords do not match");
+        return false;
+      }
+
+      // Check if email already exists
+      const allUsers = getAllUsers();
+      const existingUser = allUsers.find(
+        u => u.email.toLowerCase() === data.email.toLowerCase()
+      );
+
+      if (existingUser) {
+        message.error("This email is already registered");
+        return false;
+      }
+
+      // Simulate network delay
+      await simulateDelay(1000);
+
+      // Create new user
+      const newUser = {
+        id: `user_${Date.now()}`,
         email: data.email.trim().toLowerCase(),
+        password: data.password, // In real app, this would be hashed
+        name: data.name.trim(),
         role: data.role || "community_user",
-        password: data.password,
-        confirm_password: data.confirmPassword || data.password,
-        organization: data.organization?.trim() || undefined,
-        location: data.location?.trim() || undefined,
-        phone: data.phone?.trim() || undefined,
+        organization: data.organization?.trim(),
+        location: data.location?.trim(),
+        phone: data.phone?.trim(),
+        district: data.district?.trim(),
+        village: data.village?.trim(),
+        specialization: data.specialization?.trim(),
       };
 
-      console.log("Register request body:", JSON.stringify(body, null, 2));
+      // Save to registered users
+      saveRegisteredUser(newUser);
 
-      const res = await fetch(`${API_BASE}/api/auth/register`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-
-      console.log("Register response status:", res.status);
-
-      if (!res.ok) {
-        const e = await res.json().catch(() => ({}));
-        console.error("Register error response:", e);
-        
-        // Extract error message
-        let errorMessage = "Registration failed. Please try again.";
-        
-        // Handle validation errors
-        if (e.detail && Array.isArray(e.detail)) {
-          errorMessage = e.detail.map((err: any) => 
-            `${err.loc?.join('.') || 'field'}: ${err.msg}`
-          ).join(', ');
-        } else if (e.detail) {
-          errorMessage = e.detail;
-        }
-        
-        // Return error object for field-level display
-        return { success: false, error: errorMessage };
-      }
-
-      // Registration successful - parse response
-      const userData = await res.json();
-      console.log("Registration successful, user data:", userData);
-      
+      console.log("✅ Mock registration successful:", newUser.email);
       message.success("Account created successfully!");
-      
-      // Auto-login with the credentials
+
+      // Auto-login
       const loginSuccess = await login(data.email.trim(), data.password);
       
       if (!loginSuccess) {
         message.warning("Account created but auto-login failed. Please login manually.");
       }
-      
+
       return true;
-    } catch (err) {
-      console.error("Registration error:", err);
-      return { success: false, error: "Registration failed. Please check your connection and try again." };
+
+    } catch (error) {
+      console.error("❌ Registration error:", error);
+      message.error("Registration failed. Please try again.");
+      return false;
     } finally {
       setLoading(false);
     }
@@ -296,23 +363,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
      LOGOUT
   --------------------------------------------------------- */
   const logout = () => {
+    console.log("🚪 Logging out user");
     setUser(null);
     localStorage.removeItem("paanicare-user");
     localStorage.removeItem("paanicare-token");
-    message.success("Logged out");
+    message.success("Logged out successfully");
   };
 
   /* ---------------------------------------------------------
-     UPDATE PROFILE (LOCAL ONLY)
+     UPDATE PROFILE
   --------------------------------------------------------- */
   const updateProfile = async (d: Partial<User>): Promise<boolean> => {
-    if (!user) return false;
+    if (!user) {
+      console.error("❌ Cannot update profile: No user logged in");
+      return false;
+    }
+
+    // Simulate delay
+    await simulateDelay(500);
 
     const updated = { ...user, ...d };
     setUser(updated);
     localStorage.setItem("paanicare-user", JSON.stringify(updated));
 
-    message.success("Profile updated");
+    message.success("Profile updated successfully");
+    console.log("✅ Profile updated:", updated);
     return true;
   };
 
