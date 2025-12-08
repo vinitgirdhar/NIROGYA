@@ -16,27 +16,65 @@ class SyncService {
   private statusCallbacks: Set<SyncStatusCallback> = new Set();
   private pendingCount = 0;
   private lastSyncTime?: string;
-  private syncInterval: NodeJS.Timeout | null = null;
+  private syncInterval: ReturnType<typeof setInterval> | null = null;
+  private initialized = false;
+  private initPromise: Promise<void> | null = null;
 
   constructor() {
-    this.init();
+    // Delay initialization to ensure DOM is ready
+    if (typeof window !== 'undefined') {
+      this.initPromise = this.init();
+    }
+  }
+
+  /**
+   * Ensure the service is initialized before use
+   */
+  async ensureInitialized(): Promise<void> {
+    if (this.initPromise) {
+      await this.initPromise;
+    }
   }
 
   private async init() {
+    if (this.initialized) return;
+    this.initialized = true;
+    
+    console.log('[SyncService] Initializing sync service...');
+    
     // Set up online/offline event listeners
     window.addEventListener('online', this.handleOnline);
     window.addEventListener('offline', this.handleOffline);
 
     // Update initial pending count
-    await this.updatePendingCount();
+    try {
+      await this.updatePendingCount();
+      console.log(`[SyncService] Initialized with ${this.pendingCount} pending reports`);
+    } catch (err) {
+      console.error('[SyncService] Failed to get initial pending count:', err);
+    }
 
     // Start periodic sync check (every 30 seconds when online)
     this.startPeriodicSync();
+    
+    // If online and have pending reports, sync immediately
+    if (navigator.onLine && this.pendingCount > 0) {
+      console.log('[SyncService] Online with pending reports, starting initial sync...');
+      // Use setTimeout to avoid blocking initialization
+      setTimeout(() => this.syncPendingReports(), 100);
+    }
   }
 
-  private handleOnline = () => {
+  private handleOnline = async () => {
     console.log('[SyncService] Network is online. Starting sync...');
-    this.syncPendingReports();
+    // Ensure we're initialized before syncing
+    await this.ensureInitialized();
+    // Small delay to ensure network is stable
+    setTimeout(() => {
+      if (navigator.onLine) {
+        this.syncPendingReports();
+      }
+    }, 500);
   };
 
   private handleOffline = () => {
@@ -55,6 +93,12 @@ class SyncService {
       pendingCount: this.pendingCount,
       lastSyncTime: this.lastSyncTime
     });
+    
+    // Also refresh the pending count asynchronously to get accurate data
+    this.ensureInitialized().then(() => {
+      this.updatePendingCount();
+    });
+    
     // Return unsubscribe function
     return () => {
       this.statusCallbacks.delete(callback);
@@ -111,6 +155,9 @@ class SyncService {
     patient: any;
     meta: any;
   }): Promise<{ savedLocally: boolean; synced: boolean; localId: number; error?: string }> {
+    // Ensure initialized before operations
+    await this.ensureInitialized();
+    
     let localId = -1;
 
     try {
@@ -163,6 +210,9 @@ class SyncService {
    * Sync all pending reports to the server
    */
   async syncPendingReports(): Promise<{ success: number; failed: number }> {
+    // Ensure initialized before syncing
+    await this.ensureInitialized();
+    
     if (this.isSyncing) {
       console.log('[SyncService] Sync already in progress');
       return { success: 0, failed: 0 };

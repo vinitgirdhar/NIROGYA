@@ -20,6 +20,9 @@ export function useOfflineSync() {
   });
 
   useEffect(() => {
+    // Ensure sync service is initialized
+    syncService.ensureInitialized();
+    
     // Subscribe to sync service status changes
     const unsubscribe = syncService.subscribe((syncStatus) => {
       setStatus(prev => ({
@@ -34,6 +37,8 @@ export function useOfflineSync() {
     // Listen for online/offline changes
     const handleOnline = () => {
       setStatus(prev => ({ ...prev, isOnline: true }));
+      // Trigger sync when coming online
+      syncService.syncPendingReports();
     };
 
     const handleOffline = () => {

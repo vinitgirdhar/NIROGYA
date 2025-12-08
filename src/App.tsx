@@ -34,6 +34,7 @@ import RainfallAlert from './pages/RainfallAlert';
 // ⭐ NEW IMPORT — this is the correct page for /report-symptoms
 import SymptomReporting from './pages/SymptomReporting';
 import ManageUsers from './pages/ManageUsers';
+import AdminReports from './pages/AdminReports';
 
 import './App.css';
 import './locales';
@@ -98,9 +99,11 @@ function App() {
 
               {/* ⭐ FIXED ROUTE — shows SymptomReporting */}
               <Route path="/report-symptoms" element={
-                <PublicLayout>
-                  <SymptomReporting />
-                </PublicLayout>
+                <ProtectedRoute>
+                  <Layout type="dashboard">
+                    <SymptomReporting />
+                  </Layout>
+                </ProtectedRoute>
               } />
 
               {/* Disease Mapping */}
@@ -178,16 +181,18 @@ function App() {
 
               {/* Education */}
               <Route path="/education" element={
-                <PublicLayout>
+                <ProtectedRoute>
+                  <Layout type="dashboard">
                     <Education />
-                </PublicLayout>
+                  </Layout>
+                </ProtectedRoute>
               } />
 
               {/* Admin Reports */}
               <Route path="/reports" element={
                 <ProtectedRoute requiredRole="admin">
                   <Layout type="dashboard">
-                    <div>Reports Page (Coming Soon)</div>
+                    <AdminReports />
                   </Layout>
                 </ProtectedRoute>
               } />

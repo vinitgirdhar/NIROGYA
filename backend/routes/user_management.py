@@ -61,6 +61,9 @@ class PasswordChangeRequest(BaseModel):
 # ---------------------------
 def user_helper(doc: Dict[str, Any]) -> Dict[str, Any]:
     """Convert MongoDB doc to response format"""
+    created_at = doc.get("created_at")
+    last_login = doc.get("last_login")
+    
     return {
         "id": str(doc["_id"]),
         "full_name": doc.get("full_name"),
@@ -70,8 +73,8 @@ def user_helper(doc: Dict[str, Any]) -> Dict[str, Any]:
         "location": doc.get("location"),
         "phone": doc.get("phone"),
         "status": doc.get("status", "active"),
-        "created_at": doc.get("created_at").isoformat() if doc.get("created_at") else None,
-        "last_login": doc.get("last_login").isoformat() if doc.get("last_login") else None,
+        "created_at": created_at.isoformat() if created_at else None,
+        "last_login": last_login.isoformat() if last_login else None,
         "district": doc.get("district"),
     }
 
@@ -86,7 +89,7 @@ async def ensure_government_official(current_user: dict):
 
 
 async def log_audit(action: str, user_id: str, target_user_id: str, 
-                   changes: Dict[str, Any] = None, status_code: int = 200):
+                   changes: Optional[Dict[str, Any]] = None, status_code: int = 200) -> None:
     """Log all user management actions"""
     audit_entry = {
         "action": action,
@@ -279,7 +282,7 @@ async def update_user(
     # Log the action
     await log_audit(
         action="UPDATE_USER",
-        user_id=current_user.get("id"),
+        user_id=str(current_user.get("id", "")),
         target_user_id=user_id,
         changes=update_dict
     )
@@ -324,7 +327,7 @@ async def toggle_user_status(
     # Log the action
     await log_audit(
         action="TOGGLE_STATUS",
-        user_id=current_user.get("id"),
+        user_id=str(current_user.get("id", "")),
         target_user_id=user_id,
         changes={"status": new_status}
     )
@@ -374,7 +377,7 @@ async def reset_user_password(
     # Log the action
     await log_audit(
         action="RESET_PASSWORD",
-        user_id=current_user.get("id"),
+        user_id=str(current_user.get("id", "")),
         target_user_id=user_id,
         changes={"password": "RESET"}
     )
@@ -433,7 +436,7 @@ async def delete_user(
     # Log the action
     await log_audit(
         action="DELETE_USER",
-        user_id=current_user.get("id"),
+        user_id=str(current_user.get("id", "")),
         target_user_id=user_id,
         changes={"status": "deleted"}
     )

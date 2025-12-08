@@ -30,11 +30,11 @@ def serialize_bson(obj):
         except Exception:
             return str(obj)
 
-    if isinstance(obj, (np.integer, np.int64, np.int32)):
+    if isinstance(obj, (np.integer, np.int64, np.int32)):  # type: ignore[arg-type]
         return int(obj)
-    if isinstance(obj, (np.floating, np.float64, np.float32)):
+    if isinstance(obj, (np.floating, np.float64, np.float32)):  # type: ignore[arg-type]
         return float(obj)
-    if isinstance(obj, np.bool_):
+    if isinstance(obj, np.bool_):  # type: ignore[arg-type]
         return bool(obj)
 
     if isinstance(obj, (str, bool, type(None), numbers.Number)):
@@ -66,6 +66,7 @@ from backend.auth.routes import router as auth_router
 from backend.auth.otp_routes import router as otp_router
 from backend.auth.alert_routes import router as alert_router
 from backend.routes.user_management import router as user_management_router
+from backend.routes.admin_reports import router as admin_reports_router
 
 # CONFIG
 POLL_INTERVAL_SECONDS = int(os.getenv("POLL_INTERVAL_SECONDS", "5"))
@@ -93,6 +94,7 @@ app.include_router(auth_router)
 app.include_router(otp_router)
 app.include_router(alert_router)
 app.include_router(user_management_router)
+app.include_router(admin_reports_router)
 
 # ML availability flag
 ML_READY = True if LOADED_MODEL is not None else False

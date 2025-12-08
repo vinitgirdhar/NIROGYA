@@ -2,8 +2,11 @@
 // IndexedDB utility for offline symptom report storage
 
 const DB_NAME = 'nirogya_offline_db';
-const DB_VERSION = 1;
+const DB_VERSION = 2; // Bumped version to trigger migration for synced field type change
 const STORE_NAME = 'symptom_reports';
+
+// Use 0/1 instead of boolean for IndexedDB compatibility (booleans can't be used as index keys)
+type SyncedStatus = 0 | 1;
 
 export interface OfflineSymptomReport {
   id?: number;
@@ -23,7 +26,7 @@ export interface OfflineSymptomReport {
     submitted_at: string;
     type: string;
   };
-  synced: boolean;
+  synced: SyncedStatus; // 0 = not synced, 1 = synced
   createdAt: string;
   syncAttempts: number;
   lastSyncError?: string;
@@ -90,7 +93,7 @@ class OfflineDB {
 
       const reportToSave: Omit<OfflineSymptomReport, 'id'> = {
         ...report,
-        synced: false,
+        synced: 0, // 0 = not synced
         createdAt: new Date().toISOString(),
         syncAttempts: 0
       };
@@ -117,7 +120,7 @@ class OfflineDB {
       const transaction = db.transaction([STORE_NAME], 'readonly');
       const store = transaction.objectStore(STORE_NAME);
       const index = store.index('synced');
-      const request = index.getAll(IDBKeyRange.only(false));
+      const request = index.getAll(IDBKeyRange.only(0)); // 0 = not synced
 
       request.onsuccess = () => {
         resolve(request.result as OfflineSymptomReport[]);
@@ -143,7 +146,7 @@ class OfflineDB {
       getRequest.onsuccess = () => {
         const report = getRequest.result as OfflineSymptomReport;
         if (report) {
-          report.synced = true;
+          report.synced = 1; // 1 = synced
           const updateRequest = store.put(report);
           
           updateRequest.onsuccess = () => resolve();
@@ -218,7 +221,7 @@ class OfflineDB {
       const transaction = db.transaction([STORE_NAME], 'readonly');
       const store = transaction.objectStore(STORE_NAME);
       const index = store.index('synced');
-      const request = index.count(IDBKeyRange.only(false));
+      const request = index.count(IDBKeyRange.only(0)); // 0 = not synced
 
       request.onsuccess = () => {
         resolve(request.result);
@@ -261,7 +264,7 @@ class OfflineDB {
       const transaction = db.transaction([STORE_NAME], 'readwrite');
       const store = transaction.objectStore(STORE_NAME);
       const index = store.index('synced');
-      const request = index.openCursor(IDBKeyRange.only(true));
+      const request = index.openCursor(IDBKeyRange.only(1)); // 1 = synced
 
       request.onsuccess = (event) => {
         const cursor = (event.target as IDBRequest).result;

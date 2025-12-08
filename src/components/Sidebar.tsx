@@ -124,6 +124,7 @@ const baseMenuItems = [
   { key: '/asha-communication', icon: <MessageOutlined />, label: 'ASHA Communication', badge: 0 },
   { key: '/ai-prediction', icon: <RobotOutlined />, label: 'Report Water Quality', badge: 0 },
   { key: '/alerts', icon: <AlertOutlined />, label: t('nav.alerts'), badge: 0 },
+  { key: '/rainfall-alert', icon: <ThunderboltOutlined />, label: 'Rainfall Alert', badge: 0 },
   { key: '/report-symptoms', icon: <MedicineBoxOutlined />, label: 'Report Symptoms', badge: 0 },
   { key: '/community', icon: <TeamOutlined />, label: t('nav.community'), badge: 0 },
   { key: '/education', icon: <BookOutlined />, label: t('nav.education'), badge: 0 },
@@ -148,12 +149,15 @@ const baseMenuItems = [
         // ASHA: dashboard, asha communication, report water, report symptoms, alerts, education, community
         return ['/', '/asha-communication', '/ai-prediction', '/report-symptoms', '/alerts', '/education', '/community'];
       case 'community_user':
-        return ['/community', '/alerts', '/education', '/asha-worker'];
+        return ['/community', '/alerts', '/rainfall-alert', '/education', '/'];
+      case 'healthcare_worker':
+        return ['/', '/health', '/disease-mapping', '/alerts'];
+      case 'district_health_official':
+        return ['/', '/disease-mapping', '/health', '/alerts', '/reports'];
       case 'government_body':
-      return [
-          ...all.filter(k => !['/asha-communication', '/ai-prediction', '/report-symptoms'].includes(k)),
-          '/government/manage-users'
-      ];
+        return all.filter(k => !['/asha-communication', '/ai-prediction', '/report-symptoms', '/asha-worker'].includes(k));
+      case 'volunteer':
+        return ['/', '/community', '/report-symptoms', '/alerts', '/education'];
       default:
         return ['/'];
     }
@@ -165,7 +169,7 @@ const baseMenuItems = [
   const sortedMenuItems = [...baseMenuItems].sort((a, b) => {
     const aPinned = settings.pinnedItems.includes(a.key);
     const bPinned = settings.pinnedItems.includes(b.key);
-    const aFavorite = settings.favoriteItems.includes(a.key);
+    const aFavorite = settings.favoriteItems.includes(a.key); 
     const bFavorite = settings.favoriteItems.includes(b.key);
 
     if (aPinned && !bPinned) return -1;
