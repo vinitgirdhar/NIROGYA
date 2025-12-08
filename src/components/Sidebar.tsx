@@ -180,7 +180,7 @@ const baseMenuItems = [
       case 'district_health_official':
         return ['/', '/disease-mapping', '/health', '/alerts', '/reports'];
       case 'government_body':
-        return all.filter(k => !['/asha-communication', '/ai-prediction', '/report-symptoms'].includes(k));
+        return all.filter(k => !['/asha-communication', '/ai-prediction', '/report-symptoms', '/self-report', '/community'].includes(k));
       case 'volunteer':
         return ['/', '/community', '/report-symptoms', '/alerts', '/education'];
       default:
