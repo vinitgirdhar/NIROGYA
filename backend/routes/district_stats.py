@@ -1,10 +1,15 @@
 # backend/routes/district_stats.py
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, HTTPException
 from typing import Optional, List
 from datetime import datetime, timedelta
 from backend.services.mongo_client import prediction_col, symptom_col, water_col
+from backend.app import serialize_bson
 
 router = APIRouter(prefix="/api/districts", tags=["districts"])
+
+# Outbreak detection constants
+OUTBREAK_THRESHOLD = 20  # 20+ cases => outbreak
+WINDOW_DAYS = 7          # last 7 days only
 
 
 @router.get("/")
@@ -16,9 +21,9 @@ async def get_all_districts():
     pipeline = [
         {
             "$group": {
-                "_id": "$location",
+                "_id": "$input_water.district",
                 "total_cases": {"$sum": 1},
-                "latest": {"$max": "$timestamp"}
+                "latest": {"$max": "$features.predicted_at"}
             }
         },
         {"$sort": {"total_cases": -1}}
@@ -52,13 +57,13 @@ async def get_district_stats(
     disease_pipeline = [
         {
             "$match": {
-                "location": district,
-                "timestamp": {"$gte": cutoff}
+                "input_water.district": district,
+                "features.predicted_at": {"$gte": cutoff}
             }
         },
         {
             "$group": {
-                "_id": "$prediction.predicted_disease",
+                "_id": "$features.predicted_disease",
                 "count": {"$sum": 1}
             }
         },
@@ -71,14 +76,14 @@ async def get_district_stats(
     daily_pipeline = [
         {
             "$match": {
-                "location": district,
-                "timestamp": {"$gte": cutoff}
+                "input_water.district": district,
+                "features.predicted_at": {"$gte": cutoff}
             }
         },
         {
             "$group": {
                 "_id": {
-                    "$dateToString": {"format": "%Y-%m-%d", "date": "$timestamp"}
+                    "$dateToString": {"format": "%Y-%m-%d", "date": "$features.predicted_at"}
                 },
                 "count": {"$sum": 1}
             }
@@ -142,13 +147,13 @@ async def compare_districts(
         pipeline = [
             {
                 "$match": {
-                    "location": district,
-                    "timestamp": {"$gte": cutoff}
+                    "input_water.district": district,
+                    "features.predicted_at": {"$gte": cutoff}
                 }
             },
             {
                 "$group": {
-                    "_id": "$prediction.predicted_disease",
+                    "_id": "$features.predicted_disease",
                     "count": {"$sum": 1}
                 }
             }
@@ -181,12 +186,12 @@ async def get_district_alerts(
     cutoff = datetime.utcnow() - timedelta(days=7)
     
     pipeline = [
-        {"$match": {"timestamp": {"$gte": cutoff}}},
+        {"$match": {"features.predicted_at": {"$gte": cutoff}}},
         {
             "$group": {
                 "_id": {
-                    "location": "$location",
-                    "disease": "$prediction.predicted_disease"
+                    "location": "$input_water.district",
+                    "disease": "$features.predicted_disease"
                 },
                 "count": {"$sum": 1}
             }
@@ -214,3 +219,61 @@ async def get_district_alerts(
         "threshold": threshold,
         "period": "last_7_days"
     }
+
+
+@router.get("/district-disease-stats")
+async def district_disease_stats(
+    district: str = Query(..., description="District name e.g. 'Dibrugarh'")
+):
+    """
+    Returns district-wise disease counts and outbreak flags, based on
+    prediction_reports in the last WINDOW_DAYS days.
+    """
+
+    try:
+        since = datetime.utcnow() - timedelta(days=WINDOW_DAYS)
+
+        pipeline = [
+            {
+                "$match": {
+                    "input_water.district": district,
+                    "features.predicted_at": {"$gte": since},
+                }
+            },
+            {
+                "$group": {
+                    "_id": "$features.predicted_disease",
+                    "count": {"$sum": 1},
+                }
+            },
+        ]
+
+        docs = await prediction_col.aggregate(pipeline).to_list(length=None)
+
+        diseases = []
+        total = 0
+
+        for row in docs:
+            name = row.get("_id") or "Unknown"
+            count = int(row.get("count", 0))
+            total += count
+
+            diseases.append(
+                {
+                    "name": name,
+                    "count": count,
+                    "outbreak": count >= OUTBREAK_THRESHOLD,
+                }
+            )
+
+        # Serialize to handle any BSON types
+        return serialize_bson({
+            "district": district,
+            "total_reports": total,
+            "diseases": diseases,
+            "threshold": OUTBREAK_THRESHOLD,
+            "window_days": WINDOW_DAYS,
+        })
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to compute stats: {e}")

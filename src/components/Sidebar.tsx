@@ -1,6 +1,6 @@
 // src/components/Sidebar.tsx
 import React, { useState, useEffect, useRef } from 'react';
-import { Layout, Menu, Button, Avatar, Typography, Space, Badge, Tooltip, Switch, Slider, ColorPicker, Drawer, Divider } from 'antd';
+import { Layout, Menu, Button, Avatar, Typography, Space, Badge, Tooltip } from 'antd';
 import {
   DashboardOutlined,
   EnvironmentOutlined,
@@ -26,7 +26,9 @@ import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useLocation } from 'react-router-dom';
 import type { MenuProps } from 'antd';
+import { useTheme } from './ThemeProvider';
 import './Sidebar.css';
+
 
 const { Sider } = Layout;
 const { Text } = Typography;
@@ -54,12 +56,13 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onCollapse }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const [showCustomization, setShowCustomization] = useState(false);
+  const { isDark } = useTheme();
 
   const [settings, setSettings] = useState<SidebarSettings>(() => {
     const saved = localStorage.getItem('sidebarSettings');
     return saved ? JSON.parse(saved) : {
-      theme: 'light',
+      // CHANGE 'light' TO 'blue' HERE
+      theme: 'blue', 
       accentColor: '#1890ff',
       fontSize: 14,
       showIcons: true,
@@ -70,6 +73,14 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onCollapse }) => {
       animationLevel: 2
     };
   });
+
+  // Sync sidebar theme with global dark mode
+  useEffect(() => {
+    setSettings(prev => ({
+      ...prev,
+      theme: isDark ? 'dark' : 'blue'
+    }));
+  }, [isDark]);
 
   useEffect(() => {
     localStorage.setItem('sidebarSettings', JSON.stringify(settings));
@@ -124,14 +135,11 @@ const baseMenuItems = [
   { key: '/asha-communication', icon: <MessageOutlined />, label: 'ASHA Communication', badge: 0 },
   { key: '/ai-prediction', icon: <RobotOutlined />, label: 'Report Water Quality', badge: 0 },
   { key: '/alerts', icon: <AlertOutlined />, label: t('nav.alerts'), badge: 0 },
-  { key: '/rainfall-alert', icon: <ThunderboltOutlined />, label: 'Rainfall Alert', badge: 0 },
   { key: '/report-symptoms', icon: <MedicineBoxOutlined />, label: 'Report Symptoms', badge: 0 },
   { key: '/community', icon: <TeamOutlined />, label: t('nav.community'), badge: 0 },
   { key: '/education', icon: <BookOutlined />, label: t('nav.education'), badge: 0 },
   { key: '/reports', icon: <FileTextOutlined />, label: t('nav.reports'), badge: 0 },
-  { key: '/government/manage-users', icon: <TeamOutlined />, label: 'Manage Users', badge: 0 },
-  { key: '/government/manage-accounts', icon: <SettingOutlined />, label: 'Account Control', badge: 0 },
-  { key: '/asha-worker', icon: <UserOutlined />, label: 'Apply for ASHA Worker', badge: 0 },
+  { key: '/self-report', icon: <MedicineBoxOutlined />, label: 'Self Report Symptoms', badge: 0 },
 ];
 
 
@@ -144,18 +152,18 @@ const baseMenuItems = [
 
     switch (role) {
       case 'admin':
-        return all;
+        return all.filter(k => !['/government/manage-users', '/government/manage-accounts'].includes(k));
       case 'asha_worker':
         // ASHA: dashboard, asha communication, report water, report symptoms, alerts, education, community
         return ['/', '/asha-communication', '/ai-prediction', '/report-symptoms', '/alerts', '/education', '/community'];
       case 'community_user':
-        return ['/community', '/alerts', '/rainfall-alert', '/education', '/'];
+        return ['/community', '/alerts', '/education', '/self-report'];
       case 'healthcare_worker':
         return ['/', '/health', '/disease-mapping', '/alerts'];
       case 'district_health_official':
         return ['/', '/disease-mapping', '/health', '/alerts', '/reports'];
       case 'government_body':
-        return all.filter(k => !['/asha-communication', '/ai-prediction', '/report-symptoms', '/asha-worker'].includes(k));
+        return all.filter(k => !['/asha-communication', '/ai-prediction', '/report-symptoms'].includes(k));
       case 'volunteer':
         return ['/', '/community', '/report-symptoms', '/alerts', '/education'];
       default:
@@ -169,7 +177,7 @@ const baseMenuItems = [
   const sortedMenuItems = [...baseMenuItems].sort((a, b) => {
     const aPinned = settings.pinnedItems.includes(a.key);
     const bPinned = settings.pinnedItems.includes(b.key);
-    const aFavorite = settings.favoriteItems.includes(a.key); 
+    const aFavorite = settings.favoriteItems.includes(a.key);
     const bFavorite = settings.favoriteItems.includes(b.key);
 
     if (aPinned && !bPinned) return -1;
@@ -253,14 +261,6 @@ const baseMenuItems = [
           </div>
           {!collapsed && (
             <div className="header-actions">
-              <Tooltip title="Customize Sidebar">
-                <Button
-                  type="text"
-                  icon={<SettingOutlined />}
-                  onClick={() => setShowCustomization(true)}
-                  className="customize-btn"
-                />
-              </Tooltip>
               <Tooltip title={collapsed ? 'Expand' : 'Collapse'}>
                 <Button
                   type="text"
@@ -309,88 +309,7 @@ const baseMenuItems = [
         </div>
       </Sider>
 
-      {/* Customization Drawer */}
-      <Drawer
-        title="Customize Sidebar"
-        placement="right"
-        onClose={() => setShowCustomization(false)}
-        open={showCustomization}
-        width={400}
-        className="customization-drawer"
-      >
-        <Space direction="vertical" size="large" style={{ width: '100%' }}>
-          <div>
-            <Text strong>Theme</Text>
-            <div className="theme-options">
-              {['light', 'dark', 'blue', 'purple', 'green'].map(theme => (
-                <Button key={theme} className={`theme-btn ${settings.theme === theme ? 'active' : ''}`} onClick={() => updateSettings('theme', theme)}>
-                  {theme}
-                </Button>
-              ))}
-            </div>
-          </div>
 
-          <Divider />
-
-          <div>
-            <Text strong>Accent Color</Text>
-            <ColorPicker value={settings.accentColor} onChange={(color) => updateSettings('accentColor', color.toHexString())} showText />
-          </div>
-
-          <Divider />
-
-          <div>
-            <Text strong>Font Size: {settings.fontSize}px</Text>
-            <Slider min={12} max={18} value={settings.fontSize} onChange={(value) => updateSettings('fontSize', value)} />
-          </div>
-
-          <Divider />
-
-          <div>
-            <Text strong>Display Options</Text>
-            <Space direction="vertical" style={{ width: '100%', marginTop: 12 }}>
-              <div className="setting-row">
-                <Text>Show Icons</Text>
-                <Switch checked={settings.showIcons} onChange={(checked) => updateSettings('showIcons', checked)} />
-              </div>
-              <div className="setting-row">
-                <Text>Show Badges</Text>
-                <Switch checked={settings.showBadges} onChange={(checked) => updateSettings('showBadges', checked)} />
-              </div>
-              <div className="setting-row">
-                <Text>Compact Mode</Text>
-                <Switch checked={settings.compactMode} onChange={(checked) => updateSettings('compactMode', checked)} />
-              </div>
-            </Space>
-          </div>
-
-          <Divider />
-
-          <div>
-            <Text strong>Animation Level: {settings.animationLevel}</Text>
-            <Slider min={0} max={3} value={settings.animationLevel} onChange={(value) => updateSettings('animationLevel', value)} marks={{0: 'None',1:'Low',2:'Medium',3:'High'}} />
-          </div>
-
-          <Divider />
-
-          <Button type="default" block onClick={() => {
-            const defaultSettings = {
-              theme: 'light' as const,
-              accentColor: '#1890ff',
-              fontSize: 14,
-              showIcons: true,
-              showBadges: true,
-              pinnedItems: ['/', '/dashboard'],
-              favoriteItems: [],
-              compactMode: false,
-              animationLevel: 2
-            };
-            setSettings(defaultSettings);
-          }}>
-            Reset to Default
-          </Button>
-        </Space>
-      </Drawer>
     </>
   );
 };

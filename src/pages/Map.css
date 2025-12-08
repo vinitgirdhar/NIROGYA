@@ -1,370 +1,205 @@
-/* Map Component Styles with Google Maps Integration */
+:root {
+  /* Core Palette - Easy to tweak */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8fafc;
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --border-color: #e2e8f0;
+  
+  /* Modern Shadow (Soft & Deep) */
+  --shadow-sidebar: 4px 0 24px rgba(0, 0, 0, 0.04), 2px 0 8px rgba(0, 0, 0, 0.02);
+  --shadow-popup: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 
-/* Main Map Container */
-.map-container {
-  position: relative;
+  /* Dimensions */
+  --sidebar-width: 320px;
+  --header-height: 64px;
+}
+
+/* Dark Mode Overrides */
+[data-theme="dark"] {
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --border-color: #334155;
+  --shadow-sidebar: 4px 0 24px rgba(0, 0, 0, 0.4);
+}
+
+/* --- Layout --- */
+
+.map-page-container {
+  display: flex;
+  height: calc(100vh - var(--header-height));
   width: 100%;
-  height: 100vh;
   overflow: hidden;
-  background: var(--color-bg-container, #f0f2f5);
-  transition: background-color 0.3s ease;
+  position: relative;
+  background-color: var(--bg-secondary);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
-/* Dark theme override */
-[data-theme="dark"] .map-container {
-  background: #001529;
-}
+/* --- Sidebar --- */
 
-/* Map Header Styles */
-.map-header {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
+.map-sidebar {
+  width: var(--sidebar-width);
+  flex-shrink: 0;
+  background: var(--bg-primary);
+  border-right: 1px solid var(--border-color);
+  padding: 24px; /* Increased breathing room */
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
   z-index: 1000;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(15px);
-  -webkit-backdrop-filter: blur(15px);
-  padding: 15px 20px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
+  box-shadow: var(--shadow-sidebar);
+  transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
-[data-theme="dark"] .map-header {
-  background: rgba(0, 21, 41, 0.95);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+/* Custom Scrollbar for Sidebar (Webkit) */
+.map-sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+.map-sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.map-sidebar::-webkit-scrollbar-thumb {
+  background-color: var(--border-color);
+  border-radius: 20px;
 }
 
-.map-header h2 {
+/* Sidebar Dark Mode handling is now automatic via variables, 
+   but you can keep specific overrides here if needed */
+.map-sidebar.dark {
+  /* Variables handle the colors now, cleaner code! */
+}
+
+.sidebar-header h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
   margin: 0;
-  font-size: 18px;
-  font-weight: 600;
-  color: #001529;
-  background: linear-gradient(135deg, #1890ff, #722ed1);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.025em;
 }
 
-[data-theme="dark"] .map-header h2 {
-  color: #fff;
+.filter-section {
+  margin: 20px 0;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border-color);
 }
 
-/* Google Maps Container - Removed to prevent conflict with 3D Map UI */
-/* .map-container > div:last-child {
-  width: 100% !important;
-  height: 100% !important;
-  margin-top: 80px;
-  border-radius: 0;
-} */
+/* --- Map View & Overlay --- */
 
-/* Custom Google Maps Controls */
-.gm-style-iw {
-  border-radius: 8px !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+.map-view-container {
+  flex: 1;
+  position: relative;
+  height: 100%;
+  width: 100%;
+  isolation: isolate; /* Creates stacking context */
 }
 
-.gm-style-iw-d {
-  overflow: hidden !important;
-}
-
-/* Weather Widget */
-.weather-widget {
+.map-loading-overlay {
   position: absolute;
-  top: 100px;
-  right: 20px;
-  z-index: 1000;
-  width: 250px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(15px);
-  -webkit-backdrop-filter: blur(15px);
-  border-radius: 12px;
-  padding: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  transition: all 0.3s ease;
+  inset: 0; /* Modern shorthand for top/right/bottom/left */
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(8px); /* The "Glass" Effect */
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+  transition: opacity 0.3s ease;
 }
 
-.weather-widget:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+/* --- Legends --- */
+
+.legend-section {
+  margin-top: auto; /* Pushes legend to bottom if flex container has height */
+  padding-top: 16px;
 }
 
-[data-theme="dark"] .weather-widget {
-  background: rgba(0, 21, 41, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.85);
-}
-
-.weather-widget .ant-card-head-title {
-  color: #1890ff;
+.legend-header {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: var(--text-secondary);
   font-weight: 600;
+  margin-bottom: 12px;
+  letter-spacing: 0.05em;
 }
 
-[data-theme="dark"] .weather-widget .ant-card-head-title {
-  color: #40a9ff;
+.legend-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
 }
 
-.weather-widget p {
-  margin: 8px 0;
-  font-size: 14px;
+.legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%; /* Circular looks more modern than square */
+  margin-right: 10px;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.05); /* Subtle inner border */
+}
+
+/* --- Modern Heatmap Gradients (Less Neon, More Professional) --- */
+
+.legend-color.heatmap-low {
+  /* Emerald to Teal */
+  background: linear-gradient(135deg, #34d399 0%, #059669 100%);
+}
+
+.legend-color.heatmap-medium {
+  /* Amber to Orange */
+  background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
+}
+
+.legend-color.heatmap-high {
+  /* Rose to Red */
+  background: linear-gradient(135deg, #f43f5e 0%, #be123c 100%);
+}
+
+/* --- Leaflet Popup Overrides --- */
+
+.leaflet-popup-content-wrapper {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  border-radius: 12px;
+  box-shadow: var(--shadow-popup);
+  border: 1px solid var(--border-color);
+  padding: 0; /* Reset padding to control via content */
+}
+
+.leaflet-popup-tip {
+  background: var(--bg-primary);
+  box-shadow: var(--shadow-popup);
+}
+
+.map-popup {
+  padding: 12px 16px;
+  min-width: 200px;
+}
+
+.map-popup h3 {
+  margin: 0 0 4px 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.map-popup p {
+  margin: 4px 0;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
   line-height: 1.4;
 }
 
-/* Statistics Panel */
-.stats-panel {
-  position: absolute;
-  bottom: 20px;
-  left: 20px;
-  z-index: 1000;
-  width: 300px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(15px);
-  -webkit-backdrop-filter: blur(15px);
-  border-radius: 12px;
-  padding: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  transition: all 0.3s ease;
-}
-
-[data-theme="dark"] .stats-panel {
-  background: rgba(0, 21, 41, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.85);
-}
-
-.stats-panel .ant-statistic-title {
-  color: #666;
-  font-size: 12px;
-  margin-bottom: 4px;
-}
-
-[data-theme="dark"] .stats-panel .ant-statistic-title {
-  color: rgba(255, 255, 255, 0.65);
-}
-
-.stats-panel .ant-statistic-content {
-  font-size: 16px;
-  font-weight: 600;
-}
-
-/* Loading State */
-.map-loading {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 2000;
-  text-align: center;
-  background: rgba(255, 255, 255, 0.95);
-  padding: 32px;
-  border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(15px);
-  -webkit-backdrop-filter: blur(15px);
-}
-
-[data-theme="dark"] .map-loading {
-  background: rgba(0, 21, 41, 0.95);
-  color: rgba(255, 255, 255, 0.85);
-}
-
-.map-loading p {
-  margin-top: 16px;
-  color: inherit;
-  font-size: 16px;
-  font-weight: 500;
-}
-
-/* Directions Modal Styles */
-.directions-modal .ant-modal-content {
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.2);
-}
-
-.directions-modal .ant-modal-header {
-  background: linear-gradient(135deg, #1890ff, #722ed1);
-  border-bottom: none;
-  padding: 20px 24px;
-}
-
-.directions-modal .ant-modal-title {
-  color: white;
-  font-size: 18px;
-  font-weight: 600;
-}
-
-.directions-modal .ant-modal-close-x {
-  color: white;
-  font-size: 18px;
-}
-
-.directions-modal .ant-modal-close-x:hover {
-  color: rgba(255, 255, 255, 0.8);
-}
-
-.directions-modal .ant-modal-body {
-  padding: 24px;
-  background: #fff;
-}
-
-[data-theme="dark"] .directions-modal .ant-modal-body {
-  background: #1f1f1f;
-  color: rgba(255, 255, 255, 0.85);
-}
-
-/* Status Indicators */
-.status-indicator {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 2px 8px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 500;
-  text-transform: uppercase;
-}
-
-.status-safe {
-  background: #f6ffed;
-  color: #52c41a;
-  border: 1px solid #b7eb8f;
-}
-
-.status-warning {
-  background: #fffbe6;
-  color: #faad14;
-  border: 1px solid #ffd666;
-}
-
-.status-danger {
-  background: #fff2e8;
-  color: #fa8c16;
-  border: 1px solid #ffbb96;
-}
-
-.status-critical {
-  background: #fff1f0;
-  color: #ff4d4f;
-  border: 1px solid #ffa39e;
-}
-
-[data-theme="dark"] .status-safe {
-  background: rgba(82, 196, 26, 0.1);
-  border-color: rgba(82, 196, 26, 0.3);
-}
-
-[data-theme="dark"] .status-warning {
-  background: rgba(250, 173, 20, 0.1);
-  border-color: rgba(250, 173, 20, 0.3);
-}
-
-[data-theme="dark"] .status-danger {
-  background: rgba(250, 140, 22, 0.1);
-  border-color: rgba(250, 140, 22, 0.3);
-}
-
-[data-theme="dark"] .status-critical {
-  background: rgba(255, 77, 79, 0.1);
-  border-color: rgba(255, 77, 79, 0.3);
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-  .map-header {
-    padding: 12px 16px;
-  }
-  
-  .map-header h2 {
-    font-size: 16px;
-  }
-  
-  .weather-widget {
-    width: 200px;
-    top: 80px;
-    right: 10px;
-    padding: 12px;
-  }
-  
-  .stats-panel {
-    width: 250px;
-    bottom: 10px;
-    left: 10px;
-    padding: 12px;
-  }
-}
-
-@media (max-width: 480px) {
-  .map-header {
-    padding: 10px 12px;
-  }
-  
-  .map-header h2 {
-    font-size: 14px;
-  }
-  
-  .weather-widget {
-    width: 180px;
-    font-size: 12px;
-  }
-  
-  .stats-panel {
-    width: 200px;
-  }
-  
-  .stats-panel .ant-statistic-content {
-    font-size: 14px;
-  }
-  
-  .directions-modal .ant-modal-body {
-    padding: 16px;
-  }
-}
-
-/* Custom Google Maps Marker Styles */
-.custom-marker {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-weight: bold;
-  font-size: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-  cursor: pointer;
-  transition: transform 0.2s ease;
-}
-
-.custom-marker:hover {
-  transform: scale(1.1);
-}
-
-.marker-water_source {
-  background: linear-gradient(135deg, #1890ff, #40a9ff);
-}
-
-.marker-health_facility {
-  background: linear-gradient(135deg, #52c41a, #73d13d);
-}
-
-.marker-outbreak {
-  background: linear-gradient(135deg, #ff4d4f, #ff7875);
-}
-
-.marker-safe_zone {
-  background: linear-gradient(135deg, #52c41a, #73d13d);
-}
-
-.marker-monitoring_station {
-  background: linear-gradient(135deg, #722ed1, #9254de);
-}
-
-.marker-treatment_plant {
-  background: linear-gradient(135deg, #1890ff, #40a9ff);
+/* Clean up Leaflet default close button */
+.leaflet-container a.leaflet-popup-close-button {
+  top: 8px;
+  right: 8px;
+  color: var(--text-secondary);
+  padding: 4px;
+  width: 24px;
+  height: 24px;
+  font: 16px/14px Tahoma, Verdana, sans-serif;
 }

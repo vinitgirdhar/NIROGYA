@@ -1,5 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { MapLocation } from '../pages/Map';
+
+interface MapLocation {
+  id: string;
+  name: string;
+  coordinates: [number, number];
+  type: string;
+  status: string;
+  details: { description?: string };
+}
 
 // Global declaration for Leaflet to avoid TypeScript errors with window.L
 declare global {

@@ -1,0 +1,51 @@
+.profile-drawer .ant-drawer-body {
+  padding: 24px;
+}
+
+.drawer-profile-header {
+  text-align: center;
+  padding: 24px 0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  margin: -24px -24px 24px;
+  border-radius: 0 0 16px 16px;
+}
+
+.drawer-avatar {
+  border: 4px solid #fff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.avatar-upload-button {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #1890ff;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 14px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s;
+}
+
+.avatar-upload-button:hover {
+  background: #40a9ff;
+  transform: scale(1.1);
+}
+
+.drawer-actions {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.drawer-stat-card {
+  text-align: center;
+  border-radius: 8px;
+}
+
+.drawer-stat-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}

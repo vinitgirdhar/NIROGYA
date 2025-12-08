@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { AlertProvider } from './contexts/AlertContext';
 import { ThemeProvider } from './components/ThemeProvider';
@@ -30,14 +30,24 @@ import GovernmentReports from './pages/GovermentReports';
 import AshaWorker from './pages/AshaWorker';
 import EmergencyContacts from './pages/EmergencyContacts';
 import RainfallAlert from './pages/RainfallAlert';
+import SelfReport from './pages/SelfReport';
 
 // ⭐ NEW IMPORT — this is the correct page for /report-symptoms
 import SymptomReporting from './pages/SymptomReporting';
 import ManageUsers from './pages/ManageUsers';
 import AdminReports from './pages/AdminReports';
-
+import ProfileDrawer from './pages/ProfileDrawer';    
 import './App.css';
 import './locales';
+const ProfileRoute = () => {
+  const navigate = useNavigate();
+  return (
+    <ProfileDrawer 
+      open={true} 
+      onClose={() => navigate(-1)} // Go back to previous page on close
+    />
+  );
+};
 function App() {
   return (
     <AuthProvider>
@@ -65,7 +75,17 @@ function App() {
                     <Contact />
                   </PublicLayout>
                 } />
-
+               {/* ⭐ NEW — COMMUNITY SELF REPORTING FEATURE */}
+              <Route 
+                path="/self-report"
+                element={
+                  <ProtectedRoute requiredRole={["community_user"]}>
+                    <Layout type="dashboard">
+                      <SelfReport />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
               <Route path="/map" element={
                 <PublicLayout>
                   <Map />
@@ -141,7 +161,14 @@ function App() {
                   </Layout>
                 </ProtectedRoute>
               } />
-
+              {/* Profile Route */}
+              <Route path="/profile" element={
+                <ProtectedRoute>
+                  <Layout type="dashboard">
+                    <ProfileRoute />
+                  </Layout>
+                </ProtectedRoute>
+             } />
               {/* Health Worker Data */}
               <Route path="/health" element={
                 <ProtectedRoute requiredRole="health_worker">

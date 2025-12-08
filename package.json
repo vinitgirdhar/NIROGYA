@@ -2,6 +2,7 @@
   "name": "nirogya",
   "version": "0.1.0",
   "private": true,
+  "proxy": "http://localhost:8000",
   "dependencies": {
     "@ant-design/icons": "^6.0.2",
     "@hookform/resolvers": "^5.2.2",

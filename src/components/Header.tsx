@@ -58,6 +58,7 @@ const Header: React.FC<HeaderProps> = ({ collapsed, onToggleCollapse }) => {
         key: 'profile',
         label: 'Profile',
         icon: <UserOutlined />,
+        onClick: () => navigate('/profile'),
       },
       {
         key: 'settings',

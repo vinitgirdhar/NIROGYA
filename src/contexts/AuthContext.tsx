@@ -28,6 +28,10 @@ interface User {
   district?: string;
   village?: string;
   specialization?: string;
+  address?: string;
+  bio?: string;
+  bloodGroup?: string;
+  occupation?: string;
 }
 
 interface RegisterData {

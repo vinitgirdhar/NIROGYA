@@ -1,0 +1,25 @@
+.self-report {
+  padding: 32px;
+}
+
+.page-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.report-card {
+  padding: 20px;
+  border-radius: 12px;
+}
+
+.success-card {
+  text-align: center;
+  padding: 40px;
+  border-radius: 16px;
+}
+
+.success-icon {
+  font-size: 48px;
+  color: #52c41a;
+  margin-bottom: 16px;
+}

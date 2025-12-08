@@ -17,18 +17,19 @@ def serialize_bson(obj):
     """
     Recursively convert Mongo/BSON types into JSON-serializable types:
     - ObjectId -> str
-    - datetime/date -> isoformat string
+    - datetime -> preserved as datetime for Mongo sorting
+    - date -> isoformat string
     - numpy scalars -> native python types
     - dict/list -> recursively processed
     """
     if isinstance(obj, ObjectId):
         return str(obj)
 
-    if isinstance(obj, (datetime, date)):
-        try:
-            return obj.isoformat()
-        except Exception:
-            return str(obj)
+    # IMPORTANT: Keep datetime as datetime for Mongo & sorting
+    if isinstance(obj, datetime):
+        return obj
+    if isinstance(obj, date):
+        return obj.isoformat()
 
     if isinstance(obj, (np.integer, np.int64, np.int32)):  # type: ignore[arg-type]
         return int(obj)
@@ -67,6 +68,10 @@ from backend.auth.otp_routes import router as otp_router
 from backend.auth.alert_routes import router as alert_router
 from backend.routes.user_management import router as user_management_router
 from backend.routes.admin_reports import router as admin_reports_router
+from backend.routes.water_bodies import router as water_bodies_router
+from backend.routes.hotspots import router as hotspots_router
+from backend.routes.heatmap import router as heatmap_router
+from backend.routes.district_stats import router as district_router
 
 # CONFIG
 POLL_INTERVAL_SECONDS = int(os.getenv("POLL_INTERVAL_SECONDS", "5"))
@@ -95,6 +100,10 @@ app.include_router(otp_router)
 app.include_router(alert_router)
 app.include_router(user_management_router)
 app.include_router(admin_reports_router)
+app.include_router(water_bodies_router)
+app.include_router(heatmap_router)
+app.include_router(hotspots_router)
+app.include_router(district_router)
 
 # ML availability flag
 ML_READY = True if LOADED_MODEL is not None else False
@@ -130,7 +139,13 @@ async def save_report(payload: Dict[str, Any] = Body(...)):
 
     patient = payload.get("patient")
     water = payload.get("water")
-    meta = payload.get("meta", {})
+    meta = payload.get("meta", {}) or {}
+
+    # Normalize meta - source can be "self", "asha", "whatsapp", "iot", etc.
+    source = meta.get("source") or payload.get("source") or "asha"
+    meta["source"] = source
+    meta.setdefault("type", "symptom_report")
+    meta.setdefault("received_at", now)
 
     if not patient and not water:
         if any(k in payload for k in ["symptoms", "patientName", "contact_number", "reporter_name"]):
@@ -151,7 +166,7 @@ async def save_report(payload: Dict[str, Any] = Body(...)):
             water = {
                 "location": payload.get("location") or payload.get("waterLocation"),
                 "district": payload.get("district"),
-                "pH": payload.get("pH") or payload.get("ph"),
+                "ph": payload.get("pH") or payload.get("ph"),
                 "turbidity": payload.get("turbidity"),
                 "tds": payload.get("tds"),
                 "chlorine": payload.get("chlorine"),
@@ -187,7 +202,7 @@ async def save_report(payload: Dict[str, Any] = Body(...)):
         if loc:
             asyncio.create_task(schedule_processing_by_location(loc))
 
-    await raw_col.insert_one({"payload": payload, "meta": {"received_at": now.isoformat()}, "created_at": now})
+    await raw_col.insert_one({"payload": payload, "meta": {"received_at": now, "source": meta.get("source")}, "created_at": now})
     result["raw_saved"] = True
 
     return {"status": "ok", **result}
@@ -205,9 +220,13 @@ async def predict_endpoint(payload: Report):
     if not ML_READY:
         raise HTTPException(status_code=503, detail="Model not loaded")
 
+    location = payload.location or "Unknown"
+    district = payload.district or location
+
     water_doc = {
-        "pH": payload.pH if payload.pH is not None else payload.ph,
-        "ph": payload.ph if payload.ph is not None else payload.pH,
+        "location": location,
+        "district": district,
+        "ph": payload.pH if payload.pH is not None else payload.ph,
         "turbidity": payload.turbidity,
         "tds": payload.tds,
         "chlorine": payload.chlorine,
@@ -262,6 +281,10 @@ async def schedule_processing_by_location(location: str):
         print("schedule_processing_by_location error:", e)
 
 async def try_match_and_predict(sym_doc: Dict[str, Any]):
+    if not ML_READY:
+        # Model not loaded, skip gracefully
+        return None
+    
     loc = sym_doc.get("location")
     if not loc:
         return None
@@ -319,7 +342,7 @@ async def startup_tasks():
 # --------------------------
 @app.get("/predictions")
 async def list_predictions(limit: int = 50):
-    cursor = prediction_col.find().sort("predicted_at", -1).limit(limit)
+    cursor = prediction_col.find().sort("features.predicted_at", -1).limit(limit)
     out = []
     async for d in cursor:
         out.append(serialize_bson(d))

@@ -2,128 +2,138 @@
 import os
 from pathlib import Path
 import joblib
-import numpy as np
 import pandas as pd
+import traceback
 
-# Path to model (can override with MODEL_PATH env var)
-MODEL_PATH = os.getenv("MODEL_PATH", "backend/models/disease_prediction_model.joblib")
+BASE_DIR = Path(__file__).resolve().parent.parent  # backend/
 
-# Load model (this is synchronous)
+MODEL_PATH = BASE_DIR / "models" / "disease_prediction_model.joblib"
+ENCODER_PATH = BASE_DIR / "models" / "label_encoder.joblib"
+
+# Load model and metadata (this is synchronous)
 try:
-    _model = joblib.load(Path(MODEL_PATH))
-    print("Predictor: model loaded from", MODEL_PATH)
+    _model = joblib.load(MODEL_PATH)
+    _meta = joblib.load(ENCODER_PATH)
+    _feature_cols = _meta["feature_cols"]
+    _categorical_cols = _meta["categorical_cols"]
+    _label_encoder = _meta["label_encoder"]
+    print("Predictor: Model Loaded Successfully!!")
 except Exception as e:
+    print("\n\n---------------- MODEL LOAD ERROR ----------------")
+    print("MODEL_PATH =", MODEL_PATH)
+    print("ENCODER_PATH =", ENCODER_PATH)
+    print("ERROR:", e)
+    traceback.print_exc()
+    print("-------------------------------------------------\n\n")
     _model = None
-    print("Predictor: failed to load model:", e)
+    _meta = None
+    _feature_cols = None
+    _categorical_cols = None
+    _label_encoder = None
 
-# EXACT expected features (from your model)
-EXPECTED_FEATURES = [
-    'ph', 'turbidity', 'tds', 'chlorine', 'fluoride', 'nitrate', 'coliform',
-    'temperature', 'diarrhea', 'vomiting', 'fever', 'abdominal_pain', 'jaundice',
-    'dehydration', 'fatigue', 'nausea', 'headache', 'symptom_diarrhea',
-    'symptom_vomiting', 'symptom_fever', 'symptom_abdominal_pain',
-    'symptom_jaundice', 'symptom_dehydration', 'symptom_fatigue',
-    'symptom_nausea', 'symptom_headache', 'district_Dibrugarh',
-    'district_Jorhat', 'district_Kamrup Metro', 'district_Sonitpur',
-    'primary_water_source_Municipal tap water', 'primary_water_source_Pond water',
-    'primary_water_source_River water', 'primary_water_source_Tube well',
-    'primary_water_source_Well water'
-]
 
-DISTRICT_CATS = ["Dibrugarh", "Jorhat", "Kamrup Metro", "Sonitpur"]
-WATER_SOURCE_CATS = ["Municipal tap water", "Pond water", "River water", "Tube well", "Well water"]
-
-def _safe_float(x):
+def _safe_float(v):
+    """Safely convert value to float, return 0.0 on error."""
     try:
-        return float(x)
-    except Exception:
+        return float(v)
+    except:
         return 0.0
 
-def _normalize_symptoms(symptoms):
-    if symptoms is None:
+
+def normalize_symptoms(symptoms):
+    """Convert a list or string of symptoms to lowercase list."""
+    if not symptoms:
         return []
     if isinstance(symptoms, str):
-        parts = [s.strip() for s in symptoms.split(",") if s.strip()]
-        return [p.lower() for p in parts]
+        return [s.strip().lower() for s in symptoms.split(",")]
     return [str(s).lower() for s in symptoms]
 
-def build_feature_dict(w_doc: dict, s_doc: dict):
-    # start with zeros
-    base = {k: 0.0 for k in EXPECTED_FEATURES}
+def build_features(w_doc: dict, s_doc: dict):
+    """Build a dict of features EXACTLY matching the CatBoost training features."""
+    
+    # Extract district
+    district = (s_doc.get("district") if s_doc else None) \
+            or (w_doc.get("district") if w_doc else None)
+    district = (district or "").strip()
 
-    # water numeric features
-    ph_val = None
+    # Extract location
+    location = (s_doc.get("location") if s_doc else None) \
+            or (w_doc.get("location") if w_doc else None)
+    location = (location or "").strip()
+
+    # Water source
+    source = None
     if w_doc:
-        ph_val = w_doc.get("pH", None) if "pH" in w_doc else w_doc.get("ph", None)
-    base['ph'] = _safe_float(ph_val)
-    base['turbidity'] = _safe_float(w_doc.get("turbidity", 0) if w_doc else 0)
-    base['tds'] = _safe_float(w_doc.get("tds", 0) if w_doc else 0)
-    base['chlorine'] = _safe_float(w_doc.get("chlorine", 0) if w_doc else 0)
-    base['fluoride'] = _safe_float(w_doc.get("fluoride", 0) if w_doc else 0)
-    base['nitrate'] = _safe_float(w_doc.get("nitrate", 0) if w_doc else 0)
-    base['coliform'] = _safe_float(w_doc.get("coliform", 0) if w_doc else 0)
-    base['temperature'] = _safe_float(w_doc.get("temperature", 0) if w_doc else 0)
+        source = w_doc.get("primary_water_source") or w_doc.get("water_source") or w_doc.get("primaryWaterSource")
+    source = (source or "").strip()
 
-    # symptom flags
-    symptoms_list = _normalize_symptoms(s_doc.get("symptoms") if s_doc else [])
-    base['diarrhea'] = 1.0 if any("diarrh" in s for s in symptoms_list) else 0.0
-    base['vomiting'] = 1.0 if any("vomit" in s for s in symptoms_list) else 0.0
-    base['fever'] = 1.0 if any("fever" in s for s in symptoms_list) else 0.0
-    base['abdominal_pain'] = 1.0 if any(("abdominal pain" in s or "stomach pain" in s) for s in symptoms_list) else 0.0
-    base['jaundice'] = 1.0 if any("jaundice" in s for s in symptoms_list) else 0.0
-    base['dehydration'] = 1.0 if any("dehydra" in s for s in symptoms_list) else 0.0
-    base['fatigue'] = 1.0 if any("fatigue" in s for s in symptoms_list) else 0.0
-    base['nausea'] = 1.0 if any("nausea" in s for s in symptoms_list) else 0.0
-    base['headache'] = 1.0 if any("headache" in s for s in symptoms_list) else 0.0
+    # Water quality numeric fields
+    ph = _safe_float(w_doc.get("ph") or w_doc.get("pH") if w_doc else 0)
+    turbidity = _safe_float(w_doc.get("turbidity", 0) if w_doc else 0)
+    tds = _safe_float(w_doc.get("tds", 0) if w_doc else 0)
+    chlorine = _safe_float(w_doc.get("chlorine", 0) if w_doc else 0)
+    fluoride = _safe_float(w_doc.get("fluoride", 0) if w_doc else 0)
+    nitrate = _safe_float(w_doc.get("nitrate", 0) if w_doc else 0)
+    coliform = _safe_float(w_doc.get("coliform", 0) if w_doc else 0)
+    temperature = _safe_float(w_doc.get("temperature", 0) if w_doc else 0)
 
-    # duplicate symptom_ columns
-    base['symptom_diarrhea'] = base['diarrhea']
-    base['symptom_vomiting'] = base['vomiting']
-    base['symptom_fever'] = base['fever']
-    base['symptom_abdominal_pain'] = base['abdominal_pain']
-    base['symptom_jaundice'] = base['jaundice']
-    base['symptom_dehydration'] = base['dehydration']
-    base['symptom_fatigue'] = base['fatigue']
-    base['symptom_nausea'] = base['nausea']
-    base['symptom_headache'] = base['headache']
+    # Symptoms
+    symptoms_list = normalize_symptoms(s_doc.get("symptoms") if s_doc else [])
 
-    # district one-hot (case-insensitive match)
-    district = None
-    if s_doc:
-        district = s_doc.get("district") or s_doc.get("district_name") or s_doc.get("village_district")
-    if not district and w_doc:
-        district = w_doc.get("district")
-    if isinstance(district, str):
-        district = district.strip().lower()
-    for d in DISTRICT_CATS:
-        key = f"district_{d}"
-        base[key] = 1.0 if district and district == d.lower() else 0.0
+    diarrhea = 1 if "diarrhea" in symptoms_list else 0
+    vomiting = 1 if "vomiting" in symptoms_list else 0
+    fever = 1 if "fever" in symptoms_list else 0
+    abdominal = 1 if ("abdominal pain" in symptoms_list or "stomach pain" in symptoms_list) else 0
+    dehydration = 1 if "dehydration" in symptoms_list else 0
+    headache = 1 if "headache" in symptoms_list else 0
 
-    # primary water source one-hot (case-insensitive)
-    src = None
-    if w_doc:
-        src = w_doc.get("primary_water_source") or w_doc.get("water_source") or w_doc.get("primaryWaterSource")
-    if isinstance(src, str):
-        src = src.strip().lower()
-    for s in WATER_SOURCE_CATS:
-        key = f"primary_water_source_{s}"
-        base[key] = 1.0 if src and src == s.lower() else 0.0
+    # Build feature dict (THIS ORDER MUST MATCH training feature_cols EXACTLY)
+    features = {
+        "district": district,
+        "location": location,
+        "primary_source": source,
+        "ph": ph,
+        "turbidity": turbidity,
+        "tds": tds,
+        "chlorine": chlorine,
+        "fluoride": fluoride,
+        "nitrate": nitrate,
+        "coliform": coliform,
+        "temperature": temperature,
+        "diarrhea": diarrhea,
+        "vomiting": vomiting,
+        "fever": fever,
+        "abdominal_pain": abdominal,
+        "dehydration": dehydration,
+        "headache": headache
+    }
 
-    return base
+    return features
 
 def predict_disease(w_doc: dict, s_doc: dict):
     """
     Synchronous predict function returning label and features dict.
     Call it inside run_in_executor from async code.
+    Uses CatBoost model with label encoder for disease prediction.
     """
     if _model is None:
         raise RuntimeError("Model not loaded")
 
-    feature_dict = build_feature_dict(w_doc or {}, s_doc or {})
+    # Build features
+    feat_dict = build_features(w_doc or {}, s_doc or {})
 
-    # Build DataFrame with columns ordered exactly as EXPECTED_FEATURES
-    df = pd.DataFrame([feature_dict], columns=EXPECTED_FEATURES)
+    # Create DataFrame in correct order (using feature_cols from metadata)
+    df = pd.DataFrame([feat_dict], columns=_feature_cols)
 
-    # Predict using pipeline (DataFrame preserves feature names; avoids warnings)
-    pred = _model.predict(df)
-    return {"predicted_disease": pred[0], "features": feature_dict}
+    # Predict (CatBoost returns [[class_index]])
+    pred_idx = int(_model.predict(df)[0])
+
+    # Convert back to label using label encoder
+    if _label_encoder is None:
+        raise RuntimeError("Label encoder not loaded")
+    pred_label = _label_encoder.inverse_transform([pred_idx])[0]
+
+    return {
+        "predicted_disease": pred_label,
+        "features_used": feat_dict
+    }

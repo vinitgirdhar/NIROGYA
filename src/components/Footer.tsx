@@ -92,11 +92,7 @@ const Footer: React.FC = () => {
           </div>
         </div>
 
-      </div>
-      
-      {/* Chat Widget */}
-      <div className="chat-widget">
-        <i className="fa-regular fa-message"></i>
+
       </div>
     </footer>
   );
