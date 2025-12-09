@@ -525,8 +525,49 @@ const GovernmentReports: React.FC = () => {
   };
 
   const handleShare = (report: Report) => {
-    navigator.clipboard.writeText(`Check out this government report: ${report.title}`);
-    message.success(tr.linkCopied);
+    // Create a shareable link with report details
+    const baseUrl = window.location.origin;
+    const shareUrl = `${baseUrl}/goverment-reports?report=${report.id}`;
+    const shareText = `📄 ${report.title}\n\n📋 Department: ${report.department}\n📍 Region: ${report.region}\n📅 Issue Date: ${report.issueDate}\n\n${report.description}\n\n🔗 View Report: ${shareUrl}`;
+    
+    // Check if Web Share API is available (mobile/modern browsers)
+    if (navigator.share) {
+      navigator.share({
+        title: report.title,
+        text: `${report.department} - ${report.description}`,
+        url: shareUrl,
+      }).then(() => {
+        message.success('Report shared successfully!');
+      }).catch((error) => {
+        // User cancelled or error occurred, fallback to clipboard
+        if (error.name !== 'AbortError') {
+          navigator.clipboard.writeText(shareText);
+          message.success(tr.linkCopied);
+        }
+      });
+    } else {
+      // Fallback: Copy to clipboard
+      navigator.clipboard.writeText(shareText).then(() => {
+        message.success({
+          content: (
+            <span>
+              <strong>Report link copied!</strong><br/>
+              Share via WhatsApp, Email, or any platform
+            </span>
+          ),
+          duration: 3
+        });
+      }).catch(() => {
+        // Fallback for older browsers
+        const textArea = document.createElement('textarea');
+        textArea.value = shareText;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        message.success(tr.linkCopied);
+      });
+    }
   };
 
   const handleView = (report: Report) => {

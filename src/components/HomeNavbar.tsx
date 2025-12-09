@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Layout, Button, Dropdown, Space, Avatar } from 'antd';
 import { 
   UserOutlined,
@@ -8,13 +8,12 @@ import {
   MoonOutlined,
   MenuOutlined,
   CloseOutlined,
-  GlobalOutlined,
-  DownOutlined
+  GlobalOutlined
 } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from './ThemeProvider';
-import { useLanguage, languages } from '../contexts/LanguageContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import './HomeNavbar.css';
 
 const { Header } = Layout;
@@ -24,8 +23,47 @@ const HomeNavbar: React.FC = () => {
   const location = useLocation();
   const { isAuthenticated, user, logout } = useAuth();
   const { isDark, toggleTheme } = useTheme();
-  const { currentLanguage, setLanguage, t } = useLanguage();
+  const { t } = useLanguage();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const translateRef = useRef<HTMLDivElement>(null);
+  const mobileTranslateRef = useRef<HTMLDivElement>(null);
+
+  // Initialize Google Translate
+  useEffect(() => {
+    // Add Google Translate script if not already loaded
+    const addGoogleTranslateScript = () => {
+      if (!document.getElementById('google-translate-script')) {
+        const script = document.createElement('script');
+        script.id = 'google-translate-script';
+        script.src = '//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
+        script.async = true;
+        document.body.appendChild(script);
+      }
+    };
+
+    // Define the callback function
+    (window as any).googleTranslateElementInit = () => {
+      if (translateRef.current && !(window as any).googleTranslateInitialized) {
+        new (window as any).google.translate.TranslateElement(
+          {
+            pageLanguage: 'en',
+            includedLanguages: 'en,hi,bn,ne,ta,te,mr,gu,kn,ml,pa,as,or',
+            layout: (window as any).google.translate.TranslateElement.InlineLayout.SIMPLE,
+            autoDisplay: false,
+          },
+          'google_translate_navbar'
+        );
+        (window as any).googleTranslateInitialized = true;
+      }
+    };
+
+    addGoogleTranslateScript();
+
+    // If script already loaded, initialize
+    if ((window as any).google && (window as any).google.translate) {
+      (window as any).googleTranslateElementInit();
+    }
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -54,55 +92,6 @@ const HomeNavbar: React.FC = () => {
         onClick: handleLogout,
       },
     ],
-  };
-
-  // Group languages by region for better organization
-  const languageGroups = [
-    {
-      label: 'Primary Languages',
-      options: languages.filter(lang => ['en', 'hi'].includes(lang.code))
-    },
-    {
-      label: 'Northeast Indian Languages',
-      options: languages.filter(lang => 
-        ['as', 'bn', 'bpy', 'mni', 'kha', 'grt', 'lus', 'nag', 'sck', 'bo', 'ne', 'dz'].includes(lang.code)
-      )
-    },
-    {
-      label: 'Other Indian Languages',
-      options: languages.filter(lang => 
-        ['te', 'ta', 'kn', 'ml', 'gu', 'mr', 'pa', 'or', 'ur'].includes(lang.code)
-      )
-    },
-    {
-      label: 'International Languages',
-      options: languages.filter(lang => 
-        ['zh', 'my', 'th', 'vi'].includes(lang.code)
-      )
-    }
-  ];
-
-  const languageMenu = {
-    items: languageGroups.flatMap(group => [
-      {
-        type: 'group' as const,
-        label: group.label,
-        children: group.options.map(lang => ({
-          key: lang.code,
-          label: (
-            <div className="language-option">
-              <span className="language-flag">{lang.flag}</span>
-              <div className="language-names">
-                <span className="language-name">{lang.name}</span>
-                <span className="language-native">{lang.nativeName}</span>
-              </div>
-              <span className="language-region">{lang.region}</span>
-            </div>
-          ),
-          onClick: () => setLanguage(lang),
-        }))
-      }
-    ])
   };
 
   const navItems = [
@@ -168,17 +157,11 @@ const HomeNavbar: React.FC = () => {
         {/* Desktop Actions */}
         <div className="navbar-actions desktop-actions">
           <Space size="middle">
-            {/* Language Selector */}
-            <Dropdown menu={languageMenu} placement="bottomRight" trigger={['click']}>
-              <Button type="text" className="language-selector">
-                <Space size="small">
-                  <GlobalOutlined />
-                  <span className="current-lang-flag">{currentLanguage.flag}</span>
-                  <span className="current-lang-name">{currentLanguage.name}</span>
-                  <DownOutlined />
-                </Space>
-              </Button>
-            </Dropdown>
+            {/* Google Translate Widget */}
+            <div className="google-translate-container" ref={translateRef}>
+              <GlobalOutlined className="translate-icon" />
+              <div id="google_translate_navbar"></div>
+            </div>
             
             <Button 
               type="text" 
@@ -254,38 +237,10 @@ const HomeNavbar: React.FC = () => {
           </div>
           
           <div className="mobile-actions">
-            {/* Mobile Language Selector */}
-            <div className="mobile-language-selector">
-              <Button 
-                type="text"
-                block
-                className="mobile-language-toggle"
-                icon={<GlobalOutlined />}
-              >
-                <Space>
-                  <span>{currentLanguage.flag}</span>
-                  <span>{t('language.select')}</span>
-                </Space>
-              </Button>
-              <div className="mobile-language-grid">
-                {languages.slice(0, 8).map((lang) => (
-                  <Button
-                    key={lang.code}
-                    type="text"
-                    size="small"
-                    className={`mobile-lang-option ${currentLanguage.code === lang.code ? 'active' : ''}`}
-                    onClick={() => {
-                      setLanguage(lang);
-                      setMobileMenuOpen(false);
-                    }}
-                  >
-                    <div className="mobile-lang-content">
-                      <span className="lang-flag">{lang.flag}</span>
-                      <span className="lang-name">{lang.name}</span>
-                    </div>
-                  </Button>
-                ))}
-              </div>
+            {/* Mobile Language Note */}
+            <div className="mobile-language-note">
+              <GlobalOutlined />
+              <span>Use the language selector in the navbar above to translate</span>
             </div>
             
             <Button 
