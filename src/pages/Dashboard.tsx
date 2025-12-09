@@ -240,224 +240,303 @@ const AshaView: React.FC = () => {
 
 const CommunityView: React.FC = () => {
   const { outbreakAlerts, outbreakUnreadCount } = useAlerts();
+  const { t } = useLanguage();
 
   // Get the most severe outbreak alert for the banner
   const highSeverityOutbreaks = outbreakAlerts.filter(o => o.severity === 'high');
   const mediumSeverityOutbreaks = outbreakAlerts.filter(o => o.severity === 'medium');
   
+  // Quick action cards data
+  const quickActions = [
+    {
+      icon: <MedicineBoxOutlined />,
+      title: 'Report Symptoms',
+      description: 'Report health symptoms for early detection',
+      link: '/self-report',
+      color: '#1b75d0'
+    },
+    {
+      icon: <FileTextOutlined />,
+      title: 'Government Reports',
+      description: 'View official health reports and updates',
+      link: '/goverment-reports',
+      color: '#059669'
+    },
+    {
+      icon: <BookOutlined />,
+      title: 'Health Education',
+      description: 'Learn about disease prevention',
+      link: '/education',
+      color: '#7c3aed'
+    }
+  ];
+
+  // Health tips data
+  const healthTips = [
+    { icon: '💧', title: 'Drink Clean Water', description: 'Always boil or filter water before drinking' },
+    { icon: '🧼', title: 'Wash Hands Regularly', description: 'Use soap and water for at least 20 seconds' },
+    { icon: '🏥', title: 'Visit Health Centers', description: 'Get regular check-ups and vaccinations' },
+    { icon: '🥗', title: 'Eat Healthy Food', description: 'Include fruits and vegetables in your diet' }
+  ];
+
   return (
-    <div className="dashboard">
+    <div className="dashboard community-dashboard">
+      {/* Header Section */}
       <div className="dashboard-header">
-        <h1>Community Dashboard</h1>
-        <p className="dashboard-sub">Simple overview for community users</p>
+        <h1>Community Health Dashboard</h1>
+        <p className="dashboard-sub">Stay informed about health updates in your area</p>
       </div>
 
-      {/* Outbreak Alert Banner - Show if there are any outbreaks */}
-      {outbreakAlerts.length > 0 && (
-        <div style={{ marginBottom: 16 }}>
-          {highSeverityOutbreaks.length > 0 && (
-            <Alert
-              message={
-                <span style={{ fontWeight: 600 }}>
-                  <WarningOutlined /> High Risk Outbreak Alert
-                </span>
-              }
-              description={
-                <div>
-                  <p style={{ margin: '8px 0' }}>
-                    <strong>{highSeverityOutbreaks[0].disease}</strong> outbreak detected in <strong>{highSeverityOutbreaks[0].areaName || highSeverityOutbreaks[0].district}</strong>.
-                    {highSeverityOutbreaks[0].totalPredictions} cases reported.
-                  </p>
-                  {highSeverityOutbreaks.length > 1 && (
-                    <Tag color="red">+{highSeverityOutbreaks.length - 1} more high-risk alerts</Tag>
-                  )}
-                </div>
-              }
-              type="error"
-              showIcon
-              icon={<AlertOutlined />}
-              banner
-              style={{ 
-                borderRadius: 8, 
-                marginBottom: 8,
-                borderLeft: '4px solid #ff4d4f'
-              }}
-            />
-          )}
-          
-          {mediumSeverityOutbreaks.length > 0 && highSeverityOutbreaks.length === 0 && (
-            <Alert
-              message={
-                <span style={{ fontWeight: 600 }}>
-                  <ExclamationCircleOutlined /> Disease Outbreak Warning
-                </span>
-              }
-              description={
-                <div>
-                  <p style={{ margin: '8px 0' }}>
-                    <strong>{mediumSeverityOutbreaks[0].disease}</strong> cases detected in <strong>{mediumSeverityOutbreaks[0].areaName || mediumSeverityOutbreaks[0].district}</strong>.
-                    {mediumSeverityOutbreaks[0].totalPredictions} cases reported. Take precautions.
-                  </p>
-                  {mediumSeverityOutbreaks.length > 1 && (
-                    <Tag color="orange">+{mediumSeverityOutbreaks.length - 1} more warnings</Tag>
-                  )}
-                </div>
-              }
-              type="warning"
-              showIcon
-              banner
-              style={{ 
-                borderRadius: 8, 
-                marginBottom: 8,
-                borderLeft: '4px solid #faad14'
-              }}
-            />
-          )}
-        </div>
-      )}
-
-      <Row gutter={[16, 16]}>
-        <Col xs={24} sm={12} md={8}>
-          <Card className="chart-card">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
-                <h3 style={{ margin: 0 }}>
-                  Alerts
-                  {outbreakUnreadCount > 0 && (
-                    <Badge 
-                      count={outbreakUnreadCount} 
-                      style={{ marginLeft: 8 }}
-                    />
-                  )}
-                </h3>
-                <p style={{ margin: 0, color: 'var(--text-secondary)' }}>
-                  {outbreakAlerts.length > 0 
-                    ? `${outbreakAlerts.length} active outbreak${outbreakAlerts.length > 1 ? 's' : ''}`
-                    : 'Active notifications'
-                  }
-                </p>
-              </div>
-              <Badge dot={outbreakUnreadCount > 0} offset={[-5, 5]}>
-                <BellOutlined style={{ fontSize: 28, color: outbreakUnreadCount > 0 ? '#ff4d4f' : 'var(--primary-color)' }} />
-              </Badge>
-            </div>
-            <div style={{ marginTop: 12 }}>
-              <Button type="primary" block danger={outbreakUnreadCount > 0}>
-                View Alerts
-              </Button>
-            </div>
-          </Card>
-        </Col>
-
-        <Col xs={24} sm={12} md={8}>
-          <Card className="chart-card">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
-                <h3 style={{ margin: 0 }}>Report</h3>
-                <p style={{ margin: 0, color: 'var(--text-secondary)' }}>Report issues quickly</p>
-              </div>
-              <FileTextOutlined style={{ fontSize: 28, color: 'var(--primary-color)' }} />
-            </div>
-            <div style={{ marginTop: 12 }}>
-              <Button block style={{ marginBottom: 8 }}>Report Symptoms</Button>
-              <Button block>Report Water Quality</Button>
-            </div>
-          </Card>
-        </Col>
-
-        <Col xs={24} sm={12} md={8}>
-          <Card className="chart-card">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
-                <h3 style={{ margin: 0 }}>Education</h3>
-                <p style={{ margin: 0, color: 'var(--text-secondary)' }}>Helpful resources</p>
-              </div>
-              <BookOutlined style={{ fontSize: 28, color: 'var(--primary-color)' }} />
-            </div>
-            <div style={{ marginTop: 12 }}>
-              <Button block>Open Education</Button>
-            </div>
-          </Card>
-        </Col>
-      </Row>
-
-      <Row style={{ marginTop: 16 }}>
-        <Col xs={24}>
-          <Card className="chart-card" title="Community Resources">
-            <List
-              size="small"
-              dataSource={[
-                { title: 'How to treat water at home' },
-                { title: 'Recognizing dehydration in children' },
-                { title: 'When to visit a clinic' }
-              ]}
-              renderItem={item => <List.Item>{item.title}</List.Item>}
-            />
-          </Card>
-        </Col>
-      </Row>
-
-      {/* Active Outbreaks Section */}
-      {outbreakAlerts.length > 0 && (
-        <Row style={{ marginTop: 16 }}>
-          <Col xs={24}>
-            <Card 
-              className="chart-card" 
-              title={
-                <span>
-                  <MedicineBoxOutlined style={{ marginRight: 8, color: '#ff4d4f' }} />
-                  Active Disease Outbreaks in Your Area
-                </span>
-              }
-            >
-              <List
-                size="small"
-                dataSource={outbreakAlerts.slice(0, 5)}
-                renderItem={outbreak => (
-                  <List.Item
-                    style={{
-                      background: outbreak.severity === 'high' 
-                        ? 'rgba(255, 77, 79, 0.05)' 
-                        : outbreak.severity === 'medium' 
-                          ? 'rgba(250, 173, 20, 0.05)' 
-                          : 'transparent',
-                      borderLeft: `4px solid ${
-                        outbreak.severity === 'high' ? '#ff4d4f' : 
-                        outbreak.severity === 'medium' ? '#faad14' : '#52c41a'
-                      }`,
-                      paddingLeft: 12,
-                      marginBottom: 8,
-                      borderRadius: '0 4px 4px 0'
-                    }}
-                  >
-                    <List.Item.Meta
-                      title={
-                        <span>
-                          <Tag color={outbreak.severity === 'high' ? 'red' : outbreak.severity === 'medium' ? 'orange' : 'green'}>
-                            {outbreak.severity.toUpperCase()}
-                          </Tag>
-                          {outbreak.disease}
-                        </span>
-                      }
-                      description={
-                        <span>
-                          📍 {outbreak.areaName || outbreak.district} • 
-                          🏥 {outbreak.totalPredictions} cases reported
-                        </span>
-                      }
-                    />
-                  </List.Item>
-                )}
+      <div className="community-content">
+        {/* Outbreak Alert Banner - Show if there are any outbreaks */}
+        {outbreakAlerts.length > 0 && (
+          <div className="alert-banner-section">
+            {highSeverityOutbreaks.length > 0 && (
+              <Alert
+                message={
+                  <span className="alert-title">
+                    <WarningOutlined /> High Risk Outbreak Alert
+                  </span>
+                }
+                description={
+                  <div className="alert-content">
+                    <p>
+                      <strong>{highSeverityOutbreaks[0].disease}</strong> outbreak detected in{' '}
+                      <strong>{highSeverityOutbreaks[0].areaName || highSeverityOutbreaks[0].district}</strong>.
+                      {' '}{highSeverityOutbreaks[0].totalPredictions} cases reported.
+                    </p>
+                    {highSeverityOutbreaks.length > 1 && (
+                      <Tag color="red">+{highSeverityOutbreaks.length - 1} more high-risk alerts</Tag>
+                    )}
+                  </div>
+                }
+                type="error"
+                showIcon
+                icon={<AlertOutlined />}
+                className="outbreak-alert high"
               />
-              {outbreakAlerts.length > 5 && (
-                <div style={{ textAlign: 'center', marginTop: 8 }}>
-                  <Button type="link">View all {outbreakAlerts.length} outbreaks</Button>
-                </div>
-              )}
+            )}
+            
+            {mediumSeverityOutbreaks.length > 0 && highSeverityOutbreaks.length === 0 && (
+              <Alert
+                message={
+                  <span className="alert-title">
+                    <ExclamationCircleOutlined /> Disease Outbreak Warning
+                  </span>
+                }
+                description={
+                  <div className="alert-content">
+                    <p>
+                      <strong>{mediumSeverityOutbreaks[0].disease}</strong> cases detected in{' '}
+                      <strong>{mediumSeverityOutbreaks[0].areaName || mediumSeverityOutbreaks[0].district}</strong>.
+                      {' '}{mediumSeverityOutbreaks[0].totalPredictions} cases reported. Take precautions.
+                    </p>
+                    {mediumSeverityOutbreaks.length > 1 && (
+                      <Tag color="orange">+{mediumSeverityOutbreaks.length - 1} more warnings</Tag>
+                    )}
+                  </div>
+                }
+                type="warning"
+                showIcon
+                className="outbreak-alert medium"
+              />
+            )}
+          </div>
+        )}
+
+        {/* Stats Overview */}
+        <Row gutter={[20, 20]} className="stats-overview">
+          <Col xs={24} sm={8}>
+            <Card className="stat-card alerts-stat">
+              <div className="stat-icon-wrapper alerts">
+                <Badge count={outbreakUnreadCount} offset={[-5, 5]}>
+                  <BellOutlined />
+                </Badge>
+              </div>
+              <div className="stat-info">
+                <span className="stat-value">{outbreakAlerts.length}</span>
+                <span className="stat-label">Active Alerts</span>
+              </div>
+            </Card>
+          </Col>
+          <Col xs={24} sm={8}>
+            <Card className="stat-card health-stat">
+              <div className="stat-icon-wrapper health">
+                <CheckCircleOutlined />
+              </div>
+              <div className="stat-info">
+                <span className="stat-value">Good</span>
+                <span className="stat-label">Area Health Status</span>
+              </div>
+            </Card>
+          </Col>
+          <Col xs={24} sm={8}>
+            <Card className="stat-card resources-stat">
+              <div className="stat-icon-wrapper resources">
+                <FileTextOutlined />
+              </div>
+              <div className="stat-info">
+                <span className="stat-value">12</span>
+                <span className="stat-label">Reports Available</span>
+              </div>
             </Card>
           </Col>
         </Row>
-      )}
+
+        {/* Quick Actions Section */}
+        <div className="section-header">
+          <h2>Quick Actions</h2>
+          <p>Access important features quickly</p>
+        </div>
+        
+        <Row gutter={[20, 20]} className="quick-actions-row">
+          {quickActions.map((action, index) => (
+            <Col xs={24} sm={12} md={8} key={index}>
+              <Card className="quick-action-card" hoverable>
+                <div className="action-icon" style={{ background: `${action.color}15`, color: action.color }}>
+                  {action.icon}
+                </div>
+                <h3>{action.title}</h3>
+                <p>{action.description}</p>
+                <Button 
+                  type="primary" 
+                  block
+                  href={action.link}
+                  style={{ background: action.color, borderColor: action.color }}
+                >
+                  Open
+                </Button>
+              </Card>
+            </Col>
+          ))}
+        </Row>
+
+        {/* Two Column Layout */}
+        <Row gutter={[20, 20]} className="main-content-row">
+          {/* Active Outbreaks Section */}
+          <Col xs={24} lg={14}>
+            <Card 
+              className="content-card outbreaks-card" 
+              title={
+                <div className="card-title-wrapper">
+                  <MedicineBoxOutlined className="card-title-icon" />
+                  <span>Health Alerts in Your Area</span>
+                  {outbreakAlerts.length > 0 && (
+                    <Badge count={outbreakAlerts.length} className="title-badge" />
+                  )}
+                </div>
+              }
+            >
+              {outbreakAlerts.length > 0 ? (
+                <div className="outbreaks-list">
+                  {outbreakAlerts.slice(0, 5).map((outbreak, index) => (
+                    <div 
+                      key={index}
+                      className={`outbreak-item ${outbreak.severity}`}
+                    >
+                      <div className="outbreak-header">
+                        <Tag color={
+                          outbreak.severity === 'high' ? 'red' : 
+                          outbreak.severity === 'medium' ? 'orange' : 'green'
+                        }>
+                          {outbreak.severity.toUpperCase()}
+                        </Tag>
+                        <span className="outbreak-disease">{outbreak.disease}</span>
+                      </div>
+                      <div className="outbreak-details">
+                        <span>📍 {outbreak.areaName || outbreak.district}</span>
+                        <span>🏥 {outbreak.totalPredictions} cases</span>
+                      </div>
+                    </div>
+                  ))}
+                  {outbreakAlerts.length > 5 && (
+                    <Button type="link" className="view-all-btn">
+                      View all {outbreakAlerts.length} alerts →
+                    </Button>
+                  )}
+                </div>
+              ) : (
+                <Empty 
+                  image={Empty.PRESENTED_IMAGE_SIMPLE}
+                  description={
+                    <span className="empty-text">
+                      <CheckCircleOutlined style={{ color: '#52c41a', marginRight: 8 }} />
+                      No active health alerts in your area
+                    </span>
+                  }
+                />
+              )}
+            </Card>
+          </Col>
+
+          {/* Health Tips Section */}
+          <Col xs={24} lg={10}>
+            <Card 
+              className="content-card tips-card" 
+              title={
+                <div className="card-title-wrapper">
+                  <BookOutlined className="card-title-icon" />
+                  <span>Health Tips</span>
+                </div>
+              }
+            >
+              <div className="tips-list">
+                {healthTips.map((tip, index) => (
+                  <div key={index} className="tip-item">
+                    <span className="tip-icon">{tip.icon}</span>
+                    <div className="tip-content">
+                      <h4>{tip.title}</h4>
+                      <p>{tip.description}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          </Col>
+        </Row>
+
+        {/* Community Resources Section */}
+        <Card 
+          className="content-card resources-card" 
+          title={
+            <div className="card-title-wrapper">
+              <FileTextOutlined className="card-title-icon" />
+              <span>Community Resources</span>
+            </div>
+          }
+        >
+          <Row gutter={[16, 16]}>
+            <Col xs={24} sm={12} md={6}>
+              <div className="resource-box">
+                <div className="resource-icon">📞</div>
+                <h4>Emergency Helpline</h4>
+                <p>Call 108 for medical emergencies</p>
+              </div>
+            </Col>
+            <Col xs={24} sm={12} md={6}>
+              <div className="resource-box">
+                <div className="resource-icon">🏥</div>
+                <h4>Nearest Health Center</h4>
+                <p>Find healthcare facilities near you</p>
+              </div>
+            </Col>
+            <Col xs={24} sm={12} md={6}>
+              <div className="resource-box">
+                <div className="resource-icon">💊</div>
+                <h4>Medicine Availability</h4>
+                <p>Check essential medicine stock</p>
+              </div>
+            </Col>
+            <Col xs={24} sm={12} md={6}>
+              <div className="resource-box">
+                <div className="resource-icon">📋</div>
+                <h4>Health Guidelines</h4>
+                <p>Official health protocols</p>
+              </div>
+            </Col>
+          </Row>
+        </Card>
+      </div>
     </div>
   );
 };

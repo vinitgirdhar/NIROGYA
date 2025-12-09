@@ -164,6 +164,7 @@ const baseMenuItems = [
   { key: '/complaint-form', icon: <FileProtectOutlined />, label: 'Submit Complaint', badge: 0 },
   { key: '/complaints-management', icon: <FileProtectOutlined />, label: 'Complaints Management', badge: 0 },
   { key: '/accounts', icon: <SolutionOutlined />, label: 'Accounts', badge: 0 },
+  { key: '/rainfall-alert', icon: <ThunderboltOutlined />, label: 'Rainfall Alerts', badge: 0 },
 ];
 
 
@@ -178,10 +179,10 @@ const baseMenuItems = [
       case 'admin':
         return all.filter(k => !['/government/manage-users', '/government/manage-accounts', '/self-report', '/community', '/complaints-management', '/complaint-form'].includes(k)).concat(['/accounts']);
       case 'asha_worker':
-        // ASHA: dashboard, asha communication, report water, report symptoms, alerts, education, complaint form
-        return ['/', '/asha-communication', '/ai-prediction', '/report-symptoms', '/alerts', '/education', '/complaint-form'];
+        // ASHA: dashboard, asha communication, report water, report symptoms, alerts, education, complaint form, rainfall alerts
+        return ['/', '/asha-communication', '/ai-prediction', '/report-symptoms', '/alerts', '/education', '/complaint-form', '/rainfall-alert'];
       case 'community_user':
-        return ['/', '/alerts', '/education', '/self-report', '/goverment-reports', '/complaint-form'];
+        return ['/', '/alerts', '/education', '/self-report', '/goverment-reports', '/complaint-form', '/rainfall-alert'];
       case 'healthcare_worker':
         return ['/', '/health', '/disease-mapping', '/alerts'];
       case 'district_health_official':
