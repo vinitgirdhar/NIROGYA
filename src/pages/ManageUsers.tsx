@@ -86,7 +86,7 @@ const ManageUsers: React.FC = () => {
 
   // Check authorization
   useEffect(() => {
-    if (currentUser && currentUser.role !== 'government_body') {
+    if (currentUser && !['government_body', 'admin'].includes(currentUser.role)) {
       message.error('You do not have permission to access this page');
     }
   }, [currentUser]);

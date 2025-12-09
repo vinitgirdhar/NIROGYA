@@ -80,11 +80,11 @@ def user_helper(doc: Dict[str, Any]) -> Dict[str, Any]:
 
 
 async def ensure_government_official(current_user: dict):
-    """Verify user is government official"""
-    if current_user.get("role") != "government_body":
+    """Verify user is government official or admin"""
+    if current_user.get("role") not in ["government_body", "admin"]:
         raise HTTPException(
             status_code=403,
-            detail="Only Government Officials can access user management"
+            detail="Only Government Officials or Admins can access user management"
         )
 
 

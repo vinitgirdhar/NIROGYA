@@ -245,9 +245,9 @@ function App() {
                 </ProtectedRoute>
               } />
 
-              {/* Manage Users - Government Officials Only */}
+              {/* Manage Users - Government Officials and Admin */}
               <Route path="/manage-users" element={
-                <ProtectedRoute requiredRole="government_body">
+                <ProtectedRoute requiredRole={["government_body", "admin"]}>
                   <Layout type="dashboard">
                     <ManageUsers />
                   </Layout>
