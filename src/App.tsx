@@ -254,9 +254,9 @@ function App() {
                 </ProtectedRoute>
               } />
 
-              {/* Complaint Form - ASHA Workers and Admin */}
+              {/* Complaint Form - ASHA Workers, Community Users and Admin */}
               <Route path="/complaint-form" element={
-                <ProtectedRoute requiredRole={["asha_worker", "admin"]}>
+                <ProtectedRoute requiredRole={["asha_worker", "community_user"]}>
                   <Layout type="dashboard">
                     <ComplaintForm />
                   </Layout>
