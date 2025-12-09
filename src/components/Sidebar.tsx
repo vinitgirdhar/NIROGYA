@@ -64,7 +64,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onCollapse }) => {
     const translateLabels = async () => {
       const labels = [
         'Disease Mapping', 'ASHA Communication', 'Report Water Quality',
-        'Report Symptoms', 'Self Report Symptoms'
+        'Report Symptoms', 'Self Report Symptoms', 'Government Reports'
       ];
       const translated: Record<string, string> = {};
       for (const label of labels) {
@@ -156,6 +156,7 @@ const baseMenuItems = [
   { key: '/community', icon: <TeamOutlined />, label: t('nav.community'), badge: 0 },
   { key: '/education', icon: <BookOutlined />, label: t('nav.education'), badge: 0 },
   { key: '/reports', icon: <FileTextOutlined />, label: t('nav.reports'), badge: 0 },
+  { key: '/goverment-reports', icon: <FileTextOutlined />, label: translatedLabels['Government Reports'] || 'Government Reports', badge: 0 },
   { key: '/self-report', icon: <MedicineBoxOutlined />, label: translatedLabels['Self Report Symptoms'] || 'Self Report Symptoms', badge: 0 },
 ];
 
@@ -174,7 +175,7 @@ const baseMenuItems = [
         // ASHA: dashboard, asha communication, report water, report symptoms, alerts, education
         return ['/', '/asha-communication', '/ai-prediction', '/report-symptoms', '/alerts', '/education'];
       case 'community_user':
-        return ['/', '/community', '/alerts', '/education', '/self-report'];
+        return ['/', '/alerts', '/education', '/self-report', '/goverment-reports'];
       case 'healthcare_worker':
         return ['/', '/health', '/disease-mapping', '/alerts'];
       case 'district_health_official':

@@ -140,9 +140,9 @@ const getQualityColor = (qualityClass: string) => {
 // Professional severity color palette (WHO/CDC inspired)
 const zoneFillColor = (severity: 'high' | 'medium' | 'low') => {
   switch (severity) {
-    case 'high': return '#c0392b';    // Deep crimson
-    case 'medium': return '#d68910';  // Amber gold
-    case 'low': default: return '#27ae60'; // Forest green
+    case 'high': return '#c0392b';
+    case 'medium': return '#d68910';
+    case 'low': default: return '#27ae60';
   }
 };
 
@@ -162,6 +162,12 @@ const strokeBySeverity = (s: string) =>
 
 const radiusFromCount = (count: number) =>
   Math.min(3000, 200 * Math.sqrt(Math.max(1, count)));
+
+// Distinct palette for rivers vs lakes (trace on map)
+const RIVER_COLOR = '#2563eb';          // blue
+const RIVER_HIGHLIGHT = '#1d4ed8';
+const LAKE_STROKE_COLOR = '#0f766e';    // teal
+const LAKE_FILL_COLOR = 'rgba(13, 148, 136, 0.35)';
 
 const Map: React.FC = () => {
   const { isDark } = useTheme();
@@ -199,7 +205,6 @@ const Map: React.FC = () => {
           district: selectedDistrict || undefined,
           quality: minQuality || undefined,
         });
-        // The API returns an array of objects that match our WaterBody interface (including geometry)
         setWaterBodies(data as unknown as WaterBody[]);
       } catch (err) {
         console.error("Failed to fetch map data:", err);
@@ -229,7 +234,6 @@ const Map: React.FC = () => {
   }, [showHeatmap]);
 
   // --- Derived State ---
-  
   const filteredWaterBodies = useMemo(() => {
     return waterBodies.filter(wb => wb.geometry);
   }, [waterBodies]);
@@ -244,9 +248,7 @@ const Map: React.FC = () => {
     return Array.from(d).sort();
   }, [waterBodies]);
 
-
   // --- Map Layer Generation ---
-
   const riverFeatures: FeatureCollection = useMemo(() => {
     return {
       type: 'FeatureCollection',
@@ -281,36 +283,67 @@ const Map: React.FC = () => {
   // --- Render Helpers ---
 
   const onEachFeature = (feature: any, layer: any) => {
-    if (feature.properties) {
-      const { name, type, qualityClass, qualityIndex, lastUpdated } = feature.properties;
-      const color = getQualityColor(qualityClass);
-      
-      const popupContent = `
-        <div class="map-popup">
-          <h3>${name}</h3>
-          <p><strong>Type:</strong> ${type}</p>
-          <p><strong>Quality:</strong> <span style="color:${color}">${qualityClass} (WQI: ${qualityIndex})</span></p>
-          ${lastUpdated ? `<p><strong>Updated:</strong> ${lastUpdated}</p>` : ''}
-        </div>
-      `;
-      layer.bindPopup(popupContent);
-      
-      // Style
-      if (type === 'river') {
-        layer.setStyle({
-          color: '#1890ff',
+    if (!feature.properties) return;
+
+    const { name, type, qualityClass, qualityIndex, lastUpdated } = feature.properties;
+    const qualityColor = getQualityColor(qualityClass);
+
+    const popupContent = `
+      <div class="map-popup">
+        <h3>${name}</h3>
+        <p><strong>Type:</strong> ${type}</p>
+        <p><strong>Quality:</strong> 
+          <span style="color:${qualityColor}">
+            ${qualityClass || 'Unknown'} ${qualityIndex ? `(WQI: ${qualityIndex})` : ''}
+          </span>
+        </p>
+        ${lastUpdated ? `<p><strong>Updated:</strong> ${lastUpdated}</p>` : ''}
+      </div>
+    `;
+    layer.bindPopup(popupContent);
+
+    // Base style by geometry type (trace colors)
+    const isRiver = type === 'river';
+    const baseStyle = isRiver
+      ? {
+          color: RIVER_COLOR,
           weight: 3,
-          opacity: 0.8
-        });
-      } else {
-        layer.setStyle({
-          color: '#1890ff',
-          fillColor: '#1890ff',
-          fillOpacity: 0.4,
-          weight: 1
-        });
-      }
+          opacity: 0.95,
+          lineCap: 'round',
+          lineJoin: 'round'
+        }
+      : {
+          color: LAKE_STROKE_COLOR,
+          fillColor: LAKE_FILL_COLOR,
+          fillOpacity: 0.55,
+          weight: 1.4
+        };
+
+    // Slight tweak by quality – thicker + more opaque if poorer
+    const q = qualityClass?.toLowerCase?.() || '';
+    if (q === 'poor') {
+      baseStyle.weight = isRiver ? 4 : 1.8;
+      baseStyle.opacity = 1;
+    } else if (q === 'moderate') {
+      baseStyle.weight = isRiver ? 3.5 : 1.6;
     }
+
+    layer.setStyle(baseStyle);
+
+    // Professional hover interaction
+    layer.on('mouseover', () => {
+      layer.setStyle({
+        ...(baseStyle as any),
+        color: isRiver ? RIVER_HIGHLIGHT : LAKE_STROKE_COLOR,
+        weight: (baseStyle.weight || 3) + 1,
+        opacity: 1
+      });
+      layer.bringToFront();
+    });
+
+    layer.on('mouseout', () => {
+      layer.setStyle(baseStyle);
+    });
   };
 
   return (
@@ -331,7 +364,7 @@ const Map: React.FC = () => {
               checked={showRivers} 
               onChange={e => setShowRivers(e.target.checked)}
             >
-              Rivers (Lines)
+              Rivers (Trace)
             </Checkbox>
             <Checkbox 
               checked={showLakes} 
@@ -402,10 +435,24 @@ const Map: React.FC = () => {
         <Divider style={{ margin: '12px 0' }} />
 
         <div className="legend-section">
-          <Title level={5}>Water Quality</Title>
+          <Title level={5}>Water Layers</Title>
+          <div className="legend-item">
+            <span className="legend-color" style={{ background: RIVER_COLOR }}></span>
+            <span>Rivers (Trace)</span>
+          </div>
+          <div className="legend-item">
+            <span className="legend-color" style={{ background: LAKE_STROKE_COLOR }}></span>
+            <span>Lakes (Areas)</span>
+          </div>
+        </div>
+
+        <Divider style={{ margin: '12px 0' }} />
+
+        <div className="legend-section">
+          <Title level={5}>Water Quality (WQI)</Title>
           <div className="legend-item">
             <span className="legend-color" style={{ background: '#52c41a' }}></span>
-            <span>Good Quality</span>
+            <span>Good</span>
           </div>
           <div className="legend-item">
             <span className="legend-color" style={{ background: '#faad14' }}></span>
@@ -424,7 +471,7 @@ const Map: React.FC = () => {
               <Title level={5}>Symptom Intensity</Title>
               <div className="legend-item">
                 <span className="legend-color heatmap-low"></span>
-                <span>Low (Normal)</span>
+                <span>Low (Baseline)</span>
               </div>
               <div className="legend-item">
                 <span className="legend-color heatmap-medium"></span>
@@ -442,7 +489,7 @@ const Map: React.FC = () => {
           <>
             <Divider style={{ margin: '12px 0' }} />
             <div className="legend-section">
-              <Title level={5}>Disease Risk</Title>
+              <Title level={5}>Disease Risk Zones</Title>
               <div className="legend-item">
                 <span className="legend-color" style={{ background: 'linear-gradient(135deg, #c0392b 0%, #922b21 100%)' }}></span>
                 <span>High Risk</span>
@@ -507,10 +554,23 @@ const Map: React.FC = () => {
           )}
 
           {showHeatmap && heatmapPoints.length > 0 && (
-            <HeatmapLayer points={heatmapPoints} />
+            <HeatmapLayer
+              points={heatmapPoints}
+              // If your HeatmapLayer supports these props, this will make it look
+              // more "pro dashboard":
+              // radius={35}
+              // blur={22}
+              // max={1}
+              // gradient={{
+              //   0.2: '#6baed6',
+              //   0.4: '#fc9272',
+              //   0.65: '#fb6a4a',
+              //   1.0: '#cb181d',
+              // }}
+            />
           )}
 
-          {/* Risk Zones - Professional styling with distinct stroke */}
+          {/* Risk Zones - tuned fillOpacity + crisp stroke */}
           {showRiskZones && riskZones.map(zone => (
             <Circle
               key={zone.id}
@@ -518,10 +578,11 @@ const Map: React.FC = () => {
               radius={zone.radius}
               pathOptions={{
                 color: zoneStrokeColor(zone.severity),
-                weight: 2,
+                weight: 2.4,
+                opacity: 0.9,
                 fillColor: zoneFillColor(zone.severity),
-                fillOpacity: 0.18,
-                dashArray: zone.severity === 'high' ? undefined : '5, 8',
+                fillOpacity: 0.22,
+                dashArray: zone.severity === 'high' ? undefined : '6 10',
               }}
               className={zone.severity === 'high' ? 'risk-zone-critical' : ''}
             >
@@ -536,34 +597,34 @@ const Map: React.FC = () => {
             </Circle>
           ))}
 
-          {/* Hotspots - Professional disease markers */}
+          {/* Hotspots - clean concentric circles */}
           {showHotspots && mockHotspots.map((h, idx) => {
             if (!h.center) return null;
             const baseRadius = radiusFromCount(h.count);
             return (
               <React.Fragment key={`hotspot-${idx}`}>
-                {/* Outer glow ring for high severity */}
                 {h.severity === 'high' && (
                   <Circle
                     center={h.center}
-                    radius={baseRadius * 1.4}
+                    radius={baseRadius * 1.5}
                     pathOptions={{
                       color: 'transparent',
                       fillColor: colorBySeverity(h.severity),
-                      fillOpacity: 0.08,
+                      fillOpacity: 0.06,
                       weight: 0,
                     }}
+                    className="hotspot-outer-glow"
                   />
                 )}
-                {/* Main hotspot circle */}
                 <Circle
                   center={h.center}
                   radius={baseRadius}
                   pathOptions={{
                     color: strokeBySeverity(h.severity),
-                    weight: 2,
+                    weight: 2.2,
+                    opacity: 0.95,
                     fillColor: colorBySeverity(h.severity),
-                    fillOpacity: 0.25,
+                    fillOpacity: 0.3,
                   }}
                   className={`hotspot-marker ${h.severity}`}
                 >

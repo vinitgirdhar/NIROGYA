@@ -400,8 +400,16 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const t = useCallback((key: string): string => {
     const translation = translations[key];
     if (!translation) {
-      console.warn(`Translation missing for key: ${key}`);
-      return key;
+      // Extract a human-readable fallback from the key
+      // e.g., "governmentReports.title" -> "Title", "nav.dashboard" -> "Dashboard"
+      const parts = key.split('.');
+      const lastPart = parts[parts.length - 1];
+      // Convert camelCase to Title Case with spaces
+      const readable = lastPart
+        .replace(/([A-Z])/g, ' $1')
+        .replace(/^./, str => str.toUpperCase())
+        .trim();
+      return readable;
     }
     
     return translation[currentLanguage.code] || translation['en'] || key;

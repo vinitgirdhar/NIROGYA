@@ -44,7 +44,7 @@
   flex-shrink: 0;
   background: var(--bg-primary);
   border-right: 1px solid var(--border-color);
-  padding: 24px; /* Increased breathing room */
+  padding: 24px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -65,10 +65,8 @@
   border-radius: 20px;
 }
 
-/* Sidebar Dark Mode handling is now automatic via variables, 
-   but you can keep specific overrides here if needed */
+/* Sidebar Dark Mode hook (colors are via variables) */
 .map-sidebar.dark {
-  /* Variables handle the colors now, cleaner code! */
 }
 
 .sidebar-header h2 {
@@ -92,14 +90,14 @@
   position: relative;
   height: 100%;
   width: 100%;
-  isolation: isolate; /* Creates stacking context */
+  isolation: isolate;
 }
 
 .map-loading-overlay {
   position: absolute;
-  inset: 0; /* Modern shorthand for top/right/bottom/left */
+  inset: 0;
   background: rgba(255, 255, 255, 0.6);
-  backdrop-filter: blur(8px); /* The "Glass" Effect */
+  backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   display: flex;
   justify-content: center;
@@ -111,7 +109,7 @@
 /* --- Legends --- */
 
 .legend-section {
-  margin-top: auto; /* Pushes legend to bottom if flex container has height */
+  margin-top: auto;
   padding-top: 16px;
 }
 
@@ -135,27 +133,25 @@
 .legend-color {
   width: 12px;
   height: 12px;
-  border-radius: 50%; /* Circular looks more modern than square */
+  border-radius: 50%;
   margin-right: 10px;
   flex-shrink: 0;
-  box-shadow: 0 0 0 1px rgba(0,0,0,0.05); /* Subtle inner border */
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.05);
 }
 
-/* --- Modern Heatmap Gradients (Less Neon, More Professional) --- */
+/* --- Professional Heatmap Gradients --- */
+/* Epidemiology-style palette: blue (low) -> orange/red (high) */
 
 .legend-color.heatmap-low {
-  /* Emerald to Teal */
-  background: linear-gradient(135deg, #34d399 0%, #059669 100%);
+  background: linear-gradient(135deg, #6baed6 0%, #3182bd 100%);
 }
 
 .legend-color.heatmap-medium {
-  /* Amber to Orange */
-  background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
+  background: linear-gradient(135deg, #fc9272 0%, #de5833 100%);
 }
 
 .legend-color.heatmap-high {
-  /* Rose to Red */
-  background: linear-gradient(135deg, #f43f5e 0%, #be123c 100%);
+  background: linear-gradient(135deg, #cb181d 0%, #67000d 100%);
 }
 
 /* --- Leaflet Popup Overrides --- */
@@ -166,7 +162,7 @@
   border-radius: 12px;
   box-shadow: var(--shadow-popup);
   border: 1px solid var(--border-color);
-  padding: 0; /* Reset padding to control via content */
+  padding: 0;
 }
 
 .leaflet-popup-tip {
@@ -205,7 +201,7 @@
 }
 
 /* ============================================
-   PROFESSIONAL HOTSPOT & RISK ZONE STYLING
+   RISK ZONE & HOTSPOT STYLING
    ============================================ */
 
 /* Risk Zone Popups */
@@ -370,26 +366,17 @@
   flex-shrink: 0;
 }
 
-/* Professional Legend Colors - Epidemiological Palette */
-.legend-color.heatmap-low {
-  background: linear-gradient(135deg, #6baed6 0%, #3182bd 100%);
-}
-
-.legend-color.heatmap-medium {
-  background: linear-gradient(135deg, #fc9272 0%, #de5833 100%);
-}
-
-.legend-color.heatmap-high {
-  background: linear-gradient(135deg, #cb181d 0%, #67000d 100%);
-}
-
-/* Subtle pulse animation for critical zones (optional - CSS only) */
+/* Subtle pulse animation for critical risk zones */
 @keyframes subtle-pulse {
-  0%, 100% { opacity: 0.18; }
-  50% { opacity: 0.28; }
+  0%, 100% { opacity: 0.22; }
+  50% { opacity: 0.32; }
 }
 
-/* Apply via JS class if needed */
 .leaflet-interactive.risk-zone-critical {
   animation: subtle-pulse 3s ease-in-out infinite;
+}
+
+/* Optional: very soft glow for high hotspots */
+.hotspot-outer-glow {
+  /* extra styles can be added if needed */
 }

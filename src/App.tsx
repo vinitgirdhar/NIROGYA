@@ -128,7 +128,7 @@ function App() {
 
               {/* Disease Mapping */}
               <Route path="/disease-mapping" element={
-                <ProtectedRoute requiredRole={["healthcare_worker", "asha_worker", "district_health_official", "government_body"]}>
+                <ProtectedRoute requiredRole={["admin", "healthcare_worker", "asha_worker", "district_health_official", "government_body"]}>
                   <Layout type="dashboard">
                     <DiseaseMapping />
                   </Layout>
@@ -137,7 +137,7 @@ function App() {
 
               {/* ASHA Communication */}
               <Route path="/asha-communication" element={
-                <ProtectedRoute requiredRole={["healthcare_worker", "asha_worker", "district_health_official", "government_body"]}>
+                <ProtectedRoute requiredRole={["admin", "healthcare_worker", "asha_worker", "district_health_official", "government_body"]}>
                   <Layout type="dashboard">
                     <ASHACommunication />
                   </Layout>
@@ -146,7 +146,7 @@ function App() {
 
               {/* AI Water Prediction */}
               <Route path="/ai-prediction" element={
-                <ProtectedRoute requiredRole={["healthcare_worker", "asha_worker", "district_health_official", "government_body", "volunteer"]}>
+                <ProtectedRoute requiredRole={["admin", "healthcare_worker", "asha_worker", "district_health_official", "government_body", "volunteer"]}>
                   <Layout type="dashboard">
                     <WaterQualityPrediction />
                   </Layout>

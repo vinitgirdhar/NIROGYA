@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { Typography, Card, Button, Space, Tag, Divider } from "antd";
+import { Typography, Card, Button, Space, Tag, Divider, Modal, List } from "antd";
 import {
   PlayCircleOutlined,
   FileTextOutlined,
@@ -12,12 +12,34 @@ import {
   EyeOutlined,
   TeamOutlined,
   GlobalOutlined,
+  CheckCircleOutlined,
+  AlertOutlined,
+  HeartOutlined,
 } from "@ant-design/icons";
 import "./Education.css";
 
 const { Title, Paragraph } = Typography;
 
 type LanguageCode = "english" | "hindi" | "manipuri" | "khasi";
+
+interface DiseaseCategory {
+  id: string;
+  title: string;
+  icon: string;
+  description: string;
+  videos: number;
+  resources: number;
+}
+
+interface DiseaseInfo {
+  id: string;
+  title: string;
+  symptoms: string[];
+  prevention: string[];
+  immediateAction: string[];
+  whenToSeekHelp: string[];
+  hometreatment?: string[];
+}
 
 interface Language {
   code: LanguageCode;
@@ -33,15 +55,6 @@ interface Video {
   views: string;
   language: string;
   embedUrl?: string;
-}
-
-interface DiseaseCategory {
-  id: string;
-  title: string;
-  icon: string;
-  description: string;
-  videos: number;
-  resources: number;
 }
 
 /* Translations (double-quoted strings to avoid parser errors) */
@@ -197,6 +210,152 @@ const diseaseCategories: DiseaseCategory[] = [
   },
 ];
 
+/* Detailed Disease Information */
+const diseaseDetailedInfo: { [key: string]: DiseaseInfo } = {
+  cholera: {
+    id: "cholera",
+    title: "Cholera",
+    symptoms: [
+      "Sudden onset of watery diarrhea (often described as 'rice water' stools)",
+      "Severe vomiting and nausea",
+      "Extreme loss of body fluids and dehydration",
+      "Weakness and muscle cramps",
+      "Low blood pressure and weak pulse",
+    ],
+    prevention: [
+      "Drink only boiled or purified water",
+      "Wash hands frequently with soap and clean water",
+      "Use clean utensils for eating and drinking",
+      "Avoid raw or undercooked food",
+      "Keep the environment and food storage clean",
+    ],
+    immediateAction: [
+      "Start oral rehydration solution (ORS) immediately",
+      "Mix ORS with safe drinking water in correct proportions",
+      "Continue to feed the person (especially infants)",
+      "Keep the person in a clean, hygienic place",
+      "Monitor for signs of severe dehydration",
+    ],
+    whenToSeekHelp: [
+      "Persistent watery diarrhea lasting more than 2 hours",
+      "Signs of severe dehydration (sunken eyes, extreme weakness)",
+      "Blood in stool or severe abdominal pain",
+      "Persistent vomiting preventing fluid intake",
+      "Rapid breathing or difficulty breathing",
+    ],
+    hometreatment: [
+      "Administer ORS in small, frequent amounts",
+      "Prepare homemade ORS if unavailable (6 tsp sugar + 1/2 tsp salt in 1L water)",
+      "Keep the person warm and comfortable",
+      "Maintain good hygiene to prevent spread",
+      "Provide zinc supplementation if available",
+    ],
+  },
+  typhoid: {
+    id: "typhoid",
+    title: "Typhoid Fever",
+    symptoms: [
+      "Sustained high fever (39-40°C) that develops gradually",
+      "Headache and body aches",
+      "Weakness and fatigue",
+      "Abdominal pain and constipation (sometimes diarrhea)",
+      "Rose spots (small pink rash) on trunk",
+    ],
+    prevention: [
+      "Drink only boiled, filtered, or bottled water",
+      "Avoid raw vegetables unless they can be peeled",
+      "Avoid street food and unpasteurized milk",
+      "Wash hands regularly with soap and clean water",
+      "Get vaccinated if in high-risk areas",
+    ],
+    immediateAction: [
+      "Rest and avoid strenuous activities",
+      "Stay hydrated with safe drinking water",
+      "Take paracetamol to reduce fever",
+      "Keep the environment clean and hygienic",
+      "Isolate the person to prevent transmission",
+    ],
+    whenToSeekHelp: [
+      "High fever lasting more than 5-7 days",
+      "Severe headache or abdominal pain",
+      "Confusion or delirium",
+      "Difficulty breathing or chest pain",
+      "Severe diarrhea or bloody stools",
+    ],
+  },
+  diarrhea: {
+    id: "diarrhea",
+    title: "Diarrheal Diseases",
+    symptoms: [
+      "Loose or watery stools more than 3 times daily",
+      "Abdominal pain and cramping",
+      "Nausea and vomiting",
+      "Fever (in some cases)",
+      "Signs of dehydration (dry mouth, dizziness)",
+    ],
+    prevention: [
+      "Drink clean, boiled, or purified water",
+      "Wash hands before eating and after using the toilet",
+      "Keep food covered and stored properly",
+      "Avoid raw or unwashed vegetables",
+      "Use clean bathrooms and dispose waste properly",
+    ],
+    immediateAction: [
+      "Start ORS therapy immediately to prevent dehydration",
+      "Offer small amounts of safe fluids frequently",
+      "Continue eating mild, nutritious food",
+      "Avoid dairy and fatty foods temporarily",
+      "Monitor stool frequency and consistency",
+    ],
+    whenToSeekHelp: [
+      "Diarrhea lasting more than 2 weeks",
+      "Bloody stools or severe abdominal pain",
+      "Signs of severe dehydration",
+      "High fever (above 39°C)",
+      "Vomiting that prevents fluid intake",
+    ],
+    hometreatment: [
+      "Continue breastfeeding if applicable",
+      "Provide zinc supplementation (10-14 days)",
+      "Offer soft, bland foods like rice, bananas",
+      "Monitor hydration status closely",
+      "Maintain hygiene to prevent complications",
+    ],
+  },
+  hepatitis: {
+    id: "hepatitis",
+    title: "Hepatitis A & E",
+    symptoms: [
+      "Jaundice (yellowing of skin and eyes)",
+      "Dark urine and pale stools",
+      "Abdominal pain and discomfort",
+      "Nausea, vomiting, and loss of appetite",
+      "Fatigue and weakness",
+    ],
+    prevention: [
+      "Drink only boiled or purified water",
+      "Wash hands thoroughly with soap and water",
+      "Avoid eating food prepared in unhygienic conditions",
+      "Get vaccinated against Hepatitis A",
+      "Practice proper sanitation and hygiene",
+    ],
+    immediateAction: [
+      "Rest and avoid strenuous activities",
+      "Increase fluid intake to prevent dehydration",
+      "Avoid alcohol and fatty foods",
+      "Take paracetamol for pain/fever as needed",
+      "Maintain strict personal hygiene",
+    ],
+    whenToSeekHelp: [
+      "Jaundice that develops suddenly",
+      "Severe abdominal pain or vomiting",
+      "Very dark urine or pale stools",
+      "Fever lasting more than a week",
+      "Confusion or behavioral changes",
+    ],
+  },
+};
+
 const allVideos: { [key: string]: { [key: string]: Video[] } } = {
   cholera: {
     english: [
@@ -342,6 +501,8 @@ const Education: React.FC = () => {
   const [selectedLanguage, setSelectedLanguage] =
     useState<LanguageCode>("english");
   const [selectedCategory, setSelectedCategory] = useState<string>("cholera");
+  const [isDiseaseModalVisible, setIsDiseaseModalVisible] = useState(false);
+  const [selectedDiseaseId, setSelectedDiseaseId] = useState<string>("cholera");
 
   const getFilteredVideos = (): Video[] => {
     const cat = allVideos[selectedCategory] || {};
@@ -352,7 +513,13 @@ const Education: React.FC = () => {
     return languageVideos;
   };
 
+  const handleDiseaseCardClick = (diseaseId: string) => {
+    setSelectedDiseaseId(diseaseId);
+    setIsDiseaseModalVisible(true);
+  };
+
   const videos = getFilteredVideos();
+  const currentDiseaseInfo = diseaseDetailedInfo[selectedDiseaseId];
 
   return (
     <div className="education-page">
@@ -444,7 +611,10 @@ const Education: React.FC = () => {
                 className={`category-card ${
                   selectedCategory === cat.id ? "active" : ""
                 }`}
-                onClick={() => setSelectedCategory(cat.id)}
+                onClick={() => {
+                  setSelectedCategory(cat.id);
+                  handleDiseaseCardClick(cat.id);
+                }}
               >
                 <div className="category-icon">
                   <MedicineBoxOutlined />
@@ -463,60 +633,6 @@ const Education: React.FC = () => {
         </div>
       </section>
 
-      {/* Videos */}
-      <section className="videos-section">
-        <div className="container">
-          <Title level={2} className="section-title">
-            {t(selectedLanguage, "videoLessons")}
-          </Title>
-          <Paragraph className="section-subtitle">
-            {t(selectedLanguage, "videosSubtitle")}{" "}
-            <strong>{selectedLanguage.toUpperCase()}</strong>
-          </Paragraph>
-
-          {videos.length === 0 && (
-            <div className="no-videos">
-              <Title level={4}>{t(selectedLanguage, "noVideos")}</Title>
-              <Paragraph>
-                {t(selectedLanguage, "noVideosSub", {
-                  topic: selectedCategory,
-                  lang: selectedLanguage,
-                })}
-              </Paragraph>
-            </div>
-          )}
-
-          <div className="videos-grid">
-            {videos.map((v) => (
-              <div key={v.id} className="video-card">
-                <div className="video-thumbnail">
-                  {v.embedUrl ? (
-                    <iframe
-                      src={v.embedUrl}
-                      title={v.title}
-                      allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                    />
-                  ) : (
-                    <div className="video-coming-soon">
-                      <ClockCircleOutlined />
-                      <span>Coming Soon</span>
-                    </div>
-                  )}
-                </div>
-
-                <div className="video-info">
-                  <div className="video-title">{v.title}</div>
-                  <div className="video-desc">{v.description}</div>
-                  <div className="video-meta">
-                    <span>{v.duration}</span> • <span>{v.views} views</span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* Quick Guide */}
       <section className="quick-guide-section">
@@ -652,6 +768,187 @@ const Education: React.FC = () => {
           </div>
         </div>
       </section>
+
+      {/* Disease Information Modal */}
+      <Modal
+        title={
+          <div className="disease-modal-title">
+            <span className="disease-modal-icon">
+              {diseaseCategories.find((d) => d.id === selectedDiseaseId)?.icon}
+            </span>
+            <span>{currentDiseaseInfo?.title}</span>
+          </div>
+        }
+        open={isDiseaseModalVisible}
+        onCancel={() => setIsDiseaseModalVisible(false)}
+        width={900}
+        centered
+        className="disease-info-modal"
+        footer={[
+          <Button key="close" type="primary" onClick={() => setIsDiseaseModalVisible(false)}>
+            Close
+          </Button>,
+        ]}
+      >
+        {currentDiseaseInfo && (
+          <div className="disease-modal-content">
+            {/* Symptoms */}
+            <div className="disease-section">
+              <Title level={4} className="disease-section-title">
+                <AlertOutlined /> Symptoms to Watch For
+              </Title>
+              <List
+                dataSource={currentDiseaseInfo.symptoms}
+                renderItem={(item) => (
+                  <List.Item className="disease-list-item">
+                    <CheckCircleOutlined className="disease-icon-small" />
+                    <span>{item}</span>
+                  </List.Item>
+                )}
+              />
+            </div>
+
+            <Divider />
+
+            {/* Prevention */}
+            <div className="disease-section">
+              <Title level={4} className="disease-section-title">
+                <SafetyOutlined /> Prevention Steps
+              </Title>
+              <List
+                dataSource={currentDiseaseInfo.prevention}
+                renderItem={(item) => (
+                  <List.Item className="disease-list-item">
+                    <CheckCircleOutlined className="disease-icon-small" />
+                    <span>{item}</span>
+                  </List.Item>
+                )}
+              />
+            </div>
+
+            <Divider />
+
+            {/* Immediate Action */}
+            <div className="disease-section">
+              <Title level={4} className="disease-section-title">
+                <ThunderboltOutlined /> Immediate Action
+              </Title>
+              <List
+                dataSource={currentDiseaseInfo.immediateAction}
+                renderItem={(item) => (
+                  <List.Item className="disease-list-item">
+                    <CheckCircleOutlined className="disease-icon-small" />
+                    <span>{item}</span>
+                  </List.Item>
+                )}
+              />
+            </div>
+
+            <Divider />
+
+            {/* When to Seek Help */}
+            <div className="disease-section">
+              <Title level={4} className="disease-section-title">
+                <HeartOutlined /> When to Seek Medical Help
+              </Title>
+              <List
+                dataSource={currentDiseaseInfo.whenToSeekHelp}
+                renderItem={(item) => (
+                  <List.Item className="disease-list-item">
+                    <AlertOutlined className="disease-icon-warning" />
+                    <span>{item}</span>
+                  </List.Item>
+                )}
+              />
+            </div>
+
+            {/* Home Treatment */}
+            {currentDiseaseInfo.hometreatment && (
+              <>
+                <Divider />
+                <div className="disease-section">
+                  <Title level={4} className="disease-section-title">
+                    <MedicineBoxOutlined /> Home Treatment
+                  </Title>
+                  <List
+                    dataSource={currentDiseaseInfo.hometreatment}
+                    renderItem={(item) => (
+                      <List.Item className="disease-list-item">
+                        <CheckCircleOutlined className="disease-icon-small" />
+                        <span>{item}</span>
+                      </List.Item>
+                    )}
+                  />
+                </div>
+              </>
+            )}
+
+            {/* Educational Videos */}
+            <Divider style={{ margin: "28px 0 24px" }} />
+            <div className="disease-section">
+              <Title level={4} className="disease-section-title">
+                <PlayCircleOutlined /> Learn More: Video Resources
+              </Title>
+              <div className="disease-videos-grid">
+                {allVideos[selectedDiseaseId]?.[selectedLanguage as string]?.map(
+                  (video: Video) => (
+                    <div key={video.id} className="disease-video-card">
+                      <div className="disease-video-wrapper">
+                        {video.embedUrl ? (
+                          <iframe
+                            src={video.embedUrl}
+                            title={video.title}
+                            allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                          />
+                        ) : (
+                          <div className="disease-video-coming-soon">
+                            <ClockCircleOutlined />
+                            <span>Coming Soon</span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="disease-video-info">
+                        <div className="disease-video-title">{video.title}</div>
+                        <div className="disease-video-meta">
+                          <span>{video.duration}</span> • <span>{video.views} views</span>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                ) ||
+                  (allVideos[selectedDiseaseId]?.["english"]?.map(
+                    (video: Video) => (
+                      <div key={video.id} className="disease-video-card">
+                        <div className="disease-video-wrapper">
+                          {video.embedUrl ? (
+                            <iframe
+                              src={video.embedUrl}
+                              title={video.title}
+                              allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+                              allowFullScreen
+                            />
+                          ) : (
+                            <div className="disease-video-coming-soon">
+                              <ClockCircleOutlined />
+                              <span>Coming Soon</span>
+                            </div>
+                          )}
+                        </div>
+                        <div className="disease-video-info">
+                          <div className="disease-video-title">{video.title}</div>
+                          <div className="disease-video-meta">
+                            <span>{video.duration}</span> • <span>{video.views} views</span>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  ) || [])}
+              </div>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 };

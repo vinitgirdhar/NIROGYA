@@ -133,7 +133,8 @@ export const AlertProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const fetchAlerts = useCallback(async () => {
     const token = localStorage.getItem('nirogya-token') || localStorage.getItem('paanicare-token');
     
-    if (!token) {
+    // Don't fetch if no token or no user logged in
+    if (!token || !user) {
       return;
     }
 
@@ -146,6 +147,12 @@ export const AlertProvider: React.FC<{ children: ReactNode }> = ({ children }) =
           'Content-Type': 'application/json'
         }
       });
+
+      if (response.status === 401) {
+        // Token expired or invalid, don't throw error, just return silently
+        console.log('Alert fetch: unauthorized, skipping');
+        return;
+      }
 
       if (!response.ok) {
         throw new Error('Failed to fetch alerts');
@@ -212,7 +219,8 @@ export const AlertProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const fetchOutbreakAlerts = useCallback(async () => {
     const token = localStorage.getItem('nirogya-token') || localStorage.getItem('paanicare-token');
     
-    if (!token) {
+    // Don't fetch if no token or no user logged in
+    if (!token || !user) {
       return;
     }
 
@@ -223,6 +231,12 @@ export const AlertProvider: React.FC<{ children: ReactNode }> = ({ children }) =
           'Content-Type': 'application/json'
         }
       });
+
+      if (response.status === 401) {
+        // Token expired or invalid, don't throw error
+        console.log('Outbreak fetch: unauthorized, skipping');
+        return;
+      }
 
       if (!response.ok) {
         throw new Error('Failed to fetch outbreak alerts');
@@ -290,35 +304,39 @@ export const AlertProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     setOutbreakUnreadCount(prev => Math.max(0, prev - 1));
   }, []);
 
-  // Initial fetch
+  // Initial fetch - only when user is logged in
   useEffect(() => {
-    fetchAlerts();
-    fetchOutbreakAlerts();
-  }, []);
+    if (user) {
+      fetchAlerts();
+      fetchOutbreakAlerts();
+    }
+  }, [user]);
 
-  // Poll for new alerts
+  // Poll for new alerts - only when user is logged in
   useEffect(() => {
+    if (!user) return;
     const interval = setInterval(fetchAlerts, POLL_INTERVAL);
     return () => clearInterval(interval);
-  }, [fetchAlerts]);
+  }, [fetchAlerts, user]);
 
-  // Poll for new outbreak alerts
+  // Poll for new outbreak alerts - only when user is logged in
   useEffect(() => {
+    if (!user) return;
     const interval = setInterval(fetchOutbreakAlerts, OUTBREAK_POLL_INTERVAL);
     return () => clearInterval(interval);
-  }, [fetchOutbreakAlerts]);
+  }, [fetchOutbreakAlerts, user]);
 
   // Listen for visibility changes to fetch when user returns to tab
   useEffect(() => {
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
+      if (document.visibilityState === 'visible' && user) {
         fetchAlerts();
         fetchOutbreakAlerts();
       }
     };
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [fetchAlerts, fetchOutbreakAlerts]);
+  }, [fetchAlerts, fetchOutbreakAlerts, user]);
 
   return (
     <AlertContext.Provider 

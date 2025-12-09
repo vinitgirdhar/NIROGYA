@@ -515,25 +515,38 @@ class TranslationService {
     const apiSourceLang = this.getApiLanguageCode(sourceLang);
     const apiTargetLang = this.getApiLanguageCode(targetLang);
 
-    const response = await fetch(LIBRE_TRANSLATE_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        q: text,
-        source: apiSourceLang,
-        target: apiTargetLang,
-        format: isHtml ? 'html' : 'text',
-      }),
-    });
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
 
-    if (!response.ok) {
-      throw new Error(`API error: ${response.status} ${response.statusText}`);
+      const response = await fetch(LIBRE_TRANSLATE_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          q: text,
+          source: apiSourceLang,
+          target: apiTargetLang,
+          format: isHtml ? 'html' : 'text',
+        }),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        console.warn(`Translation API error: ${response.status} - returning original text`);
+        return text;
+      }
+
+      const data = await response.json();
+      return data.translatedText || text;
+    } catch (error) {
+      // Silently return original text on any error (network, timeout, etc.)
+      console.warn('Translation API unavailable, using original text');
+      return text;
     }
-
-    const data = await response.json();
-    return data.translatedText || text;
   }
 
   /**
