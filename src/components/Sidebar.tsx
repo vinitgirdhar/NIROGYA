@@ -158,6 +158,7 @@ const baseMenuItems = [
   { key: '/reports', icon: <FileTextOutlined />, label: t('nav.reports'), badge: 0 },
   { key: '/goverment-reports', icon: <FileTextOutlined />, label: translatedLabels['Government Reports'] || 'Government Reports', badge: 0 },
   { key: '/self-report', icon: <MedicineBoxOutlined />, label: translatedLabels['Self Report Symptoms'] || 'Self Report Symptoms', badge: 0 },
+  { key: '/manage-users', icon: <UserOutlined />, label: 'Manage Users', badge: 0 },
 ];
 
 
@@ -181,7 +182,7 @@ const baseMenuItems = [
       case 'district_health_official':
         return ['/', '/disease-mapping', '/health', '/alerts', '/reports'];
       case 'government_body':
-        return all.filter(k => !['/asha-communication', '/ai-prediction', '/report-symptoms', '/self-report', '/community'].includes(k));
+        return all.filter(k => !['/asha-communication', '/ai-prediction', '/report-symptoms', '/self-report', '/community'].includes(k)).concat(['/manage-users']);
       case 'volunteer':
         return ['/', '/community', '/report-symptoms', '/alerts', '/education'];
       default:

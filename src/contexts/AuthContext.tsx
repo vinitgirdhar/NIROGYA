@@ -229,10 +229,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   /* ---------------------------------------------------------
-     LOGIN (FRONTEND-ONLY MOCK)
+     LOGIN (WITH REAL BACKEND API)
   --------------------------------------------------------- */
+  const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+  
   const login = async (email: string, password: string): Promise<boolean> => {
-    console.log("=== MOCK LOGIN (FRONTEND-ONLY) ===");
+    console.log("=== LOGIN WITH BACKEND API ===");
     console.log("📧 Email:", email);
     
     setLoading(true);
@@ -244,42 +246,62 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return false;
       }
 
-      // Simulate network delay
-      await simulateDelay(800);
+      // Call real backend API
+      console.log("📡 Sending login request to:", `${API_BASE}/api/auth/login`);
+      const response = await fetch(`${API_BASE}/api/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
 
-      // Find user in mock database
-      const allUsers = getAllUsers();
-      const foundUser = allUsers.find(
-        u => u.email.toLowerCase() === email.toLowerCase() && u.password === password
-      );
-
-      if (!foundUser) {
-        console.error("❌ Invalid credentials");
-        message.error("Invalid email or password");
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error("❌ Login failed:", errorData);
+        message.error(errorData.detail || "Invalid email or password");
         return false;
       }
 
-      // Create user object (without password)
-      const { password: _, ...userWithoutPassword } = foundUser;
-      const authenticatedUser: User = userWithoutPassword as User;
+      const data = await response.json();
+      console.log("✅ Login response:", data);
 
-      // Generate mock token
-      const mockToken = `mock_token_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      
+      // Extract token and user from response
+      const token = data.access_token;
+      const userFromApi = data.user;
+
+      if (!token || !userFromApi) {
+        console.error("❌ Invalid response format");
+        message.error("Login failed. Please try again.");
+        return false;
+      }
+
+      // Create user object matching our User interface
+      const authenticatedUser: User = {
+        id: userFromApi.id,
+        email: userFromApi.email,
+        name: userFromApi.full_name || userFromApi.email.split('@')[0],
+        role: userFromApi.role,
+        organization: userFromApi.organization,
+        location: userFromApi.location,
+        phone: userFromApi.phone,
+        district: userFromApi.district,
+      };
+
       // Save to localStorage
-      localStorage.setItem("paanicare-token", mockToken);
+      localStorage.setItem("paanicare-token", token);
       localStorage.setItem("paanicare-user", JSON.stringify(authenticatedUser));
       
       // Update state
       setUser(authenticatedUser);
 
-      console.log("✅ Mock login successful:", authenticatedUser);
+      console.log("✅ Login successful:", authenticatedUser);
       message.success(`Welcome back, ${authenticatedUser.name}!`);
       return true;
 
     } catch (error) {
       console.error("❌ Login error:", error);
-      message.error("Login failed. Please try again.");
+      message.error("Login failed. Please check your connection and try again.");
       return false;
     } finally {
       setLoading(false);
@@ -287,10 +309,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   /* ---------------------------------------------------------
-     REGISTER (FRONTEND-ONLY MOCK)
+     REGISTER (WITH REAL BACKEND API)
   --------------------------------------------------------- */
   const register = async (data: RegisterData): Promise<boolean> => {
-    console.log("=== MOCK REGISTRATION (FRONTEND-ONLY) ===");
+    console.log("=== REGISTER WITH BACKEND API ===");
     setLoading(true);
 
     try {
@@ -306,39 +328,36 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return false;
       }
 
-      // Check if email already exists
-      const allUsers = getAllUsers();
-      const existingUser = allUsers.find(
-        u => u.email.toLowerCase() === data.email.toLowerCase()
-      );
+      // Call real backend API
+      console.log("📡 Sending register request to:", `${API_BASE}/api/auth/register`);
+      const response = await fetch(`${API_BASE}/api/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          full_name: data.name.trim(),
+          email: data.email.trim().toLowerCase(),
+          password: data.password,
+          confirm_password: data.confirmPassword || data.password,
+          role: data.role || "community_user",
+          organization: data.organization?.trim(),
+          location: data.location?.trim(),
+          phone: data.phone?.trim(),
+          district: data.district?.trim(),
+        }),
+      });
 
-      if (existingUser) {
-        message.error("This email is already registered");
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error("❌ Registration failed:", errorData);
+        message.error(errorData.detail || "Registration failed. Please try again.");
         return false;
       }
 
-      // Simulate network delay
-      await simulateDelay(1000);
+      const userData = await response.json();
+      console.log("✅ Registration response:", userData);
 
-      // Create new user
-      const newUser = {
-        id: `user_${Date.now()}`,
-        email: data.email.trim().toLowerCase(),
-        password: data.password, // In real app, this would be hashed
-        name: data.name.trim(),
-        role: data.role || "community_user",
-        organization: data.organization?.trim(),
-        location: data.location?.trim(),
-        phone: data.phone?.trim(),
-        district: data.district?.trim(),
-        village: data.village?.trim(),
-        specialization: data.specialization?.trim(),
-      };
-
-      // Save to registered users
-      saveRegisteredUser(newUser);
-
-      console.log("✅ Mock registration successful:", newUser.email);
       message.success("Account created successfully!");
 
       // Auto-login
@@ -352,7 +371,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     } catch (error) {
       console.error("❌ Registration error:", error);
-      message.error("Registration failed. Please try again.");
+      message.error("Registration failed. Please check your connection and try again.");
       return false;
     } finally {
       setLoading(false);

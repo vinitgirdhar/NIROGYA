@@ -48,10 +48,21 @@ class UserLogin(BaseModel):
     password: str
 
 
+class UserInToken(BaseModel):
+    id: str
+    email: str
+    role: str
+    full_name: Optional[str] = None
+    organization: Optional[str] = None
+    location: Optional[str] = None
+    phone: Optional[str] = None
+
+
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     expires_in: int
+    user: Optional[UserInToken] = None
 
 
 # ---------------------------
