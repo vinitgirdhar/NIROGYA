@@ -14,7 +14,10 @@ import {
   Avatar,
   Tag,
   Modal,
-  message
+  message,
+  Form,
+  DatePicker,
+  Upload
 } from 'antd';
 import {
   SearchOutlined,
@@ -27,9 +30,12 @@ import {
   BarChartOutlined,
   FileProtectOutlined,
   GlobalOutlined,
-  CalendarOutlined
+  CalendarOutlined,
+  PlusOutlined,
+  UploadOutlined
 } from '@ant-design/icons';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useAuth } from '../contexts/AuthContext';
 import './GovermentReports.css';
 
 const { Title, Text } = Typography;
@@ -53,6 +59,8 @@ interface Report {
 
 const GovernmentReports: React.FC = () => {
   const { t } = useLanguage();
+  const { user } = useAuth();
+  const [addReportForm] = Form.useForm();
   const translations = {
     governmentReports: {
       title: t('governmentReports.title'),
@@ -127,6 +135,9 @@ const GovernmentReports: React.FC = () => {
   const [previewVisible, setPreviewVisible] = useState(false);
   const [selectedReportForPreview, setSelectedReportForPreview] = useState<Report | null>(null);
   const [reports, setReports] = useState<Report[]>([]);
+  const [addReportModalVisible, setAddReportModalVisible] = useState(false);
+  const [addingReport, setAddingReport] = useState(false);
+  const [uploadedFile, setUploadedFile] = useState<any>(null);
 
   // Government reports data using actual PDF files from the report folder
   useEffect(() => {
@@ -529,6 +540,53 @@ const GovernmentReports: React.FC = () => {
     setSelectedReportForPreview(null);
   };
 
+  // Add Report handlers
+  const handleOpenAddReportModal = () => {
+    setAddReportModalVisible(true);
+  };
+
+  const handleCloseAddReportModal = () => {
+    setAddReportModalVisible(false);
+    addReportForm.resetFields();
+    setUploadedFile(null);
+  };
+
+  const handleAddReport = async (values: any) => {
+    setAddingReport(true);
+    try {
+      const newReport: Report = {
+        id: String(Date.now()),
+        title: values.title,
+        department: values.department,
+        issueDate: values.issueDate.format('YYYY-MM-DD'),
+        reportType: values.reportType,
+        region: values.region,
+        status: values.status || 'new',
+        description: values.description,
+        downloadUrl: values.downloadUrl || `/report/${values.title.replace(/[^a-zA-Z0-9]/g, '-')}.pdf`,
+        viewUrl: `/report/view/${values.title.replace(/[^a-zA-Z0-9]/g, '-')}`,
+        tags: values.tags ? values.tags.split(',').map((tag: string) => tag.trim()) : [],
+        fileSize: uploadedFile ? `${(uploadedFile.size / (1024 * 1024)).toFixed(1)} MB` : '0 MB',
+        downloads: 0
+      };
+
+      setReports(prev => [newReport, ...prev]);
+      message.success('Report added successfully!');
+      handleCloseAddReportModal();
+    } catch (error) {
+      message.error('Failed to add report');
+    } finally {
+      setAddingReport(false);
+    }
+  };
+
+  const handleFileUpload = (info: any) => {
+    if (info.file.status === 'done' || info.file.originFileObj) {
+      setUploadedFile(info.file.originFileObj || info.file);
+      message.success(`${info.file.name} file selected`);
+    }
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'urgent': return 'red';
@@ -645,6 +703,18 @@ const GovernmentReports: React.FC = () => {
               >
                 {tr.search}
               </Button>
+
+              {/* Add Report Button - Only visible to government users */}
+              {user && ['government_body', 'admin'].includes(user.role) && (
+                <Button
+                  type="primary"
+                  icon={<PlusOutlined />}
+                  onClick={handleOpenAddReportModal}
+                  style={{ background: '#52c41a', borderColor: '#52c41a' }}
+                >
+                  Add Report
+                </Button>
+              )}
             </Space>
           </Col>
         </Row>
@@ -891,6 +961,150 @@ const GovernmentReports: React.FC = () => {
             </div>
           </div>
         )}
+      </Modal>
+
+      {/* Add Report Modal */}
+      <Modal
+        title={
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <PlusOutlined style={{ color: '#52c41a' }} />
+            <span>Add New Government Report</span>
+          </div>
+        }
+        open={addReportModalVisible}
+        onCancel={handleCloseAddReportModal}
+        footer={null}
+        width={700}
+      >
+        <Form
+          form={addReportForm}
+          layout="vertical"
+          onFinish={handleAddReport}
+          initialValues={{ region: 'National', status: 'new' }}
+        >
+          <Form.Item
+            name="title"
+            label="Report Title"
+            rules={[{ required: true, message: 'Please enter report title' }]}
+          >
+            <Input placeholder="Enter report title" />
+          </Form.Item>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="department"
+                label="Department"
+                rules={[{ required: true, message: 'Please enter department' }]}
+              >
+                <Input placeholder="e.g., Ministry of Health & Family Welfare" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="issueDate"
+                label="Issue Date"
+                rules={[{ required: true, message: 'Please select issue date' }]}
+              >
+                <DatePicker style={{ width: '100%' }} />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="reportType"
+                label="Report Type"
+                rules={[{ required: true, message: 'Please select report type' }]}
+              >
+                <Select placeholder="Select report type">
+                  <Option value="Assessment">Assessment</Option>
+                  <Option value="Surveillance">Surveillance</Option>
+                  <Option value="Annual Report">Annual Report</Option>
+                  <Option value="Policy">Policy</Option>
+                  <Option value="Guidelines">Guidelines</Option>
+                  <Option value="Research Paper">Research Paper</Option>
+                  <Option value="Technical Report">Technical Report</Option>
+                  <Option value="Statistical Report">Statistical Report</Option>
+                  <Option value="Monitoring Report">Monitoring Report</Option>
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="region"
+                label="Region"
+                rules={[{ required: true, message: 'Please enter region' }]}
+              >
+                <Input placeholder="National" />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="status"
+                label="Status"
+                rules={[{ required: true, message: 'Please select status' }]}
+              >
+                <Select>
+                  <Option value="new">New</Option>
+                  <Option value="updated">Updated</Option>
+                  <Option value="urgent">Urgent</Option>
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="file"
+                label="Upload File"
+              >
+                <Upload
+                  beforeUpload={() => false}
+                  onChange={handleFileUpload}
+                  maxCount={1}
+                  accept=".pdf,.doc,.docx"
+                >
+                  <Button icon={<UploadOutlined />}>Select File</Button>
+                </Upload>
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Form.Item
+            name="description"
+            label="Description"
+            rules={[{ required: true, message: 'Please enter description' }]}
+          >
+            <Input.TextArea rows={4} placeholder="Enter detailed description of the report" />
+          </Form.Item>
+
+          <Form.Item
+            name="tags"
+            label="Tags (comma separated)"
+            rules={[{ required: true, message: 'Please enter tags' }]}
+          >
+            <Input placeholder="e.g., Water Quality, Assessment, National" />
+          </Form.Item>
+
+          <Form.Item
+            name="downloadUrl"
+            label="Download URL (optional)"
+          >
+            <Input placeholder="e.g., /report/report-name.pdf" />
+          </Form.Item>
+
+          <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
+            <Space>
+              <Button onClick={handleCloseAddReportModal}>Cancel</Button>
+              <Button type="primary" htmlType="submit" loading={addingReport} style={{ background: '#52c41a', borderColor: '#52c41a' }}>
+                Add Report
+              </Button>
+            </Space>
+          </Form.Item>
+        </Form>
       </Modal>
     </div>
   );
