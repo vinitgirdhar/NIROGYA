@@ -231,7 +231,7 @@ function App() {
                 </ProtectedRoute>
               } />
               <Route path="/goverment-reports" element={
-                <ProtectedRoute requiredRole={["district_health_official", "government_body", "community_user", "volunteer"]}>
+                <ProtectedRoute requiredRole={["admin", "district_health_official", "government_body", "community_user", "volunteer"]}>
                   <Layout type="dashboard"> 
                     <GovernmentReports />
                   </Layout>

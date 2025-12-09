@@ -176,18 +176,18 @@ const baseMenuItems = [
 
     switch (role) {
       case 'admin':
-        return all.filter(k => !['/government/manage-users', '/government/manage-accounts', '/self-report', '/community', '/complaints-management'].includes(k));
+        return all.filter(k => !['/government/manage-users', '/government/manage-accounts', '/self-report', '/community', '/complaints-management', '/complaint-form'].includes(k)).concat(['/accounts']);
       case 'asha_worker':
         // ASHA: dashboard, asha communication, report water, report symptoms, alerts, education, complaint form
         return ['/', '/asha-communication', '/ai-prediction', '/report-symptoms', '/alerts', '/education', '/complaint-form'];
       case 'community_user':
-        return ['/', '/alerts', '/education', '/self-report', '/goverment-reports'];
+        return ['/', '/alerts', '/education', '/self-report', '/goverment-reports', '/complaint-form'];
       case 'healthcare_worker':
         return ['/', '/health', '/disease-mapping', '/alerts'];
       case 'district_health_official':
         return ['/', '/disease-mapping', '/health', '/alerts', '/reports'];
       case 'government_body':
-        return all.filter(k => !['/asha-communication', '/ai-prediction', '/report-symptoms', '/self-report', '/community', '/complaint-form'].includes(k)).concat(['/manage-users', '/complaints-management', '/accounts']);
+        return all.filter(k => !['/asha-communication', '/ai-prediction', '/report-symptoms', '/self-report', '/community', '/complaint-form', '/reports'].includes(k)).concat(['/manage-users', '/complaints-management', '/accounts']);
       case 'volunteer':
         return ['/', '/community', '/report-symptoms', '/alerts', '/education'];
       default:

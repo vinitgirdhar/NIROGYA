@@ -151,6 +151,7 @@ const LeafletMap: React.FC<LeafletMapProps> = ({
           }
         }
       });
+    
 
       mapInstanceRef.current = map;
 
