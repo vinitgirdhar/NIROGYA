@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
+import { App as AntdApp } from 'antd';
 import { AuthProvider } from './contexts/AuthContext';
 import { AlertProvider } from './contexts/AlertContext';
 import { ThemeProvider } from './components/ThemeProvider';
@@ -36,7 +37,10 @@ import SelfReport from './pages/SelfReport';
 import SymptomReporting from './pages/SymptomReporting';
 import ManageUsers from './pages/ManageUsers';
 import AdminReports from './pages/AdminReports';
-import ProfileDrawer from './pages/ProfileDrawer';    
+import ProfileDrawer from './pages/ProfileDrawer';
+import ComplaintForm from './pages/ComplainForm';
+import ComplaintsManagement from './pages/ComplainsManagment';
+import GovernmentManagement from './pages/GovernmentManagement';
 import './App.css';
 import './locales';
 const ProfileRoute = () => {
@@ -50,12 +54,13 @@ const ProfileRoute = () => {
 };
 function App() {
   return (
-    <AuthProvider>
-      <AlertProvider>
-        <ThemeProvider>
-          <LanguageProvider>
-            <Router>
-              <Routes>
+    <AntdApp>
+      <AuthProvider>
+        <AlertProvider>
+          <ThemeProvider>
+            <LanguageProvider>
+              <Router>
+                <Routes>
 
                 {/* Public pages */}
                 <Route path="/" element={<Home />} />
@@ -125,6 +130,8 @@ function App() {
                   </Layout>
                 </ProtectedRoute>
               } />
+
+            
 
               {/* Disease Mapping */}
               <Route path="/disease-mapping" element={
@@ -247,6 +254,24 @@ function App() {
                 </ProtectedRoute>
               } />
 
+              {/* Complaint Form - ASHA Workers and Admin */}
+              <Route path="/complaint-form" element={
+                <ProtectedRoute requiredRole={["asha_worker", "admin"]}>
+                  <Layout type="dashboard">
+                    <ComplaintForm />
+                  </Layout>
+                </ProtectedRoute>
+              } />
+
+              {/* Complaints Management - Government Officials */}
+              <Route path="/complaints-management" element={
+                <ProtectedRoute requiredRole="government_body">
+                  <Layout type="dashboard">
+                    <ComplaintsManagement />
+                  </Layout>
+                </ProtectedRoute>
+              } />
+
               {/* Alternative route for Government section */}
               <Route path="/government/manage-users" element={
                 <ProtectedRoute requiredRole="government_body">
@@ -255,12 +280,22 @@ function App() {
                   </Layout>
                 </ProtectedRoute>
               } />
-            </Routes>
-          </Router>
-        </LanguageProvider>
-      </ThemeProvider>
-      </AlertProvider>
-    </AuthProvider>
+
+              {/* Accounts - Government Officials and Admin */}
+              <Route path="/accounts" element={
+                <ProtectedRoute requiredRole={["government_body", "admin"]}>
+                  <Layout type="dashboard">
+                    <GovernmentManagement />
+                  </Layout>
+                </ProtectedRoute>
+              } />
+                </Routes>
+              </Router>
+            </LanguageProvider>
+          </ThemeProvider>
+        </AlertProvider>
+      </AuthProvider>
+    </AntdApp>
   );
 }
 

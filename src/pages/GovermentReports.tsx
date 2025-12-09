@@ -643,7 +643,7 @@ const GovernmentReports: React.FC = () => {
                 onClick={handleSearch}
                 loading={loading}
               >
-                {tr.searchBtn}
+                {tr.search}
               </Button>
             </Space>
           </Col>

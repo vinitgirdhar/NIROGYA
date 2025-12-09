@@ -1,0 +1,838 @@
+/* Government Reports Page Styles */
+.government-reports-layout {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.government-reports-content {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Header Styles */
+.page-header {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border-radius: 16px;
+  padding: 32px;
+  margin-bottom: 24px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.header-icon {
+  font-size: 48px;
+  color: #1890ff;
+  background: linear-gradient(45deg, #1890ff, #722ed1);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.main-title {
+  margin: 0 !important;
+  background: linear-gradient(45deg, #1890ff, #722ed1);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 700;
+}
+
+.subtitle {
+  color: #64748b;
+  font-size: 16px;
+  margin-top: 8px;
+}
+
+.header-stats {
+  display: flex;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+
+.header-stats .ant-statistic {
+  text-align: center;
+}
+
+.header-stats .ant-statistic-content-value {
+  color: #1890ff;
+  font-weight: 600;
+}
+
+/* Filters Card */
+.filters-card {
+  margin-bottom: 24px;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  border: none;
+}
+
+.filters-card .ant-card-body {
+  padding: 24px;
+}
+
+/* Stats Row */
+.stats-row {
+  margin-bottom: 24px;
+}
+
+/* Overview Card - Publication Statistics */
+.overview-card {
+  margin-bottom: 24px;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  border: none;
+  background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%);
+}
+
+.overview-card .ant-card-head {
+  border-bottom: 2px solid #e8f2ff;
+  padding: 16px 24px;
+}
+
+.overview-card .ant-card-head-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1890ff;
+}
+
+.overview-card .ant-card-body {
+  padding: 24px;
+}
+
+.stat-card {
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+}
+
+.stat-card .ant-statistic-title {
+  color: #64748b;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.stat-card .ant-statistic-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.stat-card .anticon {
+  font-size: 24px;
+}
+
+/* Content Card */
+.content-card {
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  border: none;
+  margin-bottom: 24px;
+}
+
+.content-card .ant-card-body {
+  padding: 0;
+}
+
+.content-card .ant-tabs {
+  padding: 0 24px;
+}
+
+.content-card .ant-tabs-tab {
+  font-weight: 500;
+  padding: 16px 24px;
+}
+
+.content-card .ant-tabs-tab-active {
+  background: linear-gradient(45deg, #1890ff, #722ed1);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Reports Section */
+.reports-section {
+  padding: 0 24px 24px;
+}
+
+.report-item {
+  padding: 0 !important;
+  margin-bottom: 16px;
+}
+
+.report-item:last-child {
+  margin-bottom: 0;
+}
+
+.report-card {
+  border-radius: 12px;
+  border: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.report-card:hover {
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+
+.report-info {
+  padding: 8px 0;
+}
+
+.report-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+  gap: 16px;
+}
+
+.report-title {
+  margin: 0 !important;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1e293b;
+  flex: 1;
+}
+
+.report-meta {
+  margin-bottom: 12px;
+}
+
+.report-meta .anticon {
+  margin-right: 4px;
+  color: #64748b;
+}
+
+.report-meta span {
+  color: #64748b;
+  font-size: 14px;
+}
+
+.report-description {
+  color: #475569;
+  margin: 0 !important;
+}
+
+.report-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 8px 0;
+}
+
+/* No Reports */
+.no-reports {
+  text-align: center;
+  padding: 80px 20px;
+  color: #64748b;
+}
+
+.no-reports-icon {
+  font-size: 72px;
+  color: #e2e8f0;
+  margin-bottom: 24px;
+}
+
+.no-reports h3 {
+  color: #475569;
+  margin-bottom: 8px !important;
+}
+
+/* Support Section */
+.support-section {
+  margin-top: 32px;
+}
+
+.contact-card {
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  border: none;
+  height: 100%;
+}
+
+.contact-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.contact-icon {
+  font-size: 24px;
+  color: #1890ff;
+}
+
+.contact-card h4 {
+  margin: 0 !important;
+  color: #1e293b;
+}
+
+.contact-card .ant-space-vertical {
+  width: 100%;
+}
+
+.contact-card .ant-space-vertical .ant-space-item {
+  color: #475569;
+  font-size: 14px;
+}
+
+/* Modal Styles */
+.report-preview {
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.report-preview-meta {
+  background: #f8fafc;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.report-preview-content {
+  padding: 16px 0;
+}
+
+.mock-report-content {
+  margin-top: 24px;
+}
+
+.mock-report-content h5 {
+  color: #1e293b;
+  font-weight: 600;
+  margin-bottom: 12px !important;
+}
+
+.mock-report-content ul {
+  margin-bottom: 24px;
+}
+
+.mock-report-content li {
+  color: #475569;
+  margin-bottom: 8px;
+  line-height: 1.6;
+}
+
+/* Badge Customization */
+.ant-badge-status-success {
+  background-color: #52c41a;
+}
+
+.ant-badge-status-error {
+  background-color: #ff4d4f;
+}
+
+.ant-badge-status-processing {
+  background-color: #1890ff;
+}
+
+.ant-badge-status-default {
+  background-color: #d9d9d9;
+}
+
+/* Tag Colors */
+.ant-tag.ant-tag-red {
+  background: #fff2f0;
+  border-color: #ffccc7;
+  color: #cf1322;
+}
+
+.ant-tag.ant-tag-orange {
+  background: #fff7e6;
+  border-color: #ffd591;
+  color: #d46b08;
+}
+
+.ant-tag.ant-tag-blue {
+  background: #e6f7ff;
+  border-color: #91d5ff;
+  color: #0958d9;
+}
+
+.ant-tag.ant-tag-green {
+  background: #f6ffed;
+  border-color: #b7eb8f;
+  color: #389e0d;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .government-reports-content {
+    padding: 16px;
+  }
+
+  .page-header {
+    padding: 24px 16px;
+  }
+
+  .header-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .header-stats {
+    gap: 16px;
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .report-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .report-actions {
+    justify-content: flex-start;
+    margin-top: 16px;
+  }
+
+  .report-actions .ant-space {
+    width: 100%;
+  }
+
+  .report-actions .ant-btn {
+    flex: 1;
+  }
+
+  .contact-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .no-reports {
+    padding: 40px 20px;
+  }
+
+  .no-reports-icon {
+    font-size: 48px;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-stats {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .report-meta .ant-space {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .report-meta .ant-divider {
+    display: none;
+  }
+
+  .support-section .ant-col {
+    margin-bottom: 16px;
+  }
+}
+
+/* Animation Enhancements */
+.report-card,
+.stat-card,
+.contact-card {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Loading States */
+.loading-spinner {
+  text-align: center;
+  padding: 40px;
+}
+
+/* Button Customizations */
+.ant-btn-primary {
+  background: linear-gradient(45deg, #1890ff, #722ed1);
+  border: none;
+  box-shadow: 0 4px 16px rgba(24, 144, 255, 0.3);
+}
+
+.ant-btn-primary:hover,
+.ant-btn-primary:focus {
+  background: linear-gradient(45deg, #40a9ff, #9254de);
+  box-shadow: 0 6px 20px rgba(24, 144, 255, 0.4);
+}
+
+/* Input and Select Customizations */
+.ant-input:focus,
+.ant-input-focused,
+.ant-select:not(.ant-select-disabled):hover .ant-select-selector,
+.ant-select-focused:not(.ant-select-disabled).ant-select:not(.ant-select-customize-input) .ant-select-selector {
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+/* Professional Report Item Styling */
+.professional-report-item {
+  padding: 24px !important;
+  background: linear-gradient(135deg, #ffffff 0%, #fafbfc 100%);
+  border-radius: 12px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+  border-left: 4px solid #1890ff;
+}
+
+.professional-report-item:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+  border-left-color: #40a9ff;
+}
+
+.report-meta-enhanced {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-end;
+  min-width: 200px;
+}
+
+.status-section {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.status-tag {
+  font-weight: 600;
+  border-radius: 6px;
+  padding: 4px 12px;
+  font-size: 12px;
+}
+
+.metrics-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-end;
+}
+
+.file-size, .download-count {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+}
+
+.report-title-section h4 {
+  line-height: 1.4;
+  font-weight: 600;
+}
+
+.report-description-section {
+  margin-top: 8px;
+}
+
+.report-content {
+  margin-top: 16px;
+}
+
+.report-tags {
+  margin-top: 12px;
+}
+
+/* Analytics Section Styling */
+.analytics-card {
+  margin-bottom: 24px;
+}
+
+.analytics-item {
+  height: 100%;
+  border: 1px solid #e8e8e8;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.analytics-item:hover {
+  border-color: #1890ff;
+  box-shadow: 0 4px 16px rgba(24, 144, 255, 0.15);
+}
+
+.analytics-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.analytics-content h4 {
+  margin: 0;
+  color: #1d39c4;
+  font-weight: 600;
+}
+
+.analytics-metrics {
+  margin-bottom: 16px;
+}
+
+.analytics-metrics .ant-statistic-title {
+  font-size: 12px;
+  color: #8c8c8c;
+  margin-bottom: 4px;
+}
+
+.analytics-metrics .ant-statistic-content-value {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+/* Enhanced Statistics Cards */
+.stat-card .ant-statistic-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.stat-card .ant-statistic-content-suffix {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* Custom Scrollbar */
+.report-preview::-webkit-scrollbar {
+  width: 6px;
+}
+
+.report-preview::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.report-preview::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.report-preview::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Professional Button Styling */
+.ant-btn-primary {
+  background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+  border: none;
+  border-radius: 6px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.ant-btn-primary:hover {
+  background: linear-gradient(135deg, #40a9ff 0%, #1890ff 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.4);
+}
+
+.ant-btn-default {
+  border-radius: 6px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.ant-btn-default:hover {
+  border-color: #1890ff;
+  color: #1890ff;
+  transform: translateY(-1px);
+}
+
+/* Enhanced Card Styling */
+.latest-reports-card .ant-card-head {
+  border-bottom: 2px solid #f0f0f0;
+  background: linear-gradient(135deg, #fafbfc 0%, #ffffff 100%);
+}
+
+.latest-reports-card .ant-card-head-title {
+  font-weight: 600;
+  color: #1d39c4;
+}
+
+/* Loading and Empty States */
+.loading-spinner {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.loading-spinner .ant-spin-dot {
+  font-size: 24px;
+}
+
+/* Responsive Enhancements */
+@media (max-width: 768px) {
+  .professional-report-item {
+    padding: 16px !important;
+  }
+  
+  .report-meta-enhanced {
+    min-width: auto;
+    align-items: flex-start;
+  }
+  
+  .analytics-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .analytics-metrics .ant-row {
+    text-align: center;
+  }
+}
+
+/* Improved Tag Styling */
+.ant-tag {
+  border-radius: 4px;
+  font-weight: 500;
+  padding: 2px 8px;
+  font-size: 12px;
+}
+
+.ant-tag-processing {
+  background: #e6f7ff;
+  border-color: #91d5ff;
+  color: #0958d9;
+}
+
+/* PDF Preview Modal Styling */
+.pdf-preview-container {
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.pdf-metadata {
+  background: #fafbfc;
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.pdf-metadata .ant-typography {
+  margin-bottom: 4px;
+}
+
+.pdf-viewer-section {
+  background: #ffffff;
+  border-radius: 8px;
+}
+
+.pdf-viewer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 0;
+  border-bottom: 1px solid #e8e8e8;
+  margin-bottom: 16px;
+}
+
+.pdf-viewer-header h4 {
+  margin: 0;
+  color: #1d39c4;
+}
+
+.pdf-embed-container {
+  position: relative;
+  background: #f8f9fa;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.pdf-embed-container iframe {
+  display: block;
+  width: 100%;
+  min-height: 600px;
+  border: none;
+  border-radius: 8px;
+}
+
+.pdf-fallback {
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.pdf-fallback .ant-alert {
+  text-align: left;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+/* Modal Header Enhancement */
+.ant-modal-header {
+  background: linear-gradient(135deg, #fafbfc 0%, #ffffff 100%);
+  border-radius: 8px 8px 0 0;
+}
+
+.ant-modal-title {
+  color: #1d39c4;
+  font-weight: 600;
+}
+
+/* Loading State for PDF */
+.pdf-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 400px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.pdf-loading .ant-spin {
+  font-size: 24px;
+}
+
+/* Responsive PDF Viewer */
+@media (max-width: 768px) {
+  .pdf-embed-container iframe {
+    min-height: 400px;
+  }
+  
+  .pdf-metadata {
+    padding: 16px;
+  }
+  
+  .pdf-viewer-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}

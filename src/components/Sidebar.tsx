@@ -20,7 +20,9 @@ import {
   ThunderboltOutlined,
   BookOutlined,
   FileTextOutlined,
-  MedicineBoxOutlined
+  MedicineBoxOutlined,
+  FileProtectOutlined,
+  SolutionOutlined
 } from '@ant-design/icons';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -36,7 +38,7 @@ const { Text } = Typography;
 interface SidebarProps {
   collapsed: boolean;
   onCollapse: (collapsed: boolean) => void;
-}
+} 
 
 interface SidebarSettings {
   theme: 'light' | 'dark' | 'blue' | 'purple' | 'green';
@@ -159,6 +161,9 @@ const baseMenuItems = [
   { key: '/goverment-reports', icon: <FileTextOutlined />, label: translatedLabels['Government Reports'] || 'Government Reports', badge: 0 },
   { key: '/self-report', icon: <MedicineBoxOutlined />, label: translatedLabels['Self Report Symptoms'] || 'Self Report Symptoms', badge: 0 },
   { key: '/manage-users', icon: <UserOutlined />, label: 'Manage Users', badge: 0 },
+  { key: '/complaint-form', icon: <FileProtectOutlined />, label: 'Submit Complaint', badge: 0 },
+  { key: '/complaints-management', icon: <FileProtectOutlined />, label: 'Complaints Management', badge: 0 },
+  { key: '/accounts', icon: <SolutionOutlined />, label: 'Accounts', badge: 0 },
 ];
 
 
@@ -171,10 +176,10 @@ const baseMenuItems = [
 
     switch (role) {
       case 'admin':
-        return all.filter(k => !['/government/manage-users', '/government/manage-accounts', '/self-report', '/community'].includes(k));
+        return all.filter(k => !['/government/manage-users', '/government/manage-accounts', '/self-report', '/community', '/complaints-management'].includes(k));
       case 'asha_worker':
-        // ASHA: dashboard, asha communication, report water, report symptoms, alerts, education
-        return ['/', '/asha-communication', '/ai-prediction', '/report-symptoms', '/alerts', '/education'];
+        // ASHA: dashboard, asha communication, report water, report symptoms, alerts, education, complaint form
+        return ['/', '/asha-communication', '/ai-prediction', '/report-symptoms', '/alerts', '/education', '/complaint-form'];
       case 'community_user':
         return ['/', '/alerts', '/education', '/self-report', '/goverment-reports'];
       case 'healthcare_worker':
@@ -182,7 +187,7 @@ const baseMenuItems = [
       case 'district_health_official':
         return ['/', '/disease-mapping', '/health', '/alerts', '/reports'];
       case 'government_body':
-        return all.filter(k => !['/asha-communication', '/ai-prediction', '/report-symptoms', '/self-report', '/community'].includes(k)).concat(['/manage-users']);
+        return all.filter(k => !['/asha-communication', '/ai-prediction', '/report-symptoms', '/self-report', '/community', '/complaint-form'].includes(k)).concat(['/manage-users', '/complaints-management', '/accounts']);
       case 'volunteer':
         return ['/', '/community', '/report-symptoms', '/alerts', '/education'];
       default:

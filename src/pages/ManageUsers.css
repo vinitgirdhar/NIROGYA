@@ -81,7 +81,7 @@
 /* Stats Row */
 .stats-row {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 0;
   border-top: 1px solid #e2e8f0;
   padding-top: 24px;
@@ -93,7 +93,9 @@
   align-items: center;
   justify-content: center;
   position: relative;
-  padding: 0 16px;
+  padding: 0 12px;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .stat-item:not(:last-child)::after {
@@ -122,6 +124,10 @@
   letter-spacing: 0.05em;
   margin-bottom: 8px;
   text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 /* =========================================
@@ -136,8 +142,8 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   border: 1px solid #e2e8f0;
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr auto;
-  gap: 16px;
+  grid-template-columns: minmax(200px, 2fr) minmax(120px, 1fr) minmax(120px, 1fr) minmax(120px, 1fr) auto;
+  gap: 12px;
   align-items: center;
 }
 
@@ -279,6 +285,8 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .user-avatar {
@@ -318,16 +326,24 @@
 .user-info {
   display: flex;
   flex-direction: column;
+  min-width: 0;
+  flex: 1;
 }
 
 .user-name {
   font-weight: 600;
   color: #0f172a;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .user-email {
   font-size: 13px;
   color: #64748b;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Role Badge */
@@ -848,23 +864,58 @@
    9. RESPONSIVE DESIGN
    ========================================= */
 
-@media (max-width: 1024px) {
+/* Ensure proper layout at standard zoom (100%) */
+@media (min-width: 1201px) and (max-width: 1450px) {
   .filters-card {
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: minmax(180px, 1.5fr) minmax(110px, 1fr) minmax(110px, 1fr) minmax(110px, 1fr) auto;
+    gap: 10px;
+  }
+  
+  .stats-row {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+  
+  .stat-item {
+    padding: 0 8px;
+  }
+  
+  .stat-label {
+    font-size: 10px;
+  }
+  
+  .header-card {
+    padding: 24px 20px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .filters-card {
+    grid-template-columns: 1fr;
     gap: 12px;
   }
 
   .filters-card .search-input-wrapper {
-    grid-column: span 3;
+    grid-column: span 1;
   }
 
   .stats-row {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 12px;
   }
 
   .stat-item:not(:last-child)::after {
     display: none;
+  }
+  
+  .stat-item {
+    padding: 12px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .stats-row {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
   }
 }
 

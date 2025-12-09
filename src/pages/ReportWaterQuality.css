@@ -1,27 +1,72 @@
-.water-quality-prediction {
-  padding: 24px;
-  max-width: 1400px;
-  margin: 0 auto;
-  min-height: calc(100vh - 80px);
-  background: var(--color-bg-container);
+/* ReportWaterQuality.css — Nirogya blue theme (Adapted from Community.css) */
+
+/* Root palette */
+:root {
+  --bg: #f5f7fb;
+  --hero-start: #1b75d0;   /* deep Nirogya blue */
+  --hero-end: #3ba7f4;     /* lighter blue */
+  --panel: rgba(255,255,255,0.95);
+  --card-tint: rgba(59,130,246,0.06);
+  --muted: #6b7280;
+  --text: #0f1724;
+  --accent: #0f766e;
+  --blue-border: rgba(59,130,246,0.14);
+  --glass: rgba(255,255,255,0.65);
+  --success: #059669;
+  --danger: #b91c1c;
+  --warning: #b45309;
+  --info: #1e40af;
+  --shadow: 0 10px 30px rgba(2,6,23,0.06);
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
 }
 
+.water-quality-prediction {
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  padding-bottom: 64px;
+  padding: 0; /* Reset padding */
+  margin: 0; /* Reset margin */
+}
+
+/* Header Section - Matching Education Hero */
 .prediction-header {
+  padding: 56px 24px 48px;
+  background: linear-gradient(90deg, var(--hero-start), var(--hero-end));
+  color: #ffffff;
   text-align: center;
   margin-bottom: 32px;
+  box-shadow: 0 6px 30px rgba(15, 50, 90, 0.12);
+  border-radius: 0;
+  border: none;
+  backdrop-filter: none;
 }
 
 .prediction-header h2 {
-  color: var(--primary-color);
-  font-size: 28px;
+  font-size: clamp(1.6rem, 3.8vw, 2.6rem);
+  font-weight: 800;
+  color: #ffffff !important;
   margin-bottom: 8px;
-  font-weight: 600;
+  background: none;
+  -webkit-text-fill-color: initial;
+  text-shadow: none;
 }
 
 .prediction-header p {
-  color: var(--text-secondary);
-  font-size: 16px;
-  margin: 0;
+  font-size: 1rem;
+  color: rgba(255,255,255,0.92);
+  max-width: 760px;
+  margin: 0 auto;
+  font-weight: 400;
+}
+
+/* Main Content Area */
+.water-quality-prediction > .ant-row {
+  max-width: 1400px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 24px;
+  padding-right: 24px;
 }
 
 /* Stats Row - Force 4 cards in a row */
@@ -30,6 +75,10 @@
   flex-wrap: nowrap !important;
   gap: 16px;
   margin-bottom: 24px;
+  max-width: 1400px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 0 24px;
 }
 
 .stats-row > .ant-col {
@@ -37,58 +86,41 @@
   min-width: 0 !important;
   max-width: none !important;
   margin-bottom: 0 !important;
-  padding: 0 8px;
-}
-
-/* Report ID Card Specific Styling */
-.report-id-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  width: 100%;
-}
-
-.report-id-card .report-id-text {
-  font-family: monospace;
-  font-size: 12px;
-  color: var(--text-color);
-  word-break: break-all;
-  text-align: center;
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-}
-
-.report-id-card .ant-btn {
-  margin-top: 4px;
-  padding: 4px 8px;
-  height: auto;
-  font-size: 12px;
+  padding: 0 !important;
 }
 
 /* Stat Card Styling */
 .stat-card {
-  background: var(--card-background);
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
-  box-shadow: var(--card-shadow);
+  background: #ffffff;
+  border: 1px solid var(--blue-border);
+  border-top: 4px solid var(--hero-end) !important;
+  border-radius: 16px;
+  box-shadow: var(--shadow);
   transition: all 0.3s ease;
-  padding: 20px 12px;
+  padding: 24px 16px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 140px;
+  min-height: 160px;
   width: 100%;
+  position: relative;
+  overflow: visible;
 }
 
 .stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--card-hover-shadow);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(2,6,23,0.1);
+  border-top-color: var(--hero-start) !important;
+}
+
+.stat-card .ant-card-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 16px !important;
 }
 
 .stat-card .ant-statistic {
@@ -97,724 +129,280 @@
 }
 
 .stat-card .ant-statistic-title {
-  color: var(--text-secondary);
-  font-size: 13px;
-  font-weight: 500;
-  margin-bottom: 8px;
-  text-align: center;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .stat-card .ant-statistic-content {
-  color: var(--text-color);
-  font-size: 28px;
-  font-weight: 600;
+  color: var(--text);
+  font-weight: 800;
+  font-size: 2rem;
+}
+
+.stat-card .ant-statistic-content-value {
+  color: var(--text);
+}
+
+.stat-card .anticon {
+  font-size: 22px;
+  margin-bottom: 0px;
+  color: var(--hero-end);
+  background: rgba(59, 167, 244, 0.1);
+  padding: 10px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
 }
 
-.stat-card .ant-statistic-content .anticon {
-  font-size: 32px;
-  vertical-align: middle;
+/* Override any Ant Design default borders */
+.stat-card.ant-card {
+  border-top: 4px solid var(--hero-end) !important;
 }
 
-/* Analysis Card */
-.analysis-card {
-  background: var(--card-background);
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
-  box-shadow: var(--card-shadow);
-  height: fit-content;
-}
-
-.analysis-card .ant-card-head-title {
-  color: var(--primary-color);
-  font-weight: 600;
-}
-
-/* Form Styling */
-.ant-form-item-label > label {
-  color: var(--text-color);
-  font-weight: 500;
-}
-
-.ant-input,
-.ant-select-selector,
-.ant-input-number {
-  background: var(--background-light);
-  border-color: var(--border-color);
-  color: var(--text-color);
-}
-
-.ant-input:focus,
-.ant-select-focused .ant-select-selector,
-.ant-input-number:focus {
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
-}
-
-.ant-slider-rail {
-  background: var(--background-light);
-}
-
-.ant-slider-track {
-  background: var(--primary-color);
-}
-
-.ant-slider-handle {
-  border-color: var(--primary-color);
-}
-
-.ant-slider-handle:focus {
-  box-shadow: 0 0 0 5px rgba(24, 144, 255, 0.2);
-}
-
-/* Results Card */
-.results-card {
-  background: var(--card-background);
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
-  box-shadow: var(--card-shadow);
-}
-
-.results-card .ant-card-head-title {
-  color: var(--primary-color);
-  font-weight: 600;
-}
-
-.prediction-results {
-  padding: 16px 0;
-}
-
-.risk-assessment {
-  margin-bottom: 24px;
-}
-
-.risk-level {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 16px;
-  border-radius: 8px;
-  margin-bottom: 16px;
-  font-weight: 600;
-  font-size: 18px;
-}
-
-.risk-level.low {
-  background: rgba(82, 196, 26, 0.1);
-  border: 2px solid #52c41a;
-  color: #52c41a;
-}
-
-.risk-level.medium {
-  background: rgba(250, 173, 20, 0.1);
-  border: 2px solid #faad14;
-  color: #faad14;
-}
-
-.risk-level.high {
-  background: rgba(255, 122, 69, 0.1);
-  border: 2px solid #ff7a45;
-  color: #ff7a45;
-}
-
-.risk-level.critical {
-  background: rgba(255, 77, 79, 0.1);
-  border: 2px solid #ff4d4f;
-  color: #ff4d4f;
-  animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-  0% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.02);
-  }
-  100% {
-    transform: scale(1);
-  }
-}
-
-.risk-text {
-  margin-left: 8px;
-}
-
-.predicted-diseases {
-  margin-bottom: 24px;
-}
-
-.predicted-diseases h4 {
-  color: var(--primary-color);
-  margin-bottom: 12px;
-}
-
-.disease-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 0;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.disease-item:last-child {
-  border-bottom: none;
-}
-
-.recommendations {
-  margin-bottom: 24px;
-}
-
-.recommendations h4 {
-  color: var(--primary-color);
-  margin-bottom: 12px;
-}
-
-.recommendations ul {
-  margin: 0;
-  padding-left: 20px;
-}
-
-.recommendations li {
-  color: var(--text-color);
-  margin-bottom: 8px;
-  line-height: 1.5;
-}
-
-.confidence-meter {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.confidence-meter span {
-  color: var(--text-color);
-  font-weight: 500;
-  min-width: 120px;
-}
-
-.no-prediction {
-  text-align: center;
-  padding: 48px 24px;
-  color: var(--text-secondary);
-}
-
-.no-prediction p {
-  margin-top: 16px;
-  font-size: 16px;
-}
-
-/* Chart Cards */
-.chart-card {
-  background: var(--card-background);
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
-  box-shadow: var(--card-shadow);
-}
-
-.chart-card .ant-card-head-title {
-  color: var(--primary-color);
-  font-weight: 600;
-}
-
-.chart-card canvas {
-  max-height: 400px !important;
-}
-
-/* History Card */
-.history-card {
-  background: var(--card-background);
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
-  box-shadow: var(--card-shadow);
-}
-
-.history-card .ant-card-head-title {
-  color: var(--primary-color);
-  font-weight: 600;
-}
-
-.timeline-item {
-  padding: 8px 0;
-}
-
-.timeline-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
-}
-
-.timeline-header .location {
-  font-weight: 600;
-  color: var(--text-color);
-  font-size: 16px;
-}
-
-.timeline-content {
-  color: var(--text-secondary);
-}
-
-.timeline-content p {
-  margin: 4px 0;
-  font-size: 14px;
-}
-
-.timestamp {
-  font-size: 12px !important;
-  color: var(--text-secondary) !important;
-  font-style: italic;
-}
-
-/* Progress Bars */
-.ant-progress-text {
-  color: var(--text-color) !important;
-}
-
-.ant-progress-bg {
-  background: var(--background-light) !important;
-}
-
-/* Button Styling */
-.ant-btn-primary {
-  background: var(--primary-color);
-  border-color: var(--primary-color);
-  height: 48px;
-  font-size: 16px;
-  font-weight: 600;
-}
-
-.ant-btn-primary:hover {
-  background: var(--primary-hover);
-  border-color: var(--primary-hover);
-}
-
-.ant-btn-primary.ant-btn-loading {
-  background: var(--primary-color);
-  border-color: var(--primary-color);
-}
-
-/* Tag Styling */
-.ant-tag {
-  border-radius: 4px;
-  font-weight: 500;
-  padding: 4px 8px;
-}
-
-/* Timeline Styling */
-.ant-timeline-item-content {
-  margin-left: 16px;
-}
-
-.ant-timeline .ant-timeline-item-tail {
-  border-left-color: var(--border-color);
-}
-
-/* Responsive Design */
-@media (max-width: 1200px) {
-  .water-quality-prediction {
-    padding: 16px;
-  }
-
-  .chart-card canvas {
-    max-height: 300px !important;
-  }
-
-  /* Keep 4 in row until tablet size, then 2x2 */
-  .stats-row.ant-row {
-    flex-wrap: wrap !important;
-  }
-  
-  .stats-row > .ant-col {
-    flex: 1 1 calc(50% - 16px) !important;
-    max-width: calc(50% - 16px) !important;
-    margin-bottom: 16px !important;
-  }
-}
-
-@media (max-width: 768px) {
-  .prediction-header h2 {
-    font-size: 24px;
-  }
-
-  /* Single column on mobile */
-  .stats-row > .ant-col {
-    flex: 1 1 100% !important;
-    max-width: 100% !important;
-    margin-bottom: 12px !important;
-  }
-
-  .stat-card {
-    min-height: 120px;
-    padding: 16px;
-  }
-
-  .stat-card .ant-statistic-content {
-    font-size: 24px;
-  }
-
-  .stat-card .ant-statistic-content .anticon {
-    font-size: 28px;
-  }
-
-  .risk-level {
-    font-size: 16px;
-    padding: 12px;
-  }
-
-  .timeline-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-  }
-
-  .disease-item {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
-  }
-
-  .confidence-meter {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-  }
-
-  .confidence-meter span {
-    min-width: auto;
-  }
-}
-
-@media (max-width: 480px) {
-  .prediction-header h2 {
-    font-size: 20px;
-  }
-
-  .prediction-header p {
-    font-size: 14px;
-  }
-
-  .risk-level {
-    font-size: 14px;
-    padding: 8px;
-  }
-
-  .chart-card canvas {
-    max-height: 250px !important;
-  }
-
-  .no-prediction {
-    padding: 32px 16px;
-  }
-
-  .timeline-content p {
-    font-size: 13px;
-  }
-}
-
-/* Dark mode specific adjustments */
-[data-theme="dark"] .water-quality-prediction {
-  color: var(--text-color);
-}
-
-[data-theme="dark"] .risk-level.low {
-  background: rgba(82, 196, 26, 0.15);
-  color: #73d13d;
-}
-
-[data-theme="dark"] .risk-level.medium {
-  background: rgba(250, 173, 20, 0.15);
-  color: #ffc53d;
-}
-
-[data-theme="dark"] .risk-level.high {
-  background: rgba(255, 122, 69, 0.15);
-  color: #ff9c6e;
-}
-
-[data-theme="dark"] .risk-level.critical {
-  background: rgba(255, 77, 79, 0.15);
-  color: #ff7875;
-}
-
-[data-theme="dark"] .disease-item {
-  border-bottom-color: var(--border-color);
-}
-
-[data-theme="dark"] .ant-input::placeholder,
-[data-theme="dark"] .ant-select-selection-placeholder {
-  color: var(--text-secondary);
-}
-
-[data-theme="dark"] .ant-slider-mark-text {
-  color: var(--text-secondary);
-}
-
-/* Loading States */
-.ant-btn-loading .ant-btn-loading-icon {
-  margin-right: 8px;
-}
-
-/* Custom Scrollbar for Timeline */
-.ant-timeline::-webkit-scrollbar {
-  width: 6px;
-}
-
-.ant-timeline::-webkit-scrollbar-track {
-  background: var(--background-light);
-  border-radius: 3px;
-}
-
-.ant-timeline::-webkit-scrollbar-thumb {
-  background: var(--border-color);
-  border-radius: 3px;
-}
-
-.ant-timeline::-webkit-scrollbar-thumb:hover {
-  background: var(--primary-color);
-}
-
-/* Animation for new predictions */
-.prediction-results {
-  animation: fadeInUp 0.5s ease-out;
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* ========================================= */
-/* IoT Data Entry Feature Styles            */
-/* ========================================= */
-
-.data-entry-mode-selector {
-  background: transparent;
-  border: none;
-  padding: 0;
-  margin-bottom: 16px;
-}
-
-.data-entry-mode-selector .mode-header h4 {
-  color: var(--text-color);
-  font-size: 14px;
-  font-weight: 600;
-  margin-bottom: 12px;
-}
-
-.mode-radio-group.ant-radio-group {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  width: 100%;
-}
-
-.mode-radio-group .ant-radio-button-wrapper {
-  flex: 1;
-  min-width: 200px;
-  height: 64px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  border-radius: 16px !important;
-  font-weight: 500;
-  font-size: 13px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border: 1px solid rgba(255, 255, 255, 0.18) !important;
-  background: rgba(255, 255, 255, 0.05) !important;
-  backdrop-filter: blur(10px) !important;
-  -webkit-backdrop-filter: blur(10px) !important;
-  color: var(--text-color) !important;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-  padding: 12px 20px;
-  text-align: center;
-  line-height: 1.4;
-}
-
-.mode-radio-group .ant-radio-button-wrapper > span {
-  color: inherit !important;
-  position: relative;
-  z-index: 1;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  white-space: nowrap;
-  text-align: center;
-  width: 100%;
-  padding: 0 8px;
-}
-
-.mode-radio-group .ant-radio-button-wrapper:hover {
-  border-color: rgba(24, 144, 255, 0.4) !important;
-  background: rgba(24, 144, 255, 0.1) !important;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(24, 144, 255, 0.15);
-}
-
-.mode-radio-group .ant-radio-button-wrapper:hover > span {
-  color: var(--primary-color) !important;
-}
-
-.mode-radio-group .ant-radio-button-wrapper-checked {
-  background: linear-gradient(135deg, rgba(24, 144, 255, 0.9) 0%, rgba(64, 169, 255, 0.9) 100%) !important;
-  border-color: rgba(24, 144, 255, 0.5) !important;
-  color: white !important;
-  backdrop-filter: blur(20px) !important;
-  -webkit-backdrop-filter: blur(20px) !important;
-  box-shadow: 0 8px 32px rgba(24, 144, 255, 0.4), 
-              inset 0 1px 1px rgba(255, 255, 255, 0.25);
-  transform: scale(1.02);
-}
-
-.mode-radio-group .ant-radio-button-wrapper-checked > span {
-  color: white !important;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-}
-
-.mode-radio-group .ant-radio-button-wrapper-checked::before {
+.stat-card.ant-card::before {
   display: none !important;
 }
 
-.mode-radio-group .ant-radio-button-wrapper .anticon {
+/* Report ID Card Specific Styling */
+.report-id-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  height: 100%;
+}
+
+.report-id-card .ant-statistic-title {
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.report-id-card .report-id-text {
+  font-family: 'JetBrains Mono', 'Consolas', monospace;
+  font-size: 12px;
+  color: var(--text);
+  background: #f1f5f9;
+  padding: 6px 12px;
+  border-radius: 6px;
+  word-break: break-all;
+  text-align: center;
+  max-width: 100%;
+  border: 1px solid var(--blue-border);
+}
+
+.report-id-card .ant-btn {
+  margin-top: 8px;
+  padding: 4px 16px;
+  height: 30px;
+  font-size: 12px;
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.report-id-card .anticon {
   font-size: 18px;
-  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+  color: var(--hero-end);
+  background: rgba(59, 167, 244, 0.1);
+  padding: 8px;
+  border-radius: 50%;
+  margin-bottom: 4px;
 }
 
-/* IoT Device Panel */
-.iot-device-panel {
-  animation: fadeInUp 0.3s ease-out;
+/* Cards General Styling - SCOPED */
+.water-quality-prediction .ant-card {
+  border-radius: 16px !important;
+  border: 1px solid var(--blue-border) !important;
+  box-shadow: var(--shadow) !important;
+  overflow: hidden;
 }
 
-.iot-device-panel .ant-alert {
+.water-quality-prediction .ant-card.stat-card {
+  border-top: 4px solid var(--hero-end) !important;
+}
+
+.water-quality-prediction .ant-card-head {
+  border-bottom: 1px solid var(--blue-border) !important;
+  padding: 0 24px !important;
+  min-height: 64px !important;
+}
+
+.water-quality-prediction .ant-card-head-title {
+  font-size: 1.1rem !important;
+  font-weight: 700 !important;
+  color: var(--hero-start) !important;
+  padding: 20px 0 !important;
+}
+
+.water-quality-prediction .ant-card-body {
+  padding: 24px !important;
+}
+
+/* Form Styling - SCOPED */
+.water-quality-prediction .ant-form-item-label > label {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.water-quality-prediction .ant-input,
+.water-quality-prediction .ant-select-selector,
+.water-quality-prediction .ant-input-number,
+.water-quality-prediction .ant-slider-rail {
+  border-radius: 8px !important;
+}
+
+.water-quality-prediction .ant-input:focus,
+.water-quality-prediction .ant-select-selector:focus {
+  border-color: var(--hero-end) !important;
+  box-shadow: 0 0 0 2px rgba(59, 167, 244, 0.2) !important;
+}
+
+/* Buttons - SCOPED */
+.water-quality-prediction .ant-btn-primary {
+  background: linear-gradient(135deg, var(--hero-start), var(--hero-end));
+  border: none;
+  box-shadow: 0 4px 12px rgba(27, 117, 208, 0.25);
+  font-weight: 600;
   border-radius: 8px;
 }
 
-.iot-device-panel .ant-select-selector {
-  min-height: 64px;
-  padding: 8px 12px;
+.water-quality-prediction .ant-btn-primary:hover {
+  background: linear-gradient(135deg, var(--hero-end), var(--hero-start));
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(27, 117, 208, 0.35);
 }
 
-.iot-device-panel .ant-select-selection-item {
-  line-height: 24px !important;
-  padding-top: 8px;
-}
-
-.fetch-iot-btn {
-  height: 64px !important;
-  border-radius: 8px !important;
-  font-weight: 600;
-  font-size: 14px;
-  background: linear-gradient(135deg, #52c41a 0%, #73d13d 100%);
-  border: none;
-  box-shadow: 0 4px 12px rgba(82, 196, 26, 0.35);
+/* IoT Device Cards */
+.iot-device-card {
+  background: #ffffff;
+  border: 1px solid var(--blue-border);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
   transition: all 0.3s ease;
+  cursor: pointer;
 }
 
-.fetch-iot-btn:hover:not(:disabled) {
-  background: linear-gradient(135deg, #73d13d 0%, #95de64 100%);
+.iot-device-card:hover {
+  border-color: var(--hero-end);
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(82, 196, 26, 0.45);
+  box-shadow: 0 8px 24px rgba(2,6,23,0.08);
 }
 
-.fetch-iot-btn:disabled {
-  background: var(--border-color);
-  box-shadow: none;
+.iot-device-card.selected {
+  border-color: var(--hero-start);
+  background: rgba(59, 167, 244, 0.04);
+  box-shadow: 0 0 0 2px rgba(59, 167, 244, 0.2);
 }
 
-/* IoT Device Dropdown Options */
-.ant-select-dropdown .ant-select-item {
-  padding: 10px 12px;
+.device-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
 }
 
-.ant-select-dropdown .ant-select-item-option-disabled {
-  opacity: 0.6;
+.device-name {
+  font-weight: 700;
+  color: var(--text);
 }
 
-/* IoT Status Tags in dropdown */
-.iot-device-panel .ant-tag {
-  margin: 0;
-  font-size: 11px;
+.device-status {
+  font-size: 12px;
   padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: 600;
 }
 
-/* Dark Mode Adjustments for IoT Panel */
-.dark-mode .mode-radio-group .ant-radio-button-wrapper {
-  background: rgba(22, 33, 62, 0.4) !important;
-  border-color: rgba(255, 255, 255, 0.12) !important;
-  color: #e0e0e0 !important;
+.device-status.online {
+  background: #f6ffed;
+  color: #52c41a;
+  border: 1px solid #b7eb8f;
 }
 
-.dark-mode .mode-radio-group .ant-radio-button-wrapper:hover {
-  border-color: rgba(64, 169, 255, 0.5) !important;
-  background: rgba(24, 144, 255, 0.15) !important;
-  color: #40a9ff !important;
+.device-status.offline {
+  background: #fff1f0;
+  color: #ff4d4f;
+  border: 1px solid #ffa39e;
 }
 
-.dark-mode .mode-radio-group .ant-radio-button-wrapper-checked {
-  background: linear-gradient(135deg, rgba(24, 144, 255, 0.85) 0%, rgba(64, 169, 255, 0.85) 100%) !important;
-  border-color: rgba(64, 169, 255, 0.6) !important;
+.device-status.simulated {
+  background: #e6f7ff;
+  color: #1890ff;
+  border: 1px solid #91d5ff;
 }
 
-.dark-mode .iot-device-panel .ant-alert-info {
-  background: rgba(24, 144, 255, 0.1);
-  border-color: rgba(24, 144, 255, 0.3);
+.device-details {
+  font-size: 13px;
+  color: var(--muted);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
-.dark-mode .iot-device-panel .ant-alert-success {
-  background: rgba(82, 196, 26, 0.1);
-  border-color: rgba(82, 196, 26, 0.3);
+/* Analysis Results */
+.analysis-result-card {
+  background: #ffffff;
+  border-radius: 16px;
+  overflow: hidden;
 }
 
-/* Responsive adjustments for IoT panel */
+.risk-indicator {
+  padding: 16px;
+  border-radius: 12px;
+  text-align: center;
+  margin-bottom: 24px;
+  color: white;
+  font-weight: 700;
+  font-size: 1.2rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.risk-indicator.low { background: var(--success); }
+.risk-indicator.medium { background: var(--warning); }
+.risk-indicator.high { background: #fa8c16; }
+.risk-indicator.critical { background: var(--danger); }
+
+/* Timeline - SCOPED */
+.water-quality-prediction .ant-timeline-item-head {
+  background-color: #ffffff;
+}
+
+.water-quality-prediction .ant-timeline-item-content {
+  font-size: 14px;
+  color: var(--text);
+}
+
+/* Responsive */
 @media (max-width: 768px) {
-  .mode-radio-group.ant-radio-group {
-    flex-direction: column;
+  .prediction-header {
+    padding: 40px 20px 32px;
   }
-
-  .mode-radio-group .ant-radio-button-wrapper {
-    min-width: 100%;
-    width: 100%;
-    height: auto;
-    min-height: 56px;
-    padding: 14px 16px;
+  
+  .stats-row.ant-row {
+    flex-wrap: wrap !important;
+    padding: 0 16px;
   }
-
-  .iot-device-panel .ant-row {
-    flex-direction: column;
+  
+  .stats-row > .ant-col {
+    flex: 0 0 100% !important;
+    margin-bottom: 16px !important;
   }
-
-  .fetch-iot-btn {
-    height: 48px !important;
-    margin-top: 12px;
-  }
-
-  .iot-device-panel .ant-select-selector {
-    min-height: 56px;
-  }
-}
-
-@media (max-width: 480px) {
-  .data-entry-mode-selector {
-    padding: 12px;
-  }
-
-  .mode-radio-group .ant-radio-button-wrapper {
-    height: 44px;
-    font-size: 12px;
+  
+  .water-quality-prediction > .ant-row {
+    padding-left: 16px;
+    padding-right: 16px;
   }
 }

@@ -31,6 +31,9 @@ alerts_col = db["water_alerts"]
 asha_workers_col = db["asha_workers"]
 asha_col = asha_workers_col  # Alias for compatibility
 
+# Admin/Government workers collection
+admin_workers_col = db["admin_workers"]
+
 # Audit logs collection (for user management actions)
 audit_logs_col = db["audit_logs"]
 
@@ -51,26 +54,30 @@ async def create_or_update_asha_on_register(user_doc: dict):
 
     user_id = user_doc["_id"]
 
-    doc = {
+    full_name = user_doc.get("full_name") or user_doc.get("name")
+
+    # Values that should only be set on first insert
+    insert_defaults = {
         "user_id": user_id,
-        "full_name": user_doc.get("full_name") or user_doc.get("name"),
+        "status": "active",
+        "created_at": datetime.utcnow(),
+        "last_submission_at": None,
+        # reporting counters
+        "symptom_report_count": 0,
+        "water_report_count": 0,
+        # report lists
+        "symptom_report_ids": [],
+        "water_report_ids": [],
+    }
+
+    # Fields we always keep in sync (safe to overwrite)
+    set_fields = {
+        "full_name": full_name,
         "email": user_doc.get("email"),
         "location": user_doc.get("location"),
         "phone": user_doc.get("phone"),
         "organization": user_doc.get("organization"),
-        "status": "active",
-
-        "created_at": datetime.utcnow(),
         "updated_at": datetime.utcnow(),
-        "last_submission_at": None,
-
-        # reporting counters
-        "symptom_report_count": 0,
-        "water_report_count": 0,
-
-        # report lists
-        "symptom_report_ids": [],
-        "water_report_ids": [],
     }
 
     # Ensure unique index on user_id
@@ -80,15 +87,8 @@ async def create_or_update_asha_on_register(user_doc: dict):
     await asha_workers_col.update_one(
         {"user_id": user_id},
         {
-            "$setOnInsert": doc,
-            "$set": {
-                "full_name": doc["full_name"],
-                "email": doc["email"],
-                "location": doc["location"],
-                "phone": doc["phone"],
-                "organization": doc.get("organization"),
-                "updated_at": datetime.utcnow(),
-            }
+            "$setOnInsert": insert_defaults,
+            "$set": set_fields,
         },
         upsert=True
     )
@@ -117,6 +117,47 @@ async def record_asha_submission(user_id: ObjectId, report_type: str, report_id:
                 "last_submission_at": datetime.utcnow(),
                 "updated_at": datetime.utcnow(),
             },
+        },
+        upsert=True
+    )
+
+
+async def create_or_update_admin_on_register(user_doc: dict):
+    """
+    Called when a government/admin user is created.
+    Creates an admin worker record if not already present.
+    """
+
+    user_id = user_doc["_id"]
+    full_name = user_doc.get("full_name") or user_doc.get("name")
+
+    # Values that should only be set on first insert
+    insert_defaults = {
+        "user_id": user_id,
+        "role": user_doc.get("role"),
+        "status": "active",
+        "created_at": datetime.utcnow(),
+    }
+
+    # Fields we always keep in sync (safe to overwrite)
+    set_fields = {
+        "full_name": full_name,
+        "email": user_doc.get("email"),
+        "location": user_doc.get("location"),
+        "phone": user_doc.get("phone"),
+        "department": user_doc.get("organization"),
+        "updated_at": datetime.utcnow(),
+    }
+
+    # Ensure unique index on user_id
+    await admin_workers_col.create_index("user_id", unique=True)
+
+    # Upsert: create if not exist, otherwise update basic fields
+    await admin_workers_col.update_one(
+        {"user_id": user_id},
+        {
+            "$setOnInsert": insert_defaults,
+            "$set": set_fields,
         },
         upsert=True
     )

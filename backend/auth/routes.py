@@ -18,7 +18,7 @@ from backend.auth.models import (
 )
 from backend.auth.utils import hash_password, verify_password, create_access_token
 from backend.auth.deps import get_current_user
-from backend.services.mongo_client import users_col, create_or_update_asha_on_register
+from backend.services.mongo_client import users_col, create_or_update_asha_on_register, create_or_update_admin_on_register
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
@@ -300,6 +300,9 @@ async def admin_create_government_user(
 
     if not created:
         raise HTTPException(status_code=500, detail="Failed to create government user")
+
+    # Create admin worker profile document
+    await create_or_update_admin_on_register(created)
 
     base_user = user_helper(created)
     return {**base_user, "temp_password": temp_password}

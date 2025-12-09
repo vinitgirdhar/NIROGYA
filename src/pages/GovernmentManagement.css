@@ -1,0 +1,87 @@
+.gov-page-wrapper {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.gov-header-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(24, 144, 255, 0.06);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 12px;
+  color: #1890ff;
+  border: 1px solid rgba(24, 144, 255, 0.2);
+}
+
+.gov-title {
+  margin-top: 16px;
+  margin-bottom: 4px;
+}
+
+.gov-subtitle {
+  color: #888;
+}
+
+.gov-card {
+  border-radius: 16px;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+}
+
+.gov-card .ant-card-head-title {
+  font-weight: 600;
+}
+
+.gov-card .ant-form-item-label > label {
+  font-weight: 500;
+}
+
+.gov-card .ant-input,
+.gov-card .ant-select-selector {
+  border-radius: 10px !important;
+}
+
+.asha-card {
+  border-top: 4px solid #1677ff;
+}
+
+.gov-user-card {
+  border-top: 4px solid #52c41a;
+}
+
+.hint-text {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #888;
+}
+
+.credentials-box {
+  border-radius: 12px;
+  background: #fafafa;
+  padding: 12px 16px;
+  border: 1px solid #e5e7eb;
+}
+
+.credentials-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  gap: 12px;
+}
+
+.credentials-row code {
+  background: #111827;
+  color: #e5e7eb;
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.credentials-hint {
+  margin-top: 10px;
+  font-size: 12px;
+  color: #666;
+}
