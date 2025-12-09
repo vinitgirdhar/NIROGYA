@@ -117,7 +117,7 @@ const About: React.FC = () => {
                     title={stat.title}
                     value={stat.value}
                     suffix={stat.suffix}
-                    valueStyle={{ color: "#1890ff", fontWeight: "bold" }}
+                    className="hero-stat-item"
                   />
                 </Col>
               ))}

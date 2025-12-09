@@ -58,12 +58,35 @@
 }
 
 .hero-stats .ant-statistic-title {
-  color: rgba(255, 255, 255, 0.8) !important;
+  color: rgba(255, 255, 255, 0.9) !important;
   font-weight: 500;
+  font-size: 14px;
 }
 
 .hero-stats .ant-statistic-content {
   color: white !important;
+}
+
+.hero-stats .ant-statistic-content-value {
+  color: white !important;
+  font-weight: bold;
+}
+
+.hero-stats .ant-statistic-content-suffix {
+  color: white !important;
+}
+
+.hero-stats .ant-col {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  padding: 20px;
+  transition: all 0.3s ease;
+}
+
+.hero-stats .ant-col:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateY(-3px);
 }
 
 /* Container */
