@@ -32,7 +32,7 @@ const { Title, Text } = Typography;
 const { Option } = Select;
 
 // API BASE URL
-const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:8000";
+const API_BASE = process.env.REACT_APP_BACKEND_URL || "http://localhost:8000";
 
 interface AshaFormValues {
   full_name: string;

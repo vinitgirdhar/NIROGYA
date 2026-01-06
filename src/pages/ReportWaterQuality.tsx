@@ -21,7 +21,8 @@ import './ReportWaterQuality.css';
 // --- Local API helper: Sends data to FastAPI backend ---
 async function postReport(payload: any) {
   try {
-    const response = await fetch("http://localhost:8000/report", {
+    const API_BASE = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000';
+    const response = await fetch(`${API_BASE}/report`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -245,7 +246,8 @@ const WaterQualityPrediction: React.FC = () => {
 
     async function loadSaved() {
       try {
-        const res = await fetch("http://localhost:8000/water_reports?limit=50");
+        const API_BASE = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000';
+        const res = await fetch(`${API_BASE}/water_reports?limit=50`);
         if (!res.ok) throw new Error("Failed to fetch water reports");
         const docs = await res.json();
 

@@ -312,12 +312,13 @@ const DiseaseMapping: React.FC = () => {
   async function loadHotspots() {
     setLoadingHotspots(true);
     try {
+      const API_BASE = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000';
       const qs = new URLSearchParams();
       qs.set('days', String(hotspotDays));
       qs.set('threshold', String(hotspotThreshold));
       if (hotspotDiseaseFilter) qs.set('disease', hotspotDiseaseFilter);
 
-      const res = await fetch(`/api/hotspots?${qs.toString()}`, {
+      const res = await fetch(`${API_BASE}/api/hotspots?${qs.toString()}`, {
         headers: { 'Content-Type': 'application/json' },
       });
 
@@ -369,8 +370,9 @@ const DiseaseMapping: React.FC = () => {
     }
     setLoadingDistrictStats(true);
     try {
+      const API_BASE = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000';
       const res = await fetch(
-        `/api/district-disease-stats?district=${encodeURIComponent(district)}`,
+        `${API_BASE}/api/district-disease-stats?district=${encodeURIComponent(district)}`,
       );
       if (!res.ok) throw new Error('Failed to load stats');
       const data = await res.json();
@@ -405,12 +407,13 @@ const DiseaseMapping: React.FC = () => {
   async function loadPredictionOutbreaks() {
     setLoadingPredictionOutbreaks(true);
     try {
+      const API_BASE = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000';
       const qs = new URLSearchParams();
       qs.set('days', String(outbreakDays));
       if (selectedDistrict !== 'all') qs.set('district', selectedDistrict);
       if (hotspotDiseaseFilter) qs.set('disease', hotspotDiseaseFilter);
 
-      const res = await fetch(`/api/prediction-outbreaks?${qs.toString()}`, {
+      const res = await fetch(`${API_BASE}/api/prediction-outbreaks?${qs.toString()}`, {
         headers: { 'Content-Type': 'application/json' },
       });
 
